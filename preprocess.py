@@ -28,21 +28,21 @@ class Preprocess(object):
         self.unk = unk
         self.data_dir = data_dir
 
-    # def skipgram(self, user, i):
-    #     iitem = user[i]
-    #     # TODO: implement with (item_context, window items_target) as many time window consisted in user list.
-
     def skipgram(self, user, i):
         iitem = user[i]
         left = user[max(i - self.window, 0): i]
         right = user[i + 1: i + 1 + self.window]
         return iitem, [self.unk for _ in range(self.window - len(left))] + left + right + [self.unk for _ in range(self.window - len(right))]
 
+    # def skipgram_no_order(self, user, i):
+    #     iitem = user[i]
+    #     context_size = min(len(user)-1, self.window)
+    #     context = random.sample([_ for _ in user if _ != iitem], context_size)
+    #     return iitem, [self.unk for _ in range(self.window - context_size)] + context
+
     def skipgram_no_order(self, user, i):
         iitem = user[i]
-        context_size = min(len(user)-1, self.window)
-        context = random.sample([_ for _ in user if _ != iitem], context_size)
-        return iitem, [self.unk for _ in range(self.window - context_size)] + context
+        return iitem, [user[j] for j in range(len(user)) if j != i]
 
     def build(self, filepath, max_vocab=20000):
         print("building vocab...")
@@ -61,8 +61,11 @@ class Preprocess(object):
                     self.wc[item] = self.wc.get(item, 0) + 1
         print("")
         # sorted list of items in a descent order of their frequency
+        self.wc['pad'] = 1
         self.idx2item = [self.unk] + sorted(self.wc, key=self.wc.get, reverse=True)[:max_vocab - 1]
+        # self.idx2item.append('pad')
         self.item2idx = {self.idx2item[idx]: idx for idx, _ in enumerate(self.idx2item)}
+        # self.item2idx['pad'] = len(self.idx2item)
         self.vocab = set([item for item in self.item2idx])
         pickle.dump(self.wc, open(os.path.join(self.data_dir, 'ic.dat'), 'wb'))
         pickle.dump(self.vocab, open(os.path.join(self.data_dir, 'vocab.dat'), 'wb'))
@@ -91,6 +94,9 @@ class Preprocess(object):
                 for i in range(len(user)):
                     # iitem, oitems = self.skipgram(user, i)
                     iitem, oitems = self.skipgram_no_order(user, i)
+                    if not len(oitems):
+                        print('skip context item')
+                        continue
                     data.append((self.item2idx[iitem], [self.item2idx[oitem] for oitem in oitems]))
                     i += 1
         print("")

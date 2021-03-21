@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument('--hrk_weight', type=float, default=0.5, help="weight to put on hrk metric value")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
+    parser.add_argument('--window', type=int, default=100, help="window size")
 
     return parser.parse_args()
 
@@ -34,11 +35,11 @@ def main():
     args = parse_args()
     best_parameters, values, _experiment, _cur_model = optimize(
         parameters=[
-            {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-3, 1e-1]},
+            {"name": "lr", "type": "range", "value_type": "float", "bounds": [5e-2, 3e-1]},
             {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
             {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
-            {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15, 50]},
-            {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [20, 25, 36, 50, 100]},
+            {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15]},
+            {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [100, 90]},
             {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
             {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
             {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
@@ -49,7 +50,8 @@ def main():
             {"name": "cuda", "type": "fixed", "value": args.cuda},
             {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
             {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
-            {"name": "train", "type": "fixed", "value_type": "str", "value": args.train}
+            {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
+            {"name": "window", "type": "fixed", "value_type": "int", "value": args.window}
         ],
         evaluation_function=train_evaluate,
         minimize=False,
