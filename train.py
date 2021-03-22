@@ -48,31 +48,30 @@ class UserBatchDataset(Dataset):
         data = pickle.load(datapath.open('rb'))
         self.num_users = num_users
         if ws is not None:
-            self.data = []
+            data_ws = []
             for iitem, oitems in data:
                 if random.random() > ws[iitem]:
-                    self.data.append((iitem, oitems))
-        else:
-            self.data = data
+                    data_ws.append((iitem, oitems))
+            data = data_ws
 
         user_batches = []
         j = 0
         for _ in range(self.num_users):
-            batch_len = len(self.data[j][1]) + 1
+            batch_len = len(data[j][1]) + 1
             batch = ([], [])
             for _ in range(batch_len):
-                batch[0].append(self.data[j][0])
-                batch[1].append(self.data[j][1])
+                batch[0].append(data[j][0])
+                batch[1].append(data[j][1])
                 j += 1
             batch = (batch[0], np.array(batch[1]))
             user_batches.append(batch)
-        self.dataset = user_batches
+        self.data = user_batches
 
     def __len__(self):
         return self.num_users
 
     def __getitem__(self, idx):
-        batch_iitems, batch_oitems = self.dataset[idx]
+        batch_iitems, batch_oitems = self.data[idx]
         return batch_iitems, batch_oitems
 
 
