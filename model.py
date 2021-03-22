@@ -76,11 +76,13 @@ class SGNS(nn.Module):
         nvectors = self.embedding.forward_o(nitems).neg()
         # print('nvectors', nvectors.shape)
         # print('mult o and i', t.bmm(ovectors, ivectors).shape)
-        oloss = t.bmm(ovectors, ivectors).squeeze(dim=-1).sigmoid().log().mean(1)
+        oloss = t.bmm(ovectors, ivectors).squeeze(dim=-1).sigmoid().log()
         # print('oloss', oloss.shape)
         assert oloss.shape[0] == batch_size, 'oloss vector shape is different than batch size'
-        nloss = t.bmm(nvectors, ivectors).squeeze(dim=-1).sigmoid().log().view(-1, context_size, self.n_negs).sum(2).mean(1)
+        nloss = t.bmm(nvectors, ivectors).squeeze(dim=-1).sigmoid().log().view(-1, context_size, self.n_negs).sum(2)
         # print('mult n and i', t.bmm(nvectors, ivectors).shape)
         # print('nloss', nloss.shape)
         assert nloss.shape[0] == batch_size, 'nloss vector shape is different than batch size'
-        return -(oloss + nloss).mean()
+        loss = oloss + nloss
+        loss = loss.sum(1).mean()
+        return -loss
