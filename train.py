@@ -42,13 +42,49 @@ class PermutedSubsampledCorpus(Dataset):
         return iitem, np.array(oitems_samp)
 
 
+class UserBatchDataset(Dataset):
+
+    def __init__(self, datapath, num_users, ws=None):
+        data = pickle.load(datapath.open('rb'))
+        self.num_users = num_users
+        if ws is not None:
+            self.data = []
+            for iitem, oitems in data:
+                if random.random() > ws[iitem]:
+                    self.data.append((iitem, oitems))
+        else:
+            self.data = data
+
+        user_batches = []
+        j = 0
+        for _ in range(self.num_users):
+            batch_len = len(self.data[j][1]) + 1
+            batch = ([], [])
+            for _ in range(batch_len):
+                batch[0].append(self.data[j][0])
+                batch[1].append(self.data[j][1])
+                j += 1
+            batch = (batch[0], np.array(batch[1]))
+            user_batches.append(batch)
+        self.dataset = user_batches
+
+    def __len__(self):
+        return self.num_users
+
+    def __getitem__(self, idx):
+        batch_iitems, batch_oitems = self.dataset[idx]
+        return batch_iitems, batch_oitems
+
+
 def run_epoch(train_dl, epoch, sgns, optim):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
 
-    for iitem, oitems in pbar:
-        loss = sgns(iitem, oitems)
+    for batch_iitem, batch_oitems in pbar:
+        batch_iitem = t.tensor(batch_iitem)
+        batch_oitems = t.tensor(batch_oitems).squeeze()
+        loss = sgns(batch_iitem, batch_oitems)
         train_losses.append(loss.item())
         optim.zero_grad()
         loss.backward()
@@ -60,9 +96,9 @@ def run_epoch(train_dl, epoch, sgns, optim):
     return train_loss, sgns
 
 
-def train_to_dl(mini_batch_size, train_path, window, pad_idx):
-    dataset = PermutedSubsampledCorpus(train_path, window, pad_idx)
-    return DataLoader(dataset, batch_size=mini_batch_size, shuffle=True)
+def train_to_dl(train_path, num_users):
+    dataset = UserBatchDataset(train_path, num_users)
+    return DataLoader(dataset, batch_size=1, shuffle=False)
 
 
 def configure_weights(cnfg, idx2item):
@@ -99,8 +135,7 @@ def train(cnfg):
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
-    train_loader = train_to_dl(cnfg['mini_batch'],
-                               pathlib.Path(cnfg['data_dir'], cnfg['train']))
+    train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['num_users'])
     for epoch in range(1, cnfg['max_epoch'] + 1):
         _train_loss = run_epoch(train_loader, epoch, sgns, optim)
 
@@ -135,10 +170,8 @@ def train_early_stop(cnfg, eval_set, user_lsts, plot=True):
     patience_count = 0
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = train_to_dl(cnfg['mini_batch'],
-                                   pathlib.Path(cnfg['data_dir'], cnfg['train']),
-                                   cnfg['window'],
-                                   item2idx['pad'])
+        train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']),
+                                   cnfg['num_users'])
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         # log specific training example loss
 
