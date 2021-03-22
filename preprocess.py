@@ -78,6 +78,7 @@ class Preprocess(object):
         step = 0
         data = []
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
+            num_users = 0
             for line in file:
                 step += 1
                 if not step % 1000:
@@ -91,17 +92,19 @@ class Preprocess(object):
                         user.append(item)
                     else:
                         user.append(self.unk)
+                if len(user) < 2:
+                    print('skip user')
+                    continue
+                num_users += 1
                 for i in range(len(user)):
                     # iitem, oitems = self.skipgram(user, i)
                     iitem, oitems = self.skipgram_no_order(user, i)
-                    if not len(oitems):
-                        print('skip context item')
-                        continue
                     data.append((self.item2idx[iitem], [self.item2idx[oitem] for oitem in oitems]))
                     i += 1
         print("")
         pickle.dump(data, open(savepath, 'wb'))
         print("conversion done")
+        print("num of users:", num_users)
 
 
 def main():
