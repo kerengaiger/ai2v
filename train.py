@@ -60,7 +60,7 @@ class UserBatchDataset(Dataset):
                 oitems = [j for j in user if j != iitem]
                 batch[0].append(iitem)
                 batch[1].append(oitems)
-                if len(batch[0]) == max_batch_size:
+                if len(batch[0]) == max_batch_size and len(user) > max_batch_size:
                     data_batches.append(batch)
                     batch = ([], [])
             data_batches.append(batch)
@@ -83,6 +83,7 @@ def run_epoch(train_dl, epoch, sgns, optim):
     for batch_iitem, batch_oitems in pbar:
         batch_iitem = t.tensor(batch_iitem)
         batch_oitems = t.tensor(batch_oitems).squeeze()
+        # print(batch_iitem.shape, batch_oitems.shape)
         loss = sgns(batch_iitem, batch_oitems)
         train_losses.append(loss.item())
         optim.zero_grad()
