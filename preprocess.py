@@ -96,11 +96,8 @@ class Preprocess(object):
                     print('skip user')
                     continue
                 num_users += 1
-                for i in range(len(user)):
-                    # iitem, oitems = self.skipgram(user, i)
-                    iitem, oitems = self.skipgram_no_order(user, i)
-                    data.append((self.item2idx[iitem], [self.item2idx[oitem] for oitem in oitems]))
-                    i += 1
+                data.append([self.item2idx[item] for item in user])
+
         print("")
         pickle.dump(data, open(savepath, 'wb'))
         print("conversion done")
