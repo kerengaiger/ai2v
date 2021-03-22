@@ -44,9 +44,8 @@ class PermutedSubsampledCorpus(Dataset):
 
 class UserBatchDataset(Dataset):
 
-    def __init__(self, datapath, num_users, ws=None):
+    def __init__(self, datapath, max_batch_size, ws=None):
         data = pickle.load(datapath.open('rb'))
-        self.num_users = num_users
         if ws is not None:
             data_ws = []
             for iitem, oitems in data:
@@ -54,25 +53,26 @@ class UserBatchDataset(Dataset):
                     data_ws.append((iitem, oitems))
             data = data_ws
 
-        user_batches = []
-        j = 0
-        for _ in range(self.num_users):
-            batch_len = len(data[j][1]) + 1
+        data_batches = []
+        for user in data:
             batch = ([], [])
-            for _ in range(batch_len):
-                batch[0].append(data[j][0])
-                batch[1].append(data[j][1])
-                j += 1
-            batch = (batch[0], np.array(batch[1]))
-            user_batches.append(batch)
-        self.data = user_batches
+            for iitem in user:
+                oitems = [j for j in user if j != iitem]
+                batch[0].append(iitem)
+                batch[1].append(oitems)
+                if len(batch[0]) == max_batch_size:
+                    data_batches.append(batch)
+                    batch = ([], [])
+            data_batches.append(batch)
+
+        self.data = data_batches
 
     def __len__(self):
-        return self.num_users
+        return len(self.data)
 
     def __getitem__(self, idx):
         batch_iitems, batch_oitems = self.data[idx]
-        return batch_iitems, batch_oitems
+        return batch_iitems, np.array(batch_oitems)
 
 
 def run_epoch(train_dl, epoch, sgns, optim):
@@ -83,7 +83,6 @@ def run_epoch(train_dl, epoch, sgns, optim):
     for batch_iitem, batch_oitems in pbar:
         batch_iitem = t.tensor(batch_iitem)
         batch_oitems = t.tensor(batch_oitems).squeeze()
-        print(batch_iitem.shape)
         loss = sgns(batch_iitem, batch_oitems)
         train_losses.append(loss.item())
         optim.zero_grad()
@@ -96,8 +95,8 @@ def run_epoch(train_dl, epoch, sgns, optim):
     return train_loss, sgns
 
 
-def train_to_dl(train_path, num_users):
-    dataset = UserBatchDataset(train_path, num_users)
+def train_to_dl(train_path, max_batch_size):
+    dataset = UserBatchDataset(train_path, max_batch_size)
     return DataLoader(dataset, batch_size=1, shuffle=False)
 
 
@@ -135,7 +134,7 @@ def train(cnfg):
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
-    train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['num_users'])
+    train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
     for epoch in range(1, cnfg['max_epoch'] + 1):
         _train_loss = run_epoch(train_loader, epoch, sgns, optim)
 
@@ -171,7 +170,7 @@ def train_early_stop(cnfg, eval_set, user_lsts, plot=True):
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']),
-                                   cnfg['num_users'])
+                                   cnfg['max_batch_size'])
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         # log specific training example loss
 
