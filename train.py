@@ -81,6 +81,7 @@ def run_epoch(train_dl, epoch, sgns, optim):
     train_losses = []
 
     for batch_iitem, batch_oitems in pbar:
+        print(batch_iitem.shape)
         batch_iitem = t.tensor(batch_iitem)
         batch_oitems = t.tensor(batch_oitems).squeeze()
         loss = sgns(batch_iitem, batch_oitems)
