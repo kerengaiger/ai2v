@@ -56,11 +56,11 @@ class UserBatchDataset(Dataset):
         data_batches = []
         for user in data:
             batch = ([], [])
-            for iitem in user:
-                oitems = [j for j in user if j != iitem]
-                batch[0].append(iitem)
+            for i in range(len(user)):
+                oitems = [j for j in user if j != user[i]]
+                batch[0].append(user[i])
                 batch[1].append(oitems)
-                if len(batch[0]) == max_batch_size and len(user) > max_batch_size:
+                if len(batch[0]) == max_batch_size and i < (len(user) - 1):
                     data_batches.append(batch)
                     batch = ([], [])
             data_batches.append(batch)
