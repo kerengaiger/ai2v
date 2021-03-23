@@ -1,3 +1,6 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+
 import argparse
 
 from ax.service.managed_loop import optimize
