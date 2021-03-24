@@ -16,7 +16,6 @@ def parse_args():
     parser.add_argument('--full_train_file', type=str, default='./data/full_train.dat', help="full train file name")
     parser.add_argument('--train_file', type=str, default='./data/train.dat', help="train file name")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
-    parser.add_argument('--window', type=int, default=5, help="window size")
     parser.add_argument('--max_vocab', type=int, default=20000, help="maximum number of vocab")
     return parser.parse_args()
 
@@ -27,22 +26,6 @@ class Preprocess(object):
         self.window = window
         self.unk = unk
         self.data_dir = data_dir
-
-    def skipgram(self, user, i):
-        iitem = user[i]
-        left = user[max(i - self.window, 0): i]
-        right = user[i + 1: i + 1 + self.window]
-        return iitem, [self.unk for _ in range(self.window - len(left))] + left + right + [self.unk for _ in range(self.window - len(right))]
-
-    # def skipgram_no_order(self, user, i):
-    #     iitem = user[i]
-    #     context_size = min(len(user)-1, self.window)
-    #     context = random.sample([_ for _ in user if _ != iitem], context_size)
-    #     return iitem, [self.unk for _ in range(self.window - context_size)] + context
-
-    def skipgram_no_order(self, user, i):
-        iitem = user[i]
-        return iitem, [user[j] for j in range(len(user)) if j != i]
 
     def build(self, filepath, max_vocab=20000):
         print("building vocab...")
