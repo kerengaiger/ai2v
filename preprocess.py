@@ -89,7 +89,7 @@ class Preprocess(object):
 
 def main():
     args = parse_args()
-    preprocess = Preprocess(window=args.window, unk=args.unk, data_dir=args.data_dir)
+    preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
     preprocess.build(args.vocab, max_vocab=args.max_vocab)
     preprocess.convert(args.full_corpus, args.full_train_file)
     preprocess.convert(args.train_corpus, args.train_file)
