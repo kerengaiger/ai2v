@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('--valid_path', type=str, default='./data/valid.txt', help="path to save validation")
     parser.add_argument('--test_path', type=str, default='./data/test.txt', help="path to save test")
     parser.add_argument('--pos_thresh', type=float, default=3.5, help="rank threshold to assign for positive items")
-    parser.add_argument('--min_items', type=int, default=2, help="min number of positive items needed to store a user")
+    parser.add_argument('--min_items', type=int, default=3, help="min number of positive items needed to store a user")
     return parser.parse_args()
 
 
