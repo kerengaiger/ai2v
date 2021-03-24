@@ -24,7 +24,7 @@ def filter_group(group, pos_thresh, min_items):
         print(f'user {group.name} ranked less than {min_items} items above {pos_thresh}')
         return []
     else:
-        return ret_group['item_id'].sort_values(by='timestamp').tolist()
+        return ret_group['item_id'].sort_values('timestamp').tolist()
 
 
 def split_train_valid_test(lsts, corpus_path, train_corpus_path, valid_path, test_path):
