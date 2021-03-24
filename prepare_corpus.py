@@ -12,6 +12,7 @@ def parse_args():
     parser.add_argument('--full_corpus_path', type=str, default='./data/corpus.txt', help="path to save corpus")
     parser.add_argument('--train_corpus_path', type=str, default='./data/train_corpus.txt', help="path to save train corpus")
     parser.add_argument('--valid_path', type=str, default='./data/valid.txt', help="path to save validation")
+    parser.add_argument('--test_path', type=str, default='./data/test.txt', help="path to save test")
     parser.add_argument('--pos_thresh', type=float, default=3.5, help="rank threshold to assign for positive items")
     parser.add_argument('--min_items', type=int, default=2, help="min number of positive items needed to store a user")
     return parser.parse_args()
@@ -26,17 +27,20 @@ def filter_group(group, pos_thresh, min_items):
         return ret_group['item_id'].sort_values(by='timestamp').tolist()
 
 
-def split_train_valid(lsts, corpus_path, train_corpus_path, valid_path):
+def split_train_valid_test(lsts, corpus_path, train_corpus_path, valid_path, test_path):
     with open(train_corpus_path, 'a') as corpus_train_file, open(corpus_path, 'a') as corpus_full_file, \
-            open(valid_path, 'a') as valid_file:
+            open(valid_path, 'a') as valid_file, open(test_path, 'a') as test_file:
         valid_file.write('user_id,item_id\n')
         for u in range(lsts.shape[0]):
             u_lst = lsts[u]
             if len(u_lst):
-                target_item = u_lst[-1]
-                valid_file.write(str(u) + ',' + str(target_item) + '\n')
+                target_test_item = u_lst[-1]
+                test_file.write(str(u) + ',' + str(target_test_item) + '\n')
+                u_lst.remove(target_test_item)
+                target_valid_item = u_lst[-1]
+                valid_file.write(str(u) + ',' + str(target_valid_item) + '\n')
                 corpus_full_file.write(' '.join([str(i) for i in u_lst]) + '\n')
-                u_lst.remove(target_item)
+                u_lst.remove(target_valid_item)
                 corpus_train_file.write(' '.join([str(i) for i in u_lst]) + '\n')
             else:
                 corpus_full_file.write('' + '\n')
@@ -55,7 +59,7 @@ def main():
     users2items = data.groupby('user_id').apply(lambda group: filter_group(group, args.pos_thresh, args.min_items))
     print(f'number of users: {len([user for user in users2items if len(user)])}, number of items: '
           f'{len(set([items for item in users2items.tolist() for items in item]))}')
-    split_train_valid(users2items, args.full_corpus_path, args.train_corpus_path, args.valid_path)
+    split_train_valid_test(users2items, args.full_corpus_path, args.train_corpus_path, args.valid_path, args.test_path)
 
 
 if __name__ == '__main__':
