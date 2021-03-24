@@ -1,4 +1,3 @@
-import random
 import argparse
 
 import pandas as pd
@@ -34,10 +33,10 @@ def split_train_valid(lsts, corpus_path, train_corpus_path, valid_path):
         for u in range(lsts.shape[0]):
             u_lst = lsts[u]
             if len(u_lst):
-                item = random.choice(u_lst)
-                valid_file.write(str(u) + ',' + str(item) + '\n')
+                target_item = u_lst[-1]
+                valid_file.write(str(u) + ',' + str(target_item) + '\n')
                 corpus_full_file.write(' '.join([str(i) for i in u_lst]) + '\n')
-                u_lst.remove(item)
+                u_lst.remove(target_item)
                 corpus_train_file.write(' '.join([str(i) for i in u_lst]) + '\n')
             else:
                 corpus_full_file.write('' + '\n')
