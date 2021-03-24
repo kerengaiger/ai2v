@@ -23,7 +23,6 @@ def parse_args():
     parser.add_argument('--hrk_weight', type=float, default=0.5, help="weight to put on hrk metric value")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--window', type=int, default=100, help="window size")
     parser.add_argument('--max_batch_size', type=int, default=300, help="max number of training obs in batch")
 
     return parser.parse_args()
@@ -55,7 +54,6 @@ def main():
             {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
             {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
             {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
-            {"name": "window", "type": "fixed", "value_type": "int", "value": args.window},
             {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
         ],
         evaluation_function=train_evaluate,
