@@ -31,6 +31,7 @@ def split_train_valid_test(lsts, corpus_path, train_corpus_path, valid_path, tes
     with open(train_corpus_path, 'a') as corpus_train_file, open(corpus_path, 'a') as corpus_full_file, \
             open(valid_path, 'a') as valid_file, open(test_path, 'a') as test_file:
         valid_file.write('user_id,item_id\n')
+        test_file.write('user_id,item_id\n')
         for u in range(lsts.shape[0]):
             u_lst = lsts[u]
             if len(u_lst):
