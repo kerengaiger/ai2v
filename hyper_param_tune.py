@@ -59,8 +59,8 @@ def main():
             {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
         ],
         evaluation_function=train_evaluate,
-        minimize=False,
-        objective_name='hr_k',
+        minimize=True,
+        objective_name='valid_loss',
         total_trials=args.trials
     )
 
