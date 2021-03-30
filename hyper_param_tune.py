@@ -14,6 +14,7 @@ def parse_args():
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='train.dat', help="train file name")
+    parser.add_argument('--valid', type=str, default='valid_avi.dat', help="validation users file name")
     parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=100, help="max number of epochs")
     parser.add_argument('--k', type=int, default=20, help="number of top ranked items")
@@ -54,6 +55,7 @@ def main():
             {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
             {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
             {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
+            {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
             {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
         ],
         evaluation_function=train_evaluate,
