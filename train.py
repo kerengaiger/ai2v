@@ -144,6 +144,7 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg):
 
     return np.array(valid_losses).mean()
 
+
 def train_early_stop(cnfg, valid_users_path, user_lsts, plot=True):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
