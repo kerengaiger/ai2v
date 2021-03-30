@@ -219,9 +219,9 @@ def train_early_stop(cnfg, valid_users_path, user_lsts, plot=True):
 def train_evaluate(cnfg):
     print(cnfg)
     user_lsts = users2itemids(pathlib.Path(cnfg['data_dir'], 'item2idx.dat'),
-                            pathlib.Path(cnfg['data_dir'], 'vocab.dat'),
-                            pathlib.Path(cnfg['data_dir'], 'train_corpus.txt'),
-                            cnfg['unk'])
+                              pathlib.Path(cnfg['data_dir'], 'vocab.dat'),
+                              pathlib.Path(cnfg['data_dir'], 'train_corpus.txt'),
+                              cnfg['unk'])
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
 
     best_epoch = train_early_stop(cnfg, valid_users_path, user_lsts, plot=True)
