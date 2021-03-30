@@ -4,7 +4,6 @@ import os
 import codecs
 import pickle
 import argparse
-import random
 
 
 def parse_args():
@@ -13,8 +12,11 @@ def parse_args():
     parser.add_argument('--vocab', type=str, default='./data/corpus.txt', help="corpus path for building vocab")
     parser.add_argument('--full_corpus', type=str, default='./data/corpus.txt', help="corpus path")
     parser.add_argument('--train_corpus', type=str, default='./data/train_corpus.txt', help="train corpus path")
+    parser.add_argument('--build_valid', action='store_true', help="build validation set from validation users file")
+    parser.add_argument('--valid_corpus', type=str, default='./data/valid_corpus_avi.txt', help="source path to build validation set, in case of build_valid")
     parser.add_argument('--full_train_file', type=str, default='./data/full_train.dat', help="full train file name")
     parser.add_argument('--train_file', type=str, default='./data/train.dat', help="train file name")
+    parser.add_argument('--valid_file', type=str, default='./data/valid_avi.dat', help="validation file name, in case of build_valid")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--max_vocab', type=int, default=20000, help="maximum number of vocab")
     return parser.parse_args()
@@ -93,6 +95,8 @@ def main():
     preprocess.build(args.vocab, max_vocab=args.max_vocab)
     preprocess.convert(args.full_corpus, args.full_train_file)
     preprocess.convert(args.train_corpus, args.train_file)
+    if args.build_valid:
+        preprocess.convert(args.valid_corpus, args.valid_file)
 
 
 if __name__ == '__main__':
