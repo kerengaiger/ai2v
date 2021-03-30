@@ -5,14 +5,12 @@ import pickle
 import random
 
 import numpy as np
-import pandas as pd
 import torch as t
 from torch.optim import Adagrad
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from evaluation import users2itemids, hr_k, mrr_k
 from model import Item2Vec, SGNS
 
 import matplotlib.pyplot as plt
@@ -124,13 +122,6 @@ def train(cnfg):
     save_model(cnfg, sgns)
 
 
-def evaluate(model, cnfg, user_lsts, eval_set, item2idx):
-    e_hr_k = hr_k(model, cnfg['k'], user_lsts, eval_set, item2idx, cnfg['unk'])
-    # e_mrr_k = mrr_k(model, cnfg['k'], user_lsts, eval_set)
-    # return e_hr_k * cnfg['hrk_weight'] + e_mrr_k * (1 - cnfg['hrk_weight'])
-    return e_hr_k
-
-
 def calc_loss_on_set(sgns, valid_users_path, cnfg):
     valid_dl = data_to_dl(valid_users_path, cnfg['max_batch_size'])
     pbar = tqdm(valid_dl)
@@ -145,9 +136,8 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg):
     return np.array(valid_losses).mean()
 
 
-def train_early_stop(cnfg, valid_users_path, user_lsts, plot=True):
+def train_early_stop(cnfg, valid_users_path, plot=True):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -218,13 +208,9 @@ def train_early_stop(cnfg, valid_users_path, user_lsts, plot=True):
 
 def train_evaluate(cnfg):
     print(cnfg)
-    user_lsts = users2itemids(pathlib.Path(cnfg['data_dir'], 'item2idx.dat'),
-                              pathlib.Path(cnfg['data_dir'], 'vocab.dat'),
-                              pathlib.Path(cnfg['data_dir'], 'train_corpus.txt'),
-                              cnfg['unk'])
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
 
-    best_epoch = train_early_stop(cnfg, valid_users_path, user_lsts, plot=True)
+    best_epoch = train_early_stop(cnfg, valid_users_path, plot=True)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
