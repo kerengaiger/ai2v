@@ -9,6 +9,7 @@ import pandas as pd
 import torch as t
 from torch.optim import Adagrad
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from evaluation import users2itemids, hr_k, mrr_k
@@ -55,24 +56,30 @@ def run_epoch(train_dl, epoch, sgns, optim):
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
 
+    ##### Remove #####
+    i = 0
     for batch_iitem, batch_oitems in pbar:
         batch_iitem = t.tensor(batch_iitem)
         batch_oitems = batch_oitems.squeeze(0)
-        print(batch_iitem.shape, batch_oitems.shape)
         loss = sgns(batch_iitem, batch_oitems)
+        ##### Remove #####
+        if i == 0:
+            print('first batch loss:', loss.item())
         train_losses.append(loss.item())
         optim.zero_grad()
         loss.backward()
         optim.step()
         pbar.set_postfix(train_loss=loss.item())
+        ### Remove ####
+        i += 1
 
     train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
     return train_loss, sgns
 
 
-def train_to_dl(train_path, max_batch_size):
-    dataset = UserBatchDataset(train_path, max_batch_size)
+def data_to_dl(data_path, max_batch_size):
+    dataset = UserBatchDataset(data_path, max_batch_size)
     return DataLoader(dataset, batch_size=1, shuffle=False)
 
 
@@ -89,12 +96,12 @@ def configure_weights(cnfg, idx2item):
     return weights
 
 
-def save_model(cnfg, model):
-    ivectors = model.ivectors.weight.data.cpu().numpy()
-    ovectors = model.ovectors.weight.data.cpu().numpy()
+def save_model(cnfg, sgns):
+    ivectors = sgns.embedding.ivectors.weight.data.cpu().numpy()
+    ovectors = sgns.embeddin.ovectors.weight.data.cpu().numpy()
     pickle.dump(ivectors, open(pathlib.Path(cnfg['save_dir'], 'idx2ivec.dat'), 'wb'))
     pickle.dump(ovectors, open(pathlib.Path(cnfg['save_dir'], 'idx2ovec.dat'), 'wb'))
-    t.save(model, pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
+    t.save(sgns, pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
 
 def train(cnfg):
@@ -110,11 +117,11 @@ def train(cnfg):
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
-    train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
+    train_loader = data_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
     for epoch in range(1, cnfg['max_epoch'] + 1):
         _train_loss = run_epoch(train_loader, epoch, sgns, optim)
 
-    save_model(cnfg, model)
+    save_model(cnfg, sgns)
 
 
 def evaluate(model, cnfg, user_lsts, eval_set, item2idx):
@@ -124,7 +131,20 @@ def evaluate(model, cnfg, user_lsts, eval_set, item2idx):
     return e_hr_k
 
 
-def train_early_stop(cnfg, eval_set, user_lsts, plot=True):
+def calc_loss_on_set(sgns, valid_users_path, cnfg):
+    valid_dl = data_to_dl(valid_users_path, cnfg['max_batch_size'])
+    pbar = tqdm(valid_dl)
+    valid_losses = []
+
+    for batch_iitem, batch_oitems in pbar:
+        batch_iitem = t.tensor(batch_iitem)
+        batch_oitems = batch_oitems.squeeze(0)
+        loss = sgns(batch_iitem, batch_oitems)
+        valid_losses.append(loss.item())
+
+    return np.array(valid_losses).mean()
+
+def train_early_stop(cnfg, valid_users_path, user_lsts, plot=True):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
@@ -137,30 +157,33 @@ def train_early_stop(cnfg, eval_set, user_lsts, plot=True):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    writer = SummaryWriter()
 
     best_epoch = cnfg['max_epoch'] + 1
-    valid_accs = [-np.inf]
-    best_valid_acc = -np.inf
+    valid_losses = [np.inf]
+    best_valid_loss = np.inf
     train_losses = []
     patience_count = 0
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = train_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']),
-                                   cnfg['max_batch_size'])
+        train_loader = data_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']),
+                                  cnfg['max_batch_size'])
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
+        writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
         train_losses.append(train_loss)
-        valid_acc = evaluate(model, cnfg, user_lsts, eval_set, item2idx)
-        print(f'valid acc:{valid_acc}')
+        valid_loss = calc_loss_on_set(sgns, valid_users_path, cnfg)
+        writer.add_scalar("Loss/validation", valid_loss, epoch)
+        print(f'valid loss:{valid_loss}')
 
-        diff_acc = valid_acc - valid_accs[-1]
-        if diff_acc > cnfg['conv_thresh']:
+        diff_loss = abs(valid_loss - valid_losses[-1])
+        if diff_loss > cnfg['conv_thresh']:
             patience_count = 0
-            if valid_acc > best_valid_acc:
-                best_valid_acc = valid_acc
+            if valid_loss < best_valid_loss:
+                best_valid_loss = valid_loss
                 best_epoch = epoch
-                save_model(cnfg, model)
+                save_model(cnfg, sgns)
 
         else:
             patience_count += 1
@@ -168,20 +191,23 @@ def train_early_stop(cnfg, eval_set, user_lsts, plot=True):
                 print(f"Early stopping")
                 break
 
-        valid_accs.append(valid_acc)
+        valid_losses.append(valid_loss)
+
+    writer.flush()
+    writer.close()
 
     if plot:
         fig, ax = plt.subplots(constrained_layout=True)
 
         ax.plot(range(len(train_losses)), train_losses, label="train_loss")
-        ax.plot(range(len(valid_accs)), valid_accs, label="valid_acc")
+        ax.plot(range(len(valid_losses)), valid_losses, label="valid_loss")
         ax.set_xlabel('epochs')
 
         ax.set_ylabel(r'train_loss')
         secaxy = ax.secondary_yaxis('right')
-        secaxy.set_ylabel('valid_acc')
+        secaxy.set_ylabel('valid_loss')
 
-        plt.title('Train loss - Valid accuracy')
+        plt.title('Train loss - Valid Loss')
         # show a legend on the plot
         plt.legend()
         fig.savefig(f'plot_{str(cnfg["lr"])}.png')
@@ -195,12 +221,12 @@ def train_evaluate(cnfg):
                             pathlib.Path(cnfg['data_dir'], 'vocab.dat'),
                             pathlib.Path(cnfg['data_dir'], 'train_corpus.txt'),
                             cnfg['unk'])
-    eval_set = pd.read_csv(pathlib.Path(cnfg['data_dir'], 'valid.txt'))
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
-    best_epoch = train_early_stop(cnfg, eval_set, user_lsts, plot=True)
+    valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
+
+    best_epoch = train_early_stop(cnfg, valid_users_path, user_lsts, plot=True)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
-    acc = evaluate(best_model, cnfg, user_lsts, eval_set, item2idx)
-    return {'hr_k': (acc, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
+    valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg)
+    return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
 
