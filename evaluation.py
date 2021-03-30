@@ -1,3 +1,5 @@
+import torch as t
+import pickle
 import numpy as np
 import argparse
 from sklearn.metrics.pairwise import cosine_similarity
@@ -39,8 +41,18 @@ def hr_k(model, eval_set, k):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='sgns', help="model name")
-    parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
-    parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
-    parser.add_argument('--train', type=str, default='train.dat', help="train file name")
-    parser.add_argument('--valid', type=str, default='valid_avi.dat', help="validation users file name")
+    parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
+    parser.add_argument('--model', type=str, default='./data/best_model.pt', help="best model trained")
+    parser.add_argument('--test', type=str, default='./data/test.dat', help="test set for evaluation")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    model = t.load(args.model)
+    eval_set = pickle.load(open(args.test, 'rb'))
+    print(f'hit ratio at {args.k}:', hr_k(model, eval_set, args.k))
+
+
+if __name__ == '__main__':
+    main()
