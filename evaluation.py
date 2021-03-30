@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import argparse
 from sklearn.metrics.pairwise import cosine_similarity
+from tqdm import tqdm
 
 
 def parse_args():
@@ -39,7 +40,10 @@ def inference(model, user_itemids):
 
 def hr_k(model, eval_set, k):
     in_top_k = 0
-    for user_itemids, target_item in eval_set:
+
+    pbar = tqdm(eval_set)
+
+    for user_itemids, target_item in pbar:
         items_ranked = inference(model, user_itemids)
         top_k_items = items_ranked.argsort()[-k:][::-1]
         if target_item in top_k_items:
