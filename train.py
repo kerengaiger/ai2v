@@ -17,31 +17,6 @@ from model import Item2Vec, SGNS
 import matplotlib.pyplot as plt
 
 
-class PermutedSubsampledCorpus(Dataset):
-
-    def __init__(self, datapath, window_size, pad_idx, ws=None):
-        data = pickle.load(datapath.open('rb'))
-        self.window = window_size
-        self.pad_idx = pad_idx
-        if ws is not None:
-            self.data = []
-            for iitem, oitems in data:
-                if random.random() > ws[iitem]:
-                    self.data.append((iitem, oitems))
-        else:
-            self.data = data
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        iitem, oitems = self.data[idx]
-        window_min = min(len(oitems), self.window)
-        oitems_samp = random.sample(oitems, window_min)
-        oitems_samp += [self.pad_idx for _ in range(self.window - window_min)]
-        return iitem, np.array(oitems_samp)
-
-
 class UserBatchDataset(Dataset):
 
     def __init__(self, datapath, max_batch_size, ws=None):
