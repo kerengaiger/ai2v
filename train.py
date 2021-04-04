@@ -49,6 +49,38 @@ class UserBatchDataset(Dataset):
         return batch_iitems, np.array(batch_oitems)
 
 
+class UserBatchDataset(Dataset):
+    def __init__(self, datapath, max_batch_size, pad_idx, ws=None):
+        data = pickle.load(datapath.open('rb'))
+        if ws is not None:
+            data_ws = []
+            for iitem, oitems in data:
+                if random.random() > ws[iitem]:
+                    data_ws.append((iitem, oitems))
+            data = data_ws
+
+        data_batches = []
+        for user in data:
+            batch = ([], [])
+            for sub_user_i in range(len(user)):
+                batch[0].append(user[sub_user_i][1])
+                batch[1].append(user[sub_user_i][0] + [pad_idx for _ in range(len(user) - len(user[sub_user_i][0]))])
+
+                if len(batch[0]) == max_batch_size and sub_user_i < (len(user) - 1):
+                    data_batches.append(batch)
+                    batch = ([], [])
+            data_batches.append(batch)
+
+        self.data = data_batches
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        batch_iitems, batch_oitems = self.data[idx]
+        return batch_iitems, np.array(batch_oitems)
+
+
 def run_epoch(train_dl, epoch, sgns, optim):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))

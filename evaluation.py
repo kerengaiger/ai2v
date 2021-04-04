@@ -50,6 +50,7 @@ def hr_k(model, eval_set, k):
             in_top_k += 1
     return in_top_k / len(eval_set)
 
+
 def main():
     args = parse_args()
     model = t.load(args.model)

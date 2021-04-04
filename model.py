@@ -49,6 +49,63 @@ class Item2Vec(Bundler):
         return self.ovectors(v)
 
 
+class AttentiveItemToVec(nn.Module):
+    def __init__(self, vocab_size=20000, embedding_size=300, d_alpha=40, N=1, padding_idx=0):
+        super(AttentiveItemToVec, self).__init__()
+        self.vocab_size = vocab_size
+        self.embedding_size = embedding_size
+        self.d_alpha = d_alpha
+        self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
+        self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
+        self.tvectors.weight = nn.Parameter(t.cat([t.zeros(1, self.embedding_size),
+                                                   FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size,
+                                                                                                         0.5 / self.embedding_size)]))
+        self.cvectors.weight = nn.Parameter(t.cat([t.zeros(1, self.embedding_size),
+                                                   FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size,
+                                                                                                         0.5 / self.embedding_size)]))
+        self.tvectors.weight.requires_grad = True
+        self.cvectors.weight.requires_grad = True
+        self.Ac = nn.Linear(self.embedding_size, self.d_alpha)
+        self.At = nn.Linear(self.embedding_size, self.d_alpha)
+        self.cos = nn.CosineSimilarity(dim=2, eps=1e-6)
+        self.softmax = nn.Softmax(dim=1)
+        self.Bc = nn.Linear(self.embedding_size, self.embedding_size)
+        self.Bt = nn.Linear(self.embedding_size, self.embedding_size)
+        self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
+        self.W0 = nn.Linear(self.embedding_size, 4 * self.embedding_size)
+        self.W1 = nn.Linear(1, self.embedding_size)
+
+    def forward_sub_user(self, batch_titems, batch_citems):
+        v_l_j = self.forward_t(batch_titems)
+        u_l_m = self.forward_c(batch_citems)
+        print(u_l_m)
+        print(v_l_j.shape)
+        print(u_l_m.shape)
+        c_vecs = self.Ac(u_l_m)
+        t_vecs = self.At(v_l_j).unsqueeze(1)
+        print(t_vecs.shape)
+        print(c_vecs.shape)
+        cosine_sim = self.cos(t_vecs, c_vecs)
+        print(cosine_sim.shape)
+        attention_weights = self.softmax(cosine_sim)
+        weighted_u_l_m = t.mul(attention_weights.unsqueeze(2), self.Bc(u_l_m))
+        alpha_j_1 = weighted_u_l_m.sum(1)
+        print(alpha_j_1.shape)
+        z_j_1 = self.R(alpha_j_1)
+        print(z_j_1.shape)
+        return z_j_1
+
+    def forward_t(self, data):
+        v = data.long()
+        v = v.cuda() if self.tvectors.weight.is_cuda else v
+        return self.tvectors(v)
+
+    def forward_c(self, data):
+        v = data.long()
+        v = v.cuda() if self.cvectors.weight.is_cuda else v
+        return self.cvectors(v)
+
+
 class SGNS(nn.Module):
 
     def __init__(self, embedding, vocab_size=20000, n_negs=20, weights=None):
@@ -69,10 +126,14 @@ class SGNS(nn.Module):
             nitems = t.multinomial(self.weights, batch_size * context_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
             nitems = FT(batch_size, context_size * self.n_negs).uniform_(0, self.vocab_size - 1).long()
+
+        # call to forward sub_user and forward_t and calculate the similarity between them, and the similarity between
+        # sub user and all the negative target items. then user softmax
+
         ivectors = self.embedding.forward_i(iitem).unsqueeze(2)
-        # print('ivectors', ivectors.shape)
+        print('ivectors', ivectors.shape)
         ovectors = self.embedding.forward_o(oitems)
-        # print('ovectors', ovectors.shape)
+        print('ovectors', ovectors.shape)
         nvectors = self.embedding.forward_o(nitems).neg()
         # print('nvectors', nvectors.shape)
         # print('mult o and i', t.bmm(ovectors, ivectors).shape)
