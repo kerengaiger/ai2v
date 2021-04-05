@@ -74,8 +74,10 @@ class AttentiveItemToVec(nn.Module):
         self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
         self.W0 = nn.Linear(self.embedding_size, 4 * self.embedding_size)
         self.W1 = nn.Linear(1, self.embedding_size)
+        self.relu = nn.ReLU()
+        self.b_l_j = nn.Parameter
 
-    def forward_sub_user(self, batch_titems, batch_citems):
+    def forward(self, batch_titems, batch_citems):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         print(u_l_m)
@@ -108,9 +110,9 @@ class AttentiveItemToVec(nn.Module):
 
 class SGNS(nn.Module):
 
-    def __init__(self, embedding, vocab_size=20000, n_negs=20, weights=None):
+    def __init__(self, ai2v, vocab_size=20000, n_negs=20, weights=None):
         super(SGNS, self).__init__()
-        self.embedding = embedding
+        self.ai2v = ai2v
         self.vocab_size = vocab_size
         self.n_negs = n_negs
         self.weights = None
@@ -119,9 +121,9 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
 
-    def forward(self, iitem, oitems):
-        batch_size = iitem.size()[0]
-        context_size = oitems.size()[1]
+    def forward(self, batch_titems, batch_citems):
+        batch_size = batch_titems.size()[0]
+        context_size = batch_citems.size()[1]
         if self.weights is not None:
             nitems = t.multinomial(self.weights, batch_size * context_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
@@ -129,21 +131,28 @@ class SGNS(nn.Module):
 
         # call to forward sub_user and forward_t and calculate the similarity between them, and the similarity between
         # sub user and all the negative target items. then user softmax
+        batch_sub_users = self.ai2v(batch_titems, batch_citems)
+        print('batch_sub users', batch_sub_users.shape)
+        batch_t_vecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
+        print(batch_t_vecs.shape)
 
-        ivectors = self.embedding.forward_i(iitem).unsqueeze(2)
-        print('ivectors', ivectors.shape)
-        ovectors = self.embedding.forward_o(oitems)
-        print('ovectors', ovectors.shape)
-        nvectors = self.embedding.forward_o(nitems).neg()
-        # print('nvectors', nvectors.shape)
-        # print('mult o and i', t.bmm(ovectors, ivectors).shape)
-        oloss = t.bmm(ovectors, ivectors).squeeze(dim=-1).sigmoid().log()
-        # print('oloss', oloss.shape)
-        assert oloss.shape[0] == batch_size, 'oloss vector shape is different than batch size'
-        nloss = t.bmm(nvectors, ivectors).squeeze(dim=-1).sigmoid().log().view(-1, context_size, self.n_negs).sum(2)
-        # print('mult n and i', t.bmm(nvectors, ivectors).shape)
-        # print('nloss', nloss.shape)
-        assert nloss.shape[0] == batch_size, 'nloss vector shape is different than batch size'
-        loss = oloss + nloss
-        loss = loss.sum(1).mean()
-        return -loss
+        #
+        #
+        #
+        # ivectors = self.embedding.forward_i(iitem).unsqueeze(2)
+        # print('ivectors', ivectors.shape)
+        # ovectors = self.embedding.forward_o(oitems)
+        # print('ovectors', ovectors.shape)
+        # nvectors = self.embedding.forward_o(nitems).neg()
+        # # print('nvectors', nvectors.shape)
+        # # print('mult o and i', t.bmm(ovectors, ivectors).shape)
+        # oloss = t.bmm(ovectors, ivectors).squeeze(dim=-1).sigmoid().log()
+        # # print('oloss', oloss.shape)
+        # assert oloss.shape[0] == batch_size, 'oloss vector shape is different than batch size'
+        # nloss = t.bmm(nvectors, ivectors).squeeze(dim=-1).sigmoid().log().view(-1, context_size, self.n_negs).sum(2)
+        # # print('mult n and i', t.bmm(nvectors, ivectors).shape)
+        # # print('nloss', nloss.shape)
+        # assert nloss.shape[0] == batch_size, 'nloss vector shape is different than batch size'
+        # loss = oloss + nloss
+        # loss = loss.sum(1).mean()
+        # return -loss
