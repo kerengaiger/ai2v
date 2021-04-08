@@ -11,9 +11,15 @@ from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from model import Item2Vec, SGNS
+from ai2v_model import AttentiveItemToVec
+from ai2v_model import SGNS as sgns_ai2v
+from i2v_model import Item2Vec
+from i2v_model import SGNS as sgns_i2v
 
 import matplotlib.pyplot as plt
+
+ITEM2VEC = 'i2v'
+ATTENTIVE_ITEM2VEC = 'ai2v'
 
 
 class UserBatchDataset(Dataset):
@@ -49,7 +55,7 @@ class UserBatchDataset(Dataset):
         return batch_iitems, np.array(batch_oitems)
 
 
-class UserBatchDataset(Dataset):
+class UserBatchIncrementDataset(Dataset):
     def __init__(self, datapath, max_batch_size, pad_idx, ws=None):
         data = pickle.load(datapath.open('rb'))
         if ws is not None:
@@ -108,7 +114,7 @@ def run_epoch(train_dl, epoch, sgns, optim):
     return train_loss, sgns
 
 
-def data_to_dl(data_path, max_batch_size):
+def data_to_dl(data_path, max_batch_size, model):
     dataset = UserBatchDataset(data_path, max_batch_size)
     return DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -140,8 +146,14 @@ def train(cnfg):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+    if cnfg['model'] == Item2Vec:
+        model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+        sgns = sgns_i2v(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+
+    else:
+        model = AttentiveItemToVec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+        sgns = sgns_ai2v(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
@@ -174,8 +186,14 @@ def train_early_stop(cnfg, valid_users_path, plot=True):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+    if cnfg['model'] == 'Item2Vec':
+        model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+        sgns = sgns_i2v(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+
+    else:
+        model = AttentiveItemToVec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+        sgns = sgns_ai2v(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
@@ -190,7 +208,7 @@ def train_early_stop(cnfg, valid_users_path, plot=True):
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = data_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']),
-                                  cnfg['max_batch_size'])
+                                  cnfg['max_batch_size'], model)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
