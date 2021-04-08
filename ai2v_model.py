@@ -36,7 +36,7 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
 
-    def forward(self, batch_titems, batch_citems):
+    def forward(self, batch_titems, batch_citems, batch_pad_ids):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         c_vecs = self.Ac(u_l_m)
@@ -47,6 +47,10 @@ class AttentiveItemToVec(nn.Module):
         # print((t_vecs == 0).nonzero(), 't_vecs zeros')
         # print(t_vecs.max(), 't_vecs max')
         cosine_sim = self.cos(t_vecs, c_vecs)
+
+        # zeroing cosine sim scores of 'pad' items
+        cosine_sim[batch_pad_ids] = 0
+
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
         # print(cosine_sim.max(), 'cosine_sim max')
         attention_weights = self.softmax(cosine_sim)
