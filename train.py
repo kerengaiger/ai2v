@@ -87,7 +87,7 @@ class UserBatchIncrementDataset(Dataset):
         return batch_iitems, np.array(batch_oitems)
 
 
-def run_epoch(train_dl, epoch, sgns, optim):
+def run_epoch(train_dl, epoch, sgns, optim, model_name, pad_idx):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
@@ -97,7 +97,11 @@ def run_epoch(train_dl, epoch, sgns, optim):
     for batch_iitem, batch_oitems in pbar:
         batch_iitem = t.tensor(batch_iitem)
         batch_oitems = batch_oitems.squeeze(0)
-        loss = sgns(batch_iitem, batch_oitems)
+        if model_name == ITEM2VEC:
+            loss = sgns(batch_iitem, batch_oitems)
+        else:
+            batch_pad_ids = (batch_oitems == pad_idx).nonzero(as_tuple=True)
+            loss = sgns(batch_iitem, batch_oitems, batch_pad_ids)
         ##### Remove #####
         if i == 0:
             print('first batch loss:', loss.item())
@@ -112,11 +116,6 @@ def run_epoch(train_dl, epoch, sgns, optim):
     train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
     return train_loss, sgns
-
-
-def data_to_dl(data_path, max_batch_size, model):
-    dataset = UserBatchDataset(data_path, max_batch_size)
-    return DataLoader(dataset, batch_size=1, shuffle=False)
 
 
 def configure_weights(cnfg, idx2item):
@@ -142,6 +141,7 @@ def save_model(cnfg, sgns):
 
 def train(cnfg):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -149,25 +149,37 @@ def train(cnfg):
     if cnfg['model'] == Item2Vec:
         model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
         sgns = sgns_i2v(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+        dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
+        train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     else:
         model = AttentiveItemToVec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
         sgns = sgns_ai2v(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
+                                            item2idx['pad'])
+        train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
-    train_loader = data_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        _train_loss = run_epoch(train_loader, epoch, sgns, optim)
+        _train_loss = run_epoch(train_loader, epoch, sgns, optim, cnfg['model'], item2idx['pad'])
 
     save_model(cnfg, sgns)
 
 
 def calc_loss_on_set(sgns, valid_users_path, cnfg):
-    valid_dl = data_to_dl(valid_users_path, cnfg['max_batch_size'])
+    if cnfg['model'] == Item2Vec:
+        dataset = UserBatchDataset(valid_users_path, cnfg['max_batch_size'])
+        valid_dl = DataLoader(dataset, batch_size=1, shuffle=False)
+    else:
+        item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
+        dataset = UserBatchIncrementDataset(valid_users_path, cnfg['max_batch_size'],
+                                            item2idx['pad'])
+        valid_dl = DataLoader(dataset, batch_size=1, shuffle=False)
+
     pbar = tqdm(valid_dl)
     valid_losses = []
 
@@ -182,6 +194,7 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg):
 
 def train_early_stop(cnfg, valid_users_path, plot=True):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -207,9 +220,15 @@ def train_early_stop(cnfg, valid_users_path, plot=True):
     patience_count = 0
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = data_to_dl(pathlib.Path(cnfg['data_dir'], cnfg['train']),
-                                  cnfg['max_batch_size'], model)
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
+        if cnfg['model'] == 'Item2Vec':
+            dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
+            train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+        else:
+            dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
+                                                item2idx['pad'])
+            train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['model'], item2idx['pad'])
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
