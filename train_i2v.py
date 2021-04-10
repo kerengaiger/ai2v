@@ -86,7 +86,7 @@ def train(cnfg):
     model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+    train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
@@ -137,7 +137,7 @@ def train_early_stop(cnfg, valid_users_path):
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
-        train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+        train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         writer.add_scalar("Loss/train", train_loss, epoch)
