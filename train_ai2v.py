@@ -122,7 +122,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     for epoch in range(1, cnfg['max_epoch'] + 1):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
                                             pad_idx)
-        train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+        train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
@@ -165,7 +165,7 @@ def train(cnfg):
     sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
                                         item2idx['pad'])
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+    train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
