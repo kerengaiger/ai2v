@@ -12,7 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from ai2v_model import AttentiveItemToVec
-from ai2v_model import SGNS as sgns_ai2v
+from ai2v_model import SGNS
 
 from train_utils import save_model, configure_weights
 
@@ -105,7 +105,7 @@ def train_early_stop(cnfg, valid_users_path):
     vocab_size = len(idx2item)
 
     model = AttentiveItemToVec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = sgns_ai2v(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+    sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
@@ -161,7 +161,7 @@ def train(cnfg):
     vocab_size = len(idx2item)
 
     model = AttentiveItemToVec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = sgns_ai2v(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+    sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
                                         item2idx['pad'])
     train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
