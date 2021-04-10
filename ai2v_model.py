@@ -48,15 +48,20 @@ class AttentiveItemToVec(nn.Module):
         # print(t_vecs.max(), 't_vecs max')
         cosine_sim = self.cos(t_vecs, c_vecs)
 
-        # zeroing cosine sim scores of 'pad' items
-        cosine_sim[batch_pad_ids] = 0
+        # cosine_sim[batch_pad_ids] = 0
+        # print('cosine sim', cosine_sim)
 
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
         # print(cosine_sim.max(), 'cosine_sim max')
         attention_weights = self.softmax(cosine_sim)
+
+        # zeroing attention scores of 'pad' items
+        attention_weights[batch_pad_ids] = 0
+        # print('attention weights', attention_weights)
         # print((attention_weights == 0).nonzero(), 'attention_weights zeros')
         # print(attention_weights.max(), 'attention_weights max')
         weighted_u_l_m = t.mul(attention_weights.unsqueeze(2), self.Bc(u_l_m))
+        # print('weighted_u_l_m', weighted_u_l_m)
         # print((weighted_u_l_m == 0).nonzero(), 'weighted_u_l_m zeros')
         # print(weighted_u_l_m.max(), 'weighted_u_l_m max')
         alpha_j_1 = weighted_u_l_m.sum(1)
@@ -92,24 +97,27 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
 
-    def forward(self, batch_titems, batch_citems):
+    def forward(self, batch_titems, batch_citems, batch_pad_ids):
         batch_size = batch_titems.size()[0]
         if self.weights is not None:
             batch_nitems = t.multinomial(self.weights, batch_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
             batch_nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
 
-        batch_sub_users = self.ai2v(batch_titems, batch_citems)
+        batch_sub_users = self.ai2v(batch_titems, batch_citems, batch_pad_ids)
+        # print('batch_sub_users', batch_sub_users.shape)
         # print((batch_sub_users == 0).nonzero(), 'batch_sub_users zeros')
         # print(batch_sub_users.max(), 'batch_sub_users max')
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
+        # print('batch_tvecs', batch_tvecs.shape)
         # print((batch_tvecs == 0).nonzero(), 'batch_tvecs zeros')
         # print(batch_tvecs.max(), 'batch_tvecs max')
         batch_nvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_nitems))
+        # print('batch_nvecs', batch_nvecs)
         # print((batch_nvecs == 0).nonzero(), 'batch_nvecs zeros')
         # print(batch_nvecs.max(), 'batch_nvecs max')
 
-        if next(self.ai2v.parameters()).is_cuda:
+        if [param for param in self.ai2v.parameters()][0].is_cuda:
             self.ai2v.b_l_j.cuda()
 
         # print(self.ai2v.b_l_j.max(), 'b_l_j max')
@@ -118,6 +126,7 @@ class SGNS(nn.Module):
                                                               t.mul(batch_sub_users, batch_tvecs),
                                                               batch_sub_users - batch_tvecs], 1)))) + \
             self.ai2v.b_l_j[batch_titems].unsqueeze(1)
+
         # print('sim', sim)
         # print(sim.max(), 'sim max')
         batch_sub_users_exp = t.cat(self.n_negs * [batch_sub_users.unsqueeze(1)], 1)
@@ -133,4 +142,5 @@ class SGNS(nn.Module):
         # print(t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0])
         # print(t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0].log().sum())
         # print()
-        return t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0].log().sum()
+
+        return -t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0].log().sum()
