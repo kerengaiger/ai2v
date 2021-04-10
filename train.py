@@ -192,7 +192,7 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg):
     return np.array(valid_losses).mean()
 
 
-def train_early_stop(cnfg, valid_users_path, plot=True):
+def train_early_stop(cnfg, valid_users_path):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
@@ -216,7 +216,6 @@ def train_early_stop(cnfg, valid_users_path, plot=True):
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
     best_valid_loss = np.inf
-    train_losses = []
     patience_count = 0
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
@@ -232,7 +231,6 @@ def train_early_stop(cnfg, valid_users_path, plot=True):
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
-        train_losses.append(train_loss)
         valid_loss = calc_loss_on_set(sgns, valid_users_path, cnfg)
         writer.add_scalar("Loss/validation", valid_loss, epoch)
         print(f'valid loss:{valid_loss}')
@@ -256,22 +254,6 @@ def train_early_stop(cnfg, valid_users_path, plot=True):
     writer.flush()
     writer.close()
 
-    if plot:
-        fig, ax = plt.subplots(constrained_layout=True)
-
-        ax.plot(range(len(train_losses)), train_losses, label="train_loss")
-        ax.plot(range(len(valid_losses)), valid_losses, label="valid_loss")
-        ax.set_xlabel('epochs')
-
-        ax.set_ylabel(r'train_loss')
-        secaxy = ax.secondary_yaxis('right')
-        secaxy.set_ylabel('valid_loss')
-
-        plt.title('Train loss - Valid Loss')
-        # show a legend on the plot
-        plt.legend()
-        fig.savefig(f'plot_{str(cnfg["lr"])}.png')
-
     return best_epoch
 
 
@@ -279,7 +261,7 @@ def train_evaluate(cnfg):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
 
-    best_epoch = train_early_stop(cnfg, valid_users_path, plot=True)
+    best_epoch = train_early_stop(cnfg, valid_users_path)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
