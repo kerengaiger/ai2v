@@ -24,12 +24,12 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
 
     ##### Remove #####
     i = 0
-    for batch_iitem, batch_oitems in pbar:
-        batch_iitem = t.tensor(batch_iitem)
-        batch_oitems = batch_oitems.squeeze(0)
+    for batch_titem, batch_citems in pbar:
+        batch_titem = t.tensor(batch_titem)
+        batch_citems = batch_citems.squeeze(0)
 
-        batch_pad_ids = (batch_oitems == pad_idx).nonzero(as_tuple=True)
-        loss = sgns(batch_iitem, batch_oitems, batch_pad_ids)
+        batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
+        loss = sgns(batch_titem, batch_citems, batch_pad_ids)
         ##### Remove #####
         if i == 0:
             print('first batch loss:', loss.item())
@@ -88,10 +88,10 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg):
     pbar = tqdm(valid_dl)
     valid_losses = []
 
-    for batch_iitem, batch_oitems in pbar:
-        batch_iitem = t.tensor(batch_iitem)
-        batch_oitems = batch_oitems.squeeze(0)
-        loss = sgns(batch_iitem, batch_oitems)
+    for batch_titem, batch_citems in pbar:
+        batch_titem = t.tensor(batch_titem)
+        batch_citems = batch_citems.squeeze(0)
+        loss = sgns(batch_titem, batch_citems)
         valid_losses.append(loss.item())
 
     return np.array(valid_losses).mean()
