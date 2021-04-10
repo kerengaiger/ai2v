@@ -78,7 +78,7 @@ class UserBatchIncrementDataset(Dataset):
         return batch_iitems, np.array(batch_oitems)
 
 
-def calc_loss_on_set(sgns, valid_users_path, cnfg):
+def calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx):
 
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
     dataset = UserBatchIncrementDataset(valid_users_path, cnfg['max_batch_size'],
@@ -91,15 +91,16 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg):
     for batch_titem, batch_citems in pbar:
         batch_titem = t.tensor(batch_titem)
         batch_citems = batch_citems.squeeze(0)
-        loss = sgns(batch_titem, batch_citems)
+        batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
+
+        loss = sgns(batch_titem, batch_citems, batch_pad_ids)
         valid_losses.append(loss.item())
 
     return np.array(valid_losses).mean()
 
 
-def train_early_stop(cnfg, valid_users_path):
+def train_early_stop(cnfg, valid_users_path, pad_idx):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -120,14 +121,14 @@ def train_early_stop(cnfg, valid_users_path):
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
-                                            item2idx['pad'])
+                                            pad_idx)
         train_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
-        valid_loss = calc_loss_on_set(sgns, valid_users_path, cnfg)
+        valid_loss = calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx)
         writer.add_scalar("Loss/validation", valid_loss, epoch)
         print(f'valid loss:{valid_loss}')
 
@@ -180,10 +181,11 @@ def train(cnfg):
 def train_evaluate(cnfg):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
-    best_epoch = train_early_stop(cnfg, valid_users_path)
+    best_epoch = train_early_stop(cnfg, valid_users_path, item2idx['pad'])
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
-    valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg)
+    valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg, item2idx['pad'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
