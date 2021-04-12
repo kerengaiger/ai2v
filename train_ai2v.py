@@ -22,24 +22,18 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
 
-    ##### Remove #####
-    i = 0
     for batch_titem, batch_citems in pbar:
         batch_titems = t.tensor(batch_titem)
         batch_citems = batch_citems.squeeze(0)
 
         batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
         loss = sgns(batch_titems, batch_citems, batch_pad_ids)
-        ##### Remove #####
-        if i == 0:
-            print('first batch loss:', loss.item())
+
         train_losses.append(loss.item())
         optim.zero_grad()
         loss.backward()
         optim.step()
         pbar.set_postfix(train_loss=loss.item())
-        ### Remove ####
-        i += 1
 
     train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
