@@ -96,7 +96,7 @@ def train(cnfg):
     for epoch in range(1, cnfg['max_epoch'] + 1):
         _train_loss = run_epoch(train_loader, epoch, sgns, optim)
 
-    save_model(cnfg, sgns)
+    save_model(cnfg, model, sgns)
 
 
 def calc_loss_on_set(sgns, valid_users_path, cnfg):
@@ -153,7 +153,7 @@ def train_early_stop(cnfg, valid_users_path):
             if valid_loss < best_valid_loss:
                 best_valid_loss = valid_loss
                 best_epoch = epoch
-                save_model(cnfg, sgns)
+                save_model(cnfg, model, sgns)
 
         else:
             patience_count += 1
