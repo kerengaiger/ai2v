@@ -24,6 +24,7 @@ class Item2Vec(Bundler):
 
     def __init__(self, vocab_size=20000, embedding_size=300, padding_idx=0):
         super(Item2Vec, self).__init__()
+        self.name = 'i2v'
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
         self.ivectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
