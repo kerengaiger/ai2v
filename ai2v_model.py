@@ -48,7 +48,6 @@ class AttentiveItemToVec(nn.Module):
         # print(t_vecs.max(), 't_vecs max')
         cosine_sim = self.cos(t_vecs, c_vecs)
 
-        # cosine_sim[batch_pad_ids] = 0
         # print('cosine sim', cosine_sim)
 
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')

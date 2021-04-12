@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='train.dat', help="train file name")
-    parser.add_argument('--valid', type=str, default='valid_avi.dat', help="validation users file name")
+    parser.add_argument('--valid', type=str, default='valid.dat', help="validation users file name")
     parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--conv_thresh', type=float, default=0.001, help="threshold diff for convergence")
@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--max_batch_size', type=int, default=300, help="max number of training obs in batch")
+    parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
 
     return parser.parse_args()
 
