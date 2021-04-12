@@ -40,9 +40,12 @@ class AttentiveItemToVec(nn.Module):
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
+        # print('v_l_j', v_l_j)
+        # print('u_l_m', u_l_m)
         c_vecs = self.Ac(u_l_m)
         t_vecs = self.At(v_l_j).unsqueeze(1)
-
+        # print('c_vecs', c_vecs)
+        # print('t_vecs', t_vecs)
         # print((c_vecs == 0).nonzero(), 'c_vecs zeros')
         # print(c_vecs.max(), 'c_vecs max')
         # print((t_vecs == 0).nonzero(), 't_vecs zeros')
@@ -54,22 +57,24 @@ class AttentiveItemToVec(nn.Module):
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
         # print(cosine_sim.max(), 'cosine_sim max')
         attention_weights = self.softmax(cosine_sim)
-
-        # zeroing attention scores of 'pad' items
-        # attention_weights[batch_pad_ids] = 0
         # print('attention weights', attention_weights)
+
         # print((attention_weights == 0).nonzero(), 'attention_weights zeros')
         # print(attention_weights.max(), 'attention_weights max')
+        # print('Bc(u_l_m)', self.Bc(u_l_m))
         weighted_u_l_m = t.mul(attention_weights.unsqueeze(2), self.Bc(u_l_m))
         # print('weighted_u_l_m', weighted_u_l_m)
+
         # print((weighted_u_l_m == 0).nonzero(), 'weighted_u_l_m zeros')
         # print(weighted_u_l_m.max(), 'weighted_u_l_m max')
         alpha_j_1 = weighted_u_l_m.sum(1)
+        # print('alpha_j_1', alpha_j_1)
         # print((alpha_j_1 == 0).nonzero(), 'alpha_j_1 zeros')
         # print(alpha_j_1.max(), 'alpha_j_1 max')
         z_j_1 = self.R(alpha_j_1)
         # print((z_j_1 == 0).nonzero(), 'z_j_1 zeros')
         # print(z_j_1.max(), 'z_j_1 max')
+        # print('z_j_1', z_j_1)
 
         return z_j_1
 
@@ -109,7 +114,7 @@ class SGNS(nn.Module):
         # print((batch_sub_users == 0).nonzero(), 'batch_sub_users zeros')
         # print(batch_sub_users.max(), 'batch_sub_users max')
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
-        # print('batch_tvecs', batch_tvecs.shape)
+        # print('batch_tvecs', batch_tvecs)
         # print((batch_tvecs == 0).nonzero(), 'batch_tvecs zeros')
         # print(batch_tvecs.max(), 'batch_tvecs max')
         batch_nvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_nitems))
@@ -139,6 +144,7 @@ class SGNS(nn.Module):
         # print('sim_neg', sim_neg)
         # print(sim_neg.max(), 'sim max')
 
+        # print(t.cat([sim, sim_neg], 1))
         # print(t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0])
         # print(t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0].log().sum())
         # print()
