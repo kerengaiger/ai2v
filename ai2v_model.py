@@ -47,7 +47,7 @@ class AttentiveItemToVec(nn.Module):
         # print((t_vecs == 0).nonzero(), 't_vecs zeros')
         # print(t_vecs.max(), 't_vecs max')
         cosine_sim = self.cos(t_vecs, c_vecs)
-
+        cosine_sim[batch_pad_ids] = -np.inf
         # print('cosine sim', cosine_sim)
 
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
@@ -55,7 +55,7 @@ class AttentiveItemToVec(nn.Module):
         attention_weights = self.softmax(cosine_sim)
 
         # zeroing attention scores of 'pad' items
-        attention_weights[batch_pad_ids] = 0
+        # attention_weights[batch_pad_ids] = 0
         # print('attention weights', attention_weights)
         # print((attention_weights == 0).nonzero(), 'attention_weights zeros')
         # print(attention_weights.max(), 'attention_weights max')
