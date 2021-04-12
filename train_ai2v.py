@@ -118,6 +118,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     valid_losses = [np.inf]
     best_valid_loss = np.inf
     patience_count = 0
+    t.autograd.set_detect_anomaly(True)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
