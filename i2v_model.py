@@ -22,7 +22,7 @@ class Bundler(nn.Module):
 
 class Item2Vec(Bundler):
 
-    def __init__(self, vocab_size=20000, embedding_size=300, padding_idx=0):
+    def __init__(self, padding_idx, vocab_size=20000, embedding_size=300):
         super(Item2Vec, self).__init__()
         self.name = 'i2v'
         self.vocab_size = vocab_size

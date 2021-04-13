@@ -56,7 +56,7 @@ def train(cnfg):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    model = Item2Vec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                         60)
@@ -93,7 +93,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = Item2Vec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    model = Item2Vec(padding_idx=pad_idx, vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
 
     if cnfg['cuda']:
