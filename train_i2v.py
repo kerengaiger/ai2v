@@ -44,7 +44,6 @@ def run_epoch(train_dl, epoch, sgns, optim):
         optim.step()
         pbar.set_postfix(train_loss=loss.item())
 
-
     train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
     return train_loss, sgns
