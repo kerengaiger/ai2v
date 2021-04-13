@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
+    parser.add_argument('--batch_size', type=int, default=100, help="batch size")
 
     return parser.parse_args()
 
@@ -66,7 +66,7 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-                {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
+                {"name": "batch_size", "type": "fixed", "value_type": "int", "value": args.batch_size},
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
@@ -94,7 +94,7 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-                {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
+                {"name": "batch_size", "type": "fixed", "value_type": "int", "value": args.batch_size},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
