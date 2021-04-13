@@ -2,8 +2,8 @@ import torch as t
 import pickle
 import numpy as np
 import argparse
-from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
+from train_i2v import inference
 
 
 def parse_args():
@@ -12,12 +12,6 @@ def parse_args():
     parser.add_argument('--model', type=str, default='./output/best_model.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='./data/test.dat', help="test set for evaluation")
     return parser.parse_args()
-
-
-def represent_user(user_itemids, model):
-    context_vecs = model.embedding.ivectors.weight.data.cpu().numpy()
-    user2vec = context_vecs[user_itemids, :].mean(axis=0)
-    return user2vec
 
 
 def mrr_k(model, eval_set, k):
@@ -30,12 +24,6 @@ def mrr_k(model, eval_set, k):
             rec_rank += 1 / (np.where(top_k_items == target_item)[0][0] + 1)
     mrp_k = rec_rank / in_top_k
     return mrp_k
-
-
-def inference(model, user_itemids):
-    user2vec = np.expand_dims(represent_user(user_itemids, model), axis=0)
-    user_sim = cosine_similarity(user2vec, model.embedding.ovectors.weight.data.cpu().numpy()).squeeze()
-    return user_sim.argsort()
 
 
 def hr_k(model, eval_set, k):
