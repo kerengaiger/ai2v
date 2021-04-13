@@ -2,7 +2,7 @@
 
 import pathlib
 import pickle
-import random
+from sklearn.metrics.pairwise import cosine_similarity
 
 import numpy as np
 import torch as t
@@ -14,6 +14,18 @@ from tqdm import tqdm
 from i2v_model import Item2Vec
 from i2v_model import SGNS
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset
+
+
+def represent_user(user_itemids, model):
+    context_vecs = model.embedding.cvectors.weight.data.cpu().numpy()
+    user2vec = context_vecs[user_itemids, :].mean(axis=0)
+    return user2vec
+
+
+def inference(model, user_itemids):
+    user2vec = np.expand_dims(represent_user(user_itemids, model), axis=0)
+    user_sim = cosine_similarity(user2vec, model.embedding.tvectors.weight.data.cpu().numpy()).squeeze()
+    return user_sim.argsort()
 
 
 def run_epoch(train_dl, epoch, sgns, optim):
