@@ -59,7 +59,7 @@ def train(cnfg):
     model = Item2Vec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
-                                        60)
+                                        cnfg['window_size'])
     train_loader = DataLoader(dataset, batch_size=cnfg['batch_size'], shuffle=True)
 
     if cnfg['cuda']:
@@ -73,8 +73,8 @@ def train(cnfg):
     save_model(cnfg, model, sgns)
 
 
-def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size):
-    dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, 60)
+def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
+    dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, window_size)
     valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
     pbar = tqdm(valid_dl)
@@ -108,14 +108,14 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     patience_count = 0
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, 60)
+        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
         train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
-        valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['batch_size'])
+        valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['batch_size'], cnfg['window_size'])
         writer.add_scalar("Loss/validation", valid_loss, epoch)
         print(f'valid loss:{valid_loss}')
 
@@ -150,6 +150,6 @@ def train_evaluate(cnfg):
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
-    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['batch_size'])
+    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['batch_size'], cnfg['window_size'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
 
