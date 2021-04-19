@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=60, help="window size")
-    parser.add_argument('--log_dir', type=int, default=60, help="directory for tensorboard logs")
+    parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
 
     return parser.parse_args()
 
