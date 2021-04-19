@@ -68,6 +68,7 @@ def main():
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
                 {"name": "batch_size", "type": "fixed", "value_type": "int", "value": args.batch_size},
+                {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
