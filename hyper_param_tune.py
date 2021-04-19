@@ -28,7 +28,6 @@ def parse_args():
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--batch_size', type=int, default=32, help="batch size")
     parser.add_argument('--window_size', type=int, default=60, help="window size")
 
     return parser.parse_args()
@@ -55,7 +54,7 @@ def main():
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15]},
-                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [100, 90]},
+                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [32, 16, 90, 100]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
@@ -66,7 +65,6 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-                {"name": "batch_size", "type": "fixed", "value_type": "int", "value": args.batch_size},
                 {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model}
             ],
@@ -96,7 +94,6 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-                {"name": "batch_size", "type": "fixed", "value_type": "int", "value": args.batch_size},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,

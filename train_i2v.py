@@ -58,7 +58,7 @@ def train(cnfg):
     sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                         cnfg['window_size'])
-    train_loader = DataLoader(dataset, batch_size=cnfg['batch_size'], shuffle=True)
+    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True)
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
@@ -107,13 +107,13 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
-        train_loader = DataLoader(dataset, batch_size=cnfg['batch_size'], shuffle=True)
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
-        valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['batch_size'], cnfg['window_size'])
+        valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['mini_batch'], cnfg['window_size'])
         writer.add_scalar("Loss/validation", valid_loss, epoch)
         print(f'valid loss:{valid_loss}')
 
@@ -148,6 +148,6 @@ def train_evaluate(cnfg):
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
 
-    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['batch_size'], cnfg['window_size'])
+    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'], cnfg['window_size'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
 
