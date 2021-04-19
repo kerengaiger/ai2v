@@ -33,10 +33,8 @@ def run_epoch(train_dl, epoch, sgns, optim):
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
 
-    for batch_iitem, batch_oitems in pbar:
-        batch_iitem = t.tensor(batch_iitem)
-        batch_oitems = batch_oitems.squeeze(0)
-        loss = sgns(batch_iitem, batch_oitems)
+    for batch_titems, batch_citems in pbar:
+        loss = sgns(batch_titems, batch_citems)
 
         train_losses.append(loss.item())
         optim.zero_grad()
