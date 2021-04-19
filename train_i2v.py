@@ -98,7 +98,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    writer = SummaryWriter()
+    writer = SummaryWriter(log_dir=cnfg['log_dir'])
 
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]

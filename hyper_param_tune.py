@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=60, help="window size")
+    parser.add_argument('--log_dir', type=int, default=60, help="directory for tensorboard logs")
 
     return parser.parse_args()
 
@@ -66,7 +67,8 @@ def main():
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
                 {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
-                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model}
+                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
+                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir}
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
