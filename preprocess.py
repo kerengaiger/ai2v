@@ -69,6 +69,7 @@ class Preprocess(object):
         print("converting corpus...")
         step = 0
         data = []
+        max_user = 0
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
             num_users = 0
             for line in file:
@@ -88,6 +89,8 @@ class Preprocess(object):
                     print('skip user')
                     continue
                 num_users += 1
+                if len(user) > max_user:
+                    max_user = len(user)
                 for item_target in range(1, len(user)):
                     data.append((self.create_sub_user(user, item_target)))
 
@@ -95,6 +98,7 @@ class Preprocess(object):
         pickle.dump(data, open(savepath, 'wb'))
         print("conversion done")
         print("num of users:", num_users)
+        print("max user:", max_user)
 
 
 def main():
