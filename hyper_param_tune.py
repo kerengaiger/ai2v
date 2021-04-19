@@ -23,7 +23,6 @@ def parse_args():
     parser.add_argument('--valid', type=str, default='valid.dat', help="validation users file name")
     parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
-    parser.add_argument('--conv_thresh', type=float, default=0.001, help="threshold diff for convergence")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
@@ -59,7 +58,6 @@ def main():
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
-                {"name": "conv_thresh", "type": "fixed", "value_type": "float", "value": args.conv_thresh},
                 {"name": "unk", "type": "fixed", "value_type": "str", "value": args.unk},
                 {"name": "cuda", "type": "fixed", "value": args.cuda},
                 {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
