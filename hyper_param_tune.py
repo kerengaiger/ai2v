@@ -17,7 +17,6 @@ AI2V = 'ai2v'
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='ai2v', help="model to train: i2v or ai2v")
-    parser.add_argument('--name', type=str, default='sgns', help="model name")
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='train.dat', help="train file name")
