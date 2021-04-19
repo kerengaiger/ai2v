@@ -29,7 +29,8 @@ def parse_args():
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--batch_size', type=int, default=100, help="batch size")
+    parser.add_argument('--batch_size', type=int, default=32, help="batch size")
+    parser.add_argument('--window_size', type=int, default=60, help="window size")
 
     return parser.parse_args()
 
