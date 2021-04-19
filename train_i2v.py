@@ -99,9 +99,6 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().month) + '_' + str(datetime.datetime.now().day) + \
-        '_' + str(datetime.datetime.now().hour) + '_' + str(datetime.datetime.now().minute)
-    writer = SummaryWriter(log_dir=log_dir)
 
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
@@ -109,6 +106,10 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     patience_count = 0
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
+        log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().month) + '_' + str(datetime.datetime.now().day) + \
+                  '_' + str(datetime.datetime.now().hour) + '_' + str(datetime.datetime.now().minute)
+        writer = SummaryWriter(log_dir=log_dir)
+
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
         train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True)
 
