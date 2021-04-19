@@ -110,7 +110,6 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
-    best_valid_loss = np.inf
     patience_count = 0
     t.autograd.set_detect_anomaly(True)
 
@@ -127,13 +126,10 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         writer.add_scalar("Loss/validation", valid_loss, epoch)
         print(f'valid loss:{valid_loss}')
 
-        diff_loss = abs(valid_loss - valid_losses[-1])
-        if diff_loss > cnfg['conv_thresh']:
+        if valid_loss < valid_losses[-1]:
             patience_count = 0
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
-                best_epoch = epoch
-                save_model(cnfg, model, sgns)
+            best_epoch = epoch
+            save_model(cnfg, model, sgns)
 
         else:
             patience_count += 1
