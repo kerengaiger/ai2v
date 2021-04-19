@@ -9,7 +9,7 @@ from train_i2v import inference
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
-    parser.add_argument('--model', type=str, default='./output/best_model.pt', help="best model trained")
+    parser.add_argument('--model', type=str, default='./output/i2v_best.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='./data/test.dat', help="test set for evaluation")
     return parser.parse_args()
 

@@ -54,7 +54,7 @@ def save_model(cnfg, model, sgns):
 
     pickle.dump(ivectors, open(pathlib.Path(cnfg['save_dir'], 'idx2ivec.dat'), 'wb'))
     pickle.dump(ovectors, open(pathlib.Path(cnfg['save_dir'], 'idx2ovec.dat'), 'wb'))
-    t.save(sgns, pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
+    t.save(sgns, pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
 
 
 
