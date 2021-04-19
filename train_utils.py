@@ -45,15 +45,11 @@ def configure_weights(cnfg, idx2item):
 
 
 def save_model(cnfg, model, sgns):
-    if model.name == 'i2v':
-        ivectors = model.ivectors.weight.data.cpu().numpy()
-        ovectors = model.ovectors.weight.data.cpu().numpy()
-    else:
-        ivectors = model.tvectors.weight.data.cpu().numpy()
-        ovectors = model.cvectors.weight.data.cpu().numpy()
+    tvectors = model.tvectors.weight.data.cpu().numpy()
+    cvectors = model.cvectors.weight.data.cpu().numpy()
 
-    pickle.dump(ivectors, open(pathlib.Path(cnfg['save_dir'], 'idx2ivec.dat'), 'wb'))
-    pickle.dump(ovectors, open(pathlib.Path(cnfg['save_dir'], 'idx2ovec.dat'), 'wb'))
+    pickle.dump(tvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2tvec.dat'), 'wb'))
+    pickle.dump(cvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2cvec.dat'), 'wb'))
     t.save(sgns, pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
 
 
