@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
+    parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
 
     return parser.parse_args()
 
@@ -64,6 +65,8 @@ def main():
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
                 {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
+                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
+
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
@@ -90,6 +93,7 @@ def main():
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
                 {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
+                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
