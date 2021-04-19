@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import pathlib
 import pickle
 from sklearn.metrics.pairwise import cosine_similarity
@@ -98,7 +99,9 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    writer = SummaryWriter(log_dir=cnfg['log_dir'])
+    log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().month) + '_' + str(datetime.datetime.now().day) + \
+        '_' + str(datetime.datetime.now().hour) + '_' + str(datetime.datetime.now().minute)
+    writer = SummaryWriter(log_dir=log_dir)
 
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
