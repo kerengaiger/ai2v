@@ -3,7 +3,6 @@
 import datetime
 import pathlib
 import pickle
-from sklearn.metrics.pairwise import cosine_similarity
 
 import numpy as np
 import torch as t
