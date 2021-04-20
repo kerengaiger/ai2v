@@ -87,7 +87,6 @@ def main():
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
-                {"name": "conv_thresh", "type": "fixed", "value_type": "float", "value": args.conv_thresh},
                 {"name": "unk", "type": "fixed", "value_type": "str", "value": args.unk},
                 {"name": "cuda", "type": "fixed", "value": args.cuda},
                 {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
