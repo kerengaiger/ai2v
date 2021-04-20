@@ -17,7 +17,6 @@ AI2V = 'ai2v'
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='ai2v', help="model to train: i2v or ai2v")
-    parser.add_argument('--name', type=str, default='sgns', help="model name")
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='train.dat', help="train file name")
@@ -51,6 +50,7 @@ def main():
     if args.model == I2V:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
+                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "lr", "type": "range", "value_type": "float", "bounds": [3e-2, 1e-1]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
@@ -79,6 +79,7 @@ def main():
     else:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
+                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-4, 1e-3]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
