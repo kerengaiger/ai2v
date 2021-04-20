@@ -4,8 +4,8 @@ import numpy as np
 import torch as t
 import torch.nn as nn
 
-from torch import LongTensor as LT
 from torch import FloatTensor as FT
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class Bundler(nn.Module):
@@ -94,3 +94,13 @@ class SGNS(nn.Module):
         loss = oloss + nloss
         loss = loss.sum(1).mean()
         return -loss
+
+    def represent_user(self, user_itemids):
+        context_vecs = self.embedding.ivectors.weight.data.cpu().numpy()
+        user2vec = context_vecs[user_itemids, :].mean(axis=0)
+        return user2vec
+
+    def inference(self, user_itemids):
+        user2vec = np.expand_dims(self.represent_user(user_itemids), axis=0)
+        user_sim = cosine_similarity(user2vec, self.embedding.ovectors.weight.data.cpu().numpy()).squeeze()
+        return user_sim
