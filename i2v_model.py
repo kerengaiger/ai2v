@@ -103,4 +103,4 @@ class SGNS(nn.Module):
     def inference(self, user_itemids):
         user2vec = np.expand_dims(self.represent_user(user_itemids), axis=0)
         user_sim = cosine_similarity(user2vec, self.embedding.tvectors.weight.data.cpu().numpy()).squeeze()
-        return user_sim.argsort()
+        return user_sim
