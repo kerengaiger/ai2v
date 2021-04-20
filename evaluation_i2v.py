@@ -3,7 +3,6 @@ import pickle
 import numpy as np
 import argparse
 from tqdm import tqdm
-from train_i2v import inference
 
 
 def parse_args():
@@ -16,8 +15,11 @@ def parse_args():
 
 def mrr_k(model, eval_set, k):
     in_top_k, rec_rank = 0, 0
-    for user_itemids, target_item in eval_set:
-        items_ranked = inference(model, user_itemids)
+
+    pbar = tqdm(eval_set)
+
+    for user_itemids, target_item in pbar:
+        items_ranked = model.inference(model, user_itemids)
         top_k_items = items_ranked.argsort()[-k:][::-1]
         if target_item in top_k_items:
             in_top_k += 1
@@ -32,7 +34,7 @@ def hr_k(model, eval_set, k):
     pbar = tqdm(eval_set)
 
     for user_itemids, target_item in pbar:
-        items_ranked = inference(model, user_itemids)
+        items_ranked = model.inference(model, user_itemids)
         top_k_items = items_ranked.argsort()[-k:][::-1]
         if target_item in top_k_items:
             in_top_k += 1
@@ -44,6 +46,7 @@ def main():
     model = t.load(args.model)
     eval_set = pickle.load(open(args.test, 'rb'))
     print(f'hit ratio at {args.k}:', hr_k(model, eval_set, args.k))
+    print(f'mrr at {args.k}:', mrr_k(model, eval_set, args.k))
 
 
 if __name__ == '__main__':
