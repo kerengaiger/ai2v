@@ -21,10 +21,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
 
-    for batch_titem, batch_citems in pbar:
-        batch_titems = t.tensor(batch_titem)
-        batch_citems = batch_citems.squeeze(0)
-
+    for batch_titems, batch_citems in pbar:
         batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
         loss = sgns(batch_titems, batch_citems, batch_pad_ids)
 
