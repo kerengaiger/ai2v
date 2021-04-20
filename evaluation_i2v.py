@@ -34,7 +34,7 @@ def mrr_k(model, eval_set, k):
 def inference(model, user_itemids):
     user2vec = np.expand_dims(represent_user(user_itemids, model), axis=0)
     user_sim = cosine_similarity(user2vec, model.embedding.ovectors.weight.data.cpu().numpy()).squeeze()
-    return user_sim.argsort()
+    return user_sim
 
 
 def hr_k(model, eval_set, k):
@@ -43,7 +43,7 @@ def hr_k(model, eval_set, k):
     pbar = tqdm(eval_set)
 
     for user_itemids, target_item in pbar:
-        items_ranked = inference(model, user_itemids)
+        items_ranked = inference(model, user_itemids).argsort()
         top_k_items = items_ranked.argsort()[-k:][::-1]
         if target_item in top_k_items:
             in_top_k += 1
