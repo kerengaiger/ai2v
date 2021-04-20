@@ -94,6 +94,9 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
+                {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
+                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
+                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir}
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
