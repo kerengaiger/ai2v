@@ -18,10 +18,5 @@ def configure_weights(cnfg, idx2item):
     return weights
 
 
-def save_model(cnfg, model, sgns):
-    tvectors = model.tvectors.weight.data.cpu().numpy()
-    cvectors = model.cvectors.weight.data.cpu().numpy()
-
-    pickle.dump(tvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2tvec.dat'), 'wb'))
-    pickle.dump(cvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2cvec.dat'), 'wb'))
+def save_model(cnfg, sgns):
     t.save(sgns, pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
