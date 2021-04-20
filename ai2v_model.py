@@ -102,6 +102,27 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
 
+    def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
+        return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
+                                                        t.mul(batch_sub_users, batch_tvecs),
+                                                        batch_sub_users - batch_tvecs], 1)))) + \
+            self.ai2v.b_l_j[batch_titem_ids].unsqueeze(1)
+
+    def represent_user(self, citems, titem):
+        titem = t.tensor(titem).unsqueeze(0)
+        citems = t.tensor(citems).unsqueeze(0)
+        pad_ids = (citems == self.ai2v.pad_idx).nonzero(as_tuple=True)
+        return self.ai2v(titem, citems, pad_ids)
+
+    def inference(self, user_items):
+        num_items = self.ai2v.tvectors.weight.size()[0]
+        citems = t.cat(num_items * [t.tensor([user_items])])
+        all_titems = t.tensor(range(num_items))
+        sub_user = self.represent_user(citems, all_titems)
+        all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
+        sim = self.similarity(sub_user, all_tvecs, all_titems)
+        return sim.squeeze().detach().numpy()
+
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         batch_size = batch_titems.size()[0]
         if self.weights is not None:
