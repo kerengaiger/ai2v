@@ -44,7 +44,7 @@ def hr_k(model, eval_set, k):
 
     for user_itemids, target_item in pbar:
         items_ranked = inference(model, user_itemids).argsort()
-        top_k_items = items_ranked.argsort()[-k:][::-1]
+        top_k_items = items_ranked[-k:][::-1]
         if target_item in top_k_items:
             in_top_k += 1
     return in_top_k / len(eval_set)
