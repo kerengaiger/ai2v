@@ -167,7 +167,7 @@ def train_evaluate(cnfg):
 
     best_epoch = train_early_stop(cnfg, valid_users_path)
 
-    best_model = t.load(pathlib.Path(cnfg['save_dir'], 'best_model.pt'))
+    best_model = t.load(pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
 
     valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg)
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
