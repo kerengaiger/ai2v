@@ -15,6 +15,7 @@ from tqdm import tqdm
 from i2v_model import Item2Vec
 from i2v_model import SGNS
 from train_utils import save_model, configure_weights
+from evaluation import hr_k, mrr_k
 
 
 class UserBatchDataset(Dataset):
@@ -92,6 +93,17 @@ def train(cnfg):
         _train_loss = run_epoch(train_loader, epoch, sgns, optim)
 
     save_model(cnfg, sgns)
+
+    # Evaluate on test set
+    log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
+    writer = SummaryWriter(log_dir=log_dir)
+
+    eval_set = pickle.load(open(cnfg['test'], 'rb'))
+    k = cnfg['k']
+
+    writer.add_hparams(hparam_dict=cnfg,
+                       metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k), f'mrr_{k}': mrr_k(sgns, eval_set, k)},
+                       run_name='ai2v_user_batch')
 
 
 def calc_loss_on_set(sgns, valid_users_path, cnfg):

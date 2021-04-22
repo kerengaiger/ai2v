@@ -17,6 +17,8 @@ from ai2v_model import SGNS
 
 from train_utils import save_model, configure_weights
 
+from evaluation import hr_k, mrr_k
+
 
 def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     pbar = tqdm(train_dl)
@@ -169,6 +171,17 @@ def train(cnfg):
         _train_loss = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
 
     save_model(cnfg, sgns)
+
+    # Evaluate on test set
+    log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
+    writer = SummaryWriter(log_dir=log_dir)
+
+    eval_set = pickle.load(open(cnfg['test'], 'rb'))
+    k = cnfg['k']
+
+    writer.add_hparams(hparam_dict=cnfg,
+                       metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k), f'mrr_{k}': mrr_k(sgns, eval_set, k)},
+                       run_name='ai2v_user_batch')
 
 
 def train_evaluate(cnfg):
