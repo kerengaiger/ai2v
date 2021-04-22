@@ -21,11 +21,13 @@ def parse_args():
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='train.dat', help="train file name")
     parser.add_argument('--valid', type=str, default='valid.dat', help="validation users file name")
+    parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
     parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=10, help="number of trials ")
+    parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=60, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
@@ -64,9 +66,11 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
+                {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
                 {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir}
+                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
+                {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
@@ -93,9 +97,11 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
+                {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
                 {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir}
+                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
+                {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
