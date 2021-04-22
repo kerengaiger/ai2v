@@ -41,8 +41,8 @@ class AttentiveItemToVec(nn.Module):
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
-        # print('v_l_j', v_l_j)
-        # print('u_l_m', u_l_m)
+        # print('v_l_j', v_l_j.shape)
+        # print('u_l_m', u_l_.shape)
         c_vecs = self.Ac(u_l_m)
         t_vecs = self.At(v_l_j).unsqueeze(1)
         # print('c_vecs', c_vecs)
@@ -110,8 +110,6 @@ class SGNS(nn.Module):
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(1)
 
     def represent_user(self, citems, titem):
-        titem = t.tensor(titem).unsqueeze(0)
-        citems = t.tensor(citems).unsqueeze(0)
         pad_ids = (citems == self.ai2v.pad_idx).nonzero(as_tuple=True)
         return self.ai2v(titem, citems, pad_ids)
 
