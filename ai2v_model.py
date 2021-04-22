@@ -109,8 +109,6 @@ class SGNS(nn.Module):
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(1)
 
     def represent_user(self, citems, titem):
-        titem = t.tensor(titem).unsqueeze(0)
-        citems = t.tensor(citems).unsqueeze(0)
         pad_ids = (citems == self.ai2v.pad_idx).nonzero(as_tuple=True)
         return self.ai2v(titem, citems, pad_ids)
 
