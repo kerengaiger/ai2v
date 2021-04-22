@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='train.dat', help="train file name")
     parser.add_argument('--valid', type=str, default='valid.dat', help="validation users file name")
+    parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
     parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
@@ -29,6 +30,7 @@ def parse_args():
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
+    parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
 
     return parser.parse_args()
 
@@ -64,9 +66,10 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
+                {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
                 {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
-
+                {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
@@ -93,8 +96,10 @@ def main():
                 {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
+                {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
                 {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
+                {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
