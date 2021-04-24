@@ -120,7 +120,7 @@ class SGNS(nn.Module):
         sub_user = self.represent_user(citems, all_titems)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_user, all_tvecs, all_titems)
-        return sim.squeeze().detach().numpy()
+        return sim.squeeze().detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         batch_size = batch_titems.size()[0]
