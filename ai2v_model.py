@@ -14,6 +14,7 @@ class AttentiveItemToVec(nn.Module):
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
         self.d_alpha = d_alpha
+        self.pad_idx = padding_idx
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([t.zeros(1, self.embedding_size),
@@ -26,8 +27,8 @@ class AttentiveItemToVec(nn.Module):
         self.cvectors.weight.requires_grad = True
         self.Ac = nn.Linear(self.embedding_size, self.d_alpha)
         self.At = nn.Linear(self.embedding_size, self.d_alpha)
-        self.cos = nn.CosineSimilarity(dim=2, eps=1e-6)
-        self.softmax = nn.Softmax(dim=1)
+        self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
+        self.softmax = nn.Softmax(dim=-1)
         self.Bc = nn.Linear(self.embedding_size, self.embedding_size)
         self.Bt = nn.Linear(self.embedding_size, self.embedding_size)
         self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
@@ -40,19 +41,23 @@ class AttentiveItemToVec(nn.Module):
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
-        # print('v_l_j', v_l_j)
-        # print('u_l_m', u_l_m)
-        c_vecs = self.Ac(u_l_m)
-        t_vecs = self.At(v_l_j).unsqueeze(1)
-        # print('c_vecs', c_vecs)
-        # print('t_vecs', t_vecs)
+        # print('v_l_j', v_l_j.shape)
+        # print('u_l_m', u_l_m.shape)
+        c_vecs = self.Ac(u_l_m).unsqueeze(1)
+        t_vecs = self.At(v_l_j).unsqueeze(2)
+        # print('c_vecs', c_vecs.shape)
+        # print('t_vecs', t_vecs.shape)
         # print((c_vecs == 0).nonzero(), 'c_vecs zeros')
         # print(c_vecs.max(), 'c_vecs max')
         # print((t_vecs == 0).nonzero(), 't_vecs zeros')
         # print(t_vecs.max(), 't_vecs max')
         cosine_sim = self.cos(t_vecs, c_vecs)
+        batch_pad_ids = (batch_pad_ids[0].repeat_interleave(batch_titems.shape[1]),
+                         t.cat([t.tensor(range(batch_titems.shape[1]))] * batch_pad_ids[0].shape[0]),
+                         batch_pad_ids[1].repeat_interleave(batch_titems.shape[1]))
+
+        # print('cosine sim', cosine_sim.shape)
         cosine_sim[batch_pad_ids] = -np.inf
-        # print('cosine sim', cosine_sim)
 
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
         # print(cosine_sim.max(), 'cosine_sim max')
@@ -62,12 +67,12 @@ class AttentiveItemToVec(nn.Module):
         # print((attention_weights == 0).nonzero(), 'attention_weights zeros')
         # print(attention_weights.max(), 'attention_weights max')
         # print('Bc(u_l_m)', self.Bc(u_l_m))
-        weighted_u_l_m = t.mul(attention_weights.unsqueeze(2), self.Bc(u_l_m))
+        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
         # print('weighted_u_l_m', weighted_u_l_m)
 
         # print((weighted_u_l_m == 0).nonzero(), 'weighted_u_l_m zeros')
         # print(weighted_u_l_m.max(), 'weighted_u_l_m max')
-        alpha_j_1 = weighted_u_l_m.sum(1)
+        alpha_j_1 = weighted_u_l_m.sum(2)
         # print('alpha_j_1', alpha_j_1)
         # print((alpha_j_1 == 0).nonzero(), 'alpha_j_1 zeros')
         # print(alpha_j_1.max(), 'alpha_j_1 max')
@@ -105,8 +110,8 @@ class SGNS(nn.Module):
     def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
         return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
                                                         t.mul(batch_sub_users, batch_tvecs),
-                                                        batch_sub_users - batch_tvecs], 1)))) + \
-            self.ai2v.b_l_j[batch_titem_ids].unsqueeze(1)
+                                                        batch_sub_users - batch_tvecs], 2)))) + \
+            self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def represent_user(self, citems, titem):
         pad_ids = (citems == self.ai2v.pad_idx).nonzero(as_tuple=True)
@@ -128,6 +133,7 @@ class SGNS(nn.Module):
         else:
             batch_nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
 
+        batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         batch_sub_users = self.ai2v(batch_titems, batch_citems, batch_pad_ids)
         # print('batch_sub_users', batch_sub_users.shape)
         # print((batch_sub_users == 0).nonzero(), 'batch_sub_users zeros')
@@ -136,36 +142,15 @@ class SGNS(nn.Module):
         # print('batch_tvecs', batch_tvecs)
         # print((batch_tvecs == 0).nonzero(), 'batch_tvecs zeros')
         # print(batch_tvecs.max(), 'batch_tvecs max')
-        batch_nvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_nitems))
-        # print('batch_nvecs', batch_nvecs)
-        # print((batch_nvecs == 0).nonzero(), 'batch_nvecs zeros')
-        # print(batch_nvecs.max(), 'batch_nvecs max')
 
         if [param for param in self.ai2v.parameters()][0].is_cuda:
             self.ai2v.b_l_j.cuda()
 
         # print(self.ai2v.b_l_j.max(), 'b_l_j max')
         # print(self.ai2v.b_l_j, 'b_l_j')
-        sim = self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
-                                                              t.mul(batch_sub_users, batch_tvecs),
-                                                              batch_sub_users - batch_tvecs], 1)))) + \
-            self.ai2v.b_l_j[batch_titems].unsqueeze(1)
-
-        # print('sim', sim)
+        sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
+        # print('sim', sim.shape)
         # print(sim.max(), 'sim max')
-        batch_sub_users_exp = t.cat(self.n_negs * [batch_sub_users.unsqueeze(1)], 1)
-        # print((batch_sub_users_exp == 0).nonzero(), 'batch_sub_users_exp zeros')
 
-        sim_neg = self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users_exp, batch_nvecs,
-                                                                  t.mul(batch_sub_users_exp, batch_nvecs),
-                                                                  batch_sub_users_exp - batch_nvecs], 2)))).squeeze() + \
-            self.ai2v.b_l_j[batch_nitems]
-        # print('sim_neg', sim_neg)
-        # print(sim_neg.max(), 'sim max')
+        return -sim.squeeze(-1).softmax(dim=1)[:, 0].log().sum()
 
-        # print(t.cat([sim, sim_neg], 1))
-        # print(t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0])
-        # print(t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0].log().sum())
-        # print()
-
-        return -t.cat([sim, sim_neg], 1).softmax(dim=1)[:, 0].log().sum()
