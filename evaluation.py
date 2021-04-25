@@ -19,7 +19,7 @@ def mrr_k(model, eval_set, k):
     pbar = tqdm(eval_set)
 
     for user_itemids, target_item in pbar:
-        items_ranked = model.inference(model, user_itemids).argsort()
+        items_ranked = model.inference(user_itemids).argsort()
         top_k_items = items_ranked[-k:][::-1]
         if target_item in top_k_items:
             in_top_k += 1
@@ -34,7 +34,7 @@ def hr_k(model, eval_set, k):
     pbar = tqdm(eval_set)
 
     for user_itemids, target_item in pbar:
-        items_ranked = model.inference(model, user_itemids).argsort()
+        items_ranked = model.inference(user_itemids).argsort()
         top_k_items = items_ranked[-k:][::-1]
         if target_item in top_k_items:
             in_top_k += 1
