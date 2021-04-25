@@ -63,7 +63,7 @@ def train(cnfg):
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
 
-    eval_set = pickle.load(open(cnfg['test'], 'rb'))
+    eval_set = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['test']).open('rb'))
     k = cnfg['k']
 
     writer.add_hparams(hparam_dict=cnfg,
