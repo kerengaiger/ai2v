@@ -42,7 +42,7 @@ class AttentiveItemToVec(nn.Module):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         # print('v_l_j', v_l_j.shape)
-        # print('u_l_m', u_l_.shape)
+        # print('u_l_m', u_l_m.shape)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
         t_vecs = self.At(v_l_j).unsqueeze(2)
         # print('c_vecs', c_vecs.shape)
@@ -52,11 +52,12 @@ class AttentiveItemToVec(nn.Module):
         # print((t_vecs == 0).nonzero(), 't_vecs zeros')
         # print(t_vecs.max(), 't_vecs max')
         cosine_sim = self.cos(t_vecs, c_vecs)
-        batch_pad_ids = (batch_pad_ids[0].repeat_interleave(t_vecs.shape[1]),
-                         t.cat([t.tensor(range(t_vecs.shape[1]))] * 3),
-                         batch_pad_ids[1].repeat_interleave(t_vecs.shape[1]))
-        cosine_sim[batch_pad_ids] = -np.inf
+        batch_pad_ids = (batch_pad_ids[0].repeat_interleave(batch_titems.shape[1]),
+                         t.cat([t.tensor(range(batch_titems.shape[1]))] * batch_pad_ids[0].shape[0]),
+                         batch_pad_ids[1].repeat_interleave(batch_titems.shape[1]))
+
         # print('cosine sim', cosine_sim.shape)
+        cosine_sim[batch_pad_ids] = -np.inf
 
         # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
         # print(cosine_sim.max(), 'cosine_sim max')
