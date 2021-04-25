@@ -96,30 +96,34 @@ for user_id in list(valid_users):
         valid_users_filtered.append(user_id)
 valid_users = valid_users_filtered
 
-corpus_item_lists = [user2data[user].items for user in valid_users]
 
 train_indices, test_indices = ComputeSplitIndices(len(valid_users), test_size=0.1)
-train_indices, validation_indices = ComputeSplitIndices(len(train_indices), test_size=0.1)
-
 train_users = [valid_users[i] for i in train_indices]
-validation_users = [valid_users[i] for i in validation_indices]
-test_users = [valid_users[i] for i in test_indices]
-
 train_item_lists = [user2data[user].items for user in train_users]
-validation_item_lists = [user2data[user].items for user in validation_users]
+test_users = [valid_users[i] for i in test_indices]
 test_item_lists = [user2data[user].items for user in test_users]
+
+with open(r'./data/corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(train_item_lists)
+
+with open(r'./data/test_corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(test_item_lists)
+
+train_indices, validation_indices = ComputeSplitIndices(len(train_indices), test_size=0.1)
+train_users = [valid_users[i] for i in train_indices]
+train_item_lists = [user2data[user].items for user in train_users]
+validation_users = [valid_users[i] for i in validation_indices]
+validation_item_lists = [user2data[user].items for user in validation_users]
+
+
+with open(r'./data/train_corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(train_item_lists)
+with open(r'./data/valid_corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(validation_item_lists)
+
 
 print("Items#: ", len(index.item2index))
 print("Full corpus users#:", len(valid_users))
 print("Train users#: ", len(train_users))
 print("validation users#: ", len(validation_users))
 print("Test users#: ", len(test_users))
-
-with open(r'./data/corpus_avi.txt', 'w', newline="") as x:
-    csv.writer(x, delimiter=" ").writerows(corpus_item_lists)
-with open(r'./data/train_corpus_avi.txt', 'w', newline="") as x:
-    csv.writer(x, delimiter=" ").writerows(train_item_lists)
-with open(r'./data/valid_corpus_avi.txt', 'w', newline="") as x:
-    csv.writer(x, delimiter=" ").writerows(validation_item_lists)
-with open(r'./data/test_corpus_avi.txt', 'w', newline="") as x:
-    csv.writer(x, delimiter=" ").writerows(test_item_lists)
