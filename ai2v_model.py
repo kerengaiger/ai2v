@@ -128,11 +128,23 @@ class SGNS(nn.Module):
 
     def inference(self, user_items):
         num_items = self.ai2v.tvectors.weight.size()[0]
-        citems = t.cat(num_items * [t.tensor([user_items])])
+        citems = t.tensor([user_items])
         all_titems = t.tensor(range(num_items))
-        sub_user = self.represent_user(citems, all_titems)
+        v_l_j = self.ai2v.forward_t(all_titems)
+        u_l_m = self.ai2v.forward_c(citems)
+        c_vecs = self.ai2v.Ac(u_l_m)
+        t_vecs = self.ai2v.At(v_l_j)
+        cosine_sim = self.ai2v.cos(t_vecs.unsqueeze(1), c_vecs)
+        attention_weights = self.ai2v.softmax(cosine_sim)
+        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.ai2v.Bc(u_l_m))
+        alpha_j_1 = weighted_u_l_m.sum(1)
+        z_j_1 = self.ai2v.R(alpha_j_1)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
-        sim = self.similarity(sub_user, all_tvecs, all_titems)
+        sim = self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([z_j_1,
+                                                              all_tvecs,
+                                                              t.mul(z_j_1, all_tvecs),
+                                                              z_j_1 - all_tvecs], 1)))) + \
+            self.ai2v.b_l_j[all_titems].unsqueeze(1)
         return sim.squeeze().detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
