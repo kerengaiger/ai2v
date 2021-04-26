@@ -40,12 +40,17 @@ class AttentiveItemToVec(nn.Module):
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         v_l_j = self.forward_t(batch_titems)
-        print(t.cuda.get_device_properties(1).total_memory * 1e-9)
+        print('device', t.cuda.current_device())
+        device = t.cuda.current_device()
+        print(t.cuda.memory_allocated(device))
         u_l_m = self.forward_c(batch_citems)
+        print(t.cuda.memory_allocated(device))
         # print('v_l_j', v_l_j.shape)
         # print('u_l_m', u_l_m.shape)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
+        print(t.cuda.memory_allocated(device))
         t_vecs = self.At(v_l_j).unsqueeze(2)
+        print(t.cuda.memory_allocated(device))
         # print('c_vecs', c_vecs.shape)
         # print('t_vecs', t_vecs.shape)
         # print((c_vecs == 0).nonzero(), 'c_vecs zeros')
