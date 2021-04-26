@@ -41,9 +41,9 @@ def hr_k(model, eval_set, k):
 
 
 def main():
-    print(t.cuda.current_device())
-    device = t.cuda.current_device()
-    print(t.cuda.memory_allocated(device))
+    # print(t.cuda.current_device())
+    # device = t.cuda.current_device()
+    # print(t.cuda.memory_allocated(device))
     args = parse_args()
     model = t.load(args.model)
     eval_set = pickle.load(open(args.test, 'rb'))
