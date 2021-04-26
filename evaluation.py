@@ -41,6 +41,7 @@ def hr_k(model, eval_set, k):
 
 
 def main():
+    print(t.cuda.get_device_properties(1).total_memory * 1e-9)
     args = parse_args()
     model = t.load(args.model)
     eval_set = pickle.load(open(args.test, 'rb'))
