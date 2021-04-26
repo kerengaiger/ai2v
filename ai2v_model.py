@@ -39,6 +39,8 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j.requires_grad = True
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
+        print('batch_titems', batch_titems.shape)
+        print('batch_citems', batch_citems.shape)
         v_l_j = self.forward_t(batch_titems)
         print('device', t.cuda.current_device())
         device = t.cuda.current_device()
