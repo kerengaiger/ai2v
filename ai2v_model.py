@@ -52,6 +52,7 @@ class AttentiveItemToVec(nn.Module):
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
         print(t.cuda.memory_allocated(device))
         t_vecs = self.At(v_l_j).unsqueeze(2)
+        del u_l_m, v_l_j
         print(t.cuda.memory_allocated(device))
         print('c_vecs', c_vecs.shape)
         print('t_vecs', t_vecs.shape)
