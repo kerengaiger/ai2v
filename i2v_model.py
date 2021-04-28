@@ -69,31 +69,15 @@ class SGNS(nn.Module):
         if self.weights is not None:
             nitems = t.multinomial(self.weights, batch_size * context_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
-            nitems = FT(batch_size, context_size * self.n_negs).uniform_(0, self.vocab_size - 1).long()
-        tvectors = self.embedding.forward_t(titems).unsqueeze(2)
-        # print('ivectors', ivectors.shape)
-        # print('ivectors', ivectors)
-
-        # print('ivectors', ivectors.shape)
+            nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
+        tvectors = self.embedding.forward_t(titems)
         cvectors = self.embedding.forward_c(citems)
-        # print('ovectors', ovectors.shape)
-        # print('ovectors', ovectors)
-
-        # print('ovectors', ovectors.shape)
         nvectors = self.embedding.forward_t(nitems).neg()
-        # print('nvectors', nvectors.shape)
-        # print('mult o and i', t.bmm(ovectors, ivectors).shape)
-        tloss = t.bmm(cvectors, tvectors).squeeze(dim=-1).sigmoid().log()
-        # print('oloss', oloss.shape)
-        # print('oloss', oloss.shape)
-        assert tloss.shape[0] == batch_size, 'tloss vector shape is different than batch size'
-        nloss = t.bmm(nvectors, tvectors).squeeze(dim=-1).sigmoid().log().view(-1, context_size, self.n_negs).sum(2)
-        # print('mult n and i', t.bmm(nvectors, ivectors).shape)
-        # print('nloss', nloss.shape)
-        assert nloss.shape[0] == batch_size, 'nloss vector shape is different than batch size'
-        loss = tloss + nloss
-        loss = loss.sum(1).mean()
-        return -loss
+
+        all_tvectors = t.cat([tvectors.unsqueeze(1), nvectors], dim=1)
+        loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
+
+        return -loss.sigmoid().log().sum(2).sum(1).mean()
 
     def represent_user(self, user_itemids):
         context_vecs = self.embedding.cvectors.weight.data.cpu().numpy()
