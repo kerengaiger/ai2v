@@ -102,7 +102,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = AttentiveItemToVec(vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    model = AttentiveItemToVec(padding_idx=pad_idx, vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
 
     if cnfg['cuda']:
