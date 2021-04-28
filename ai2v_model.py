@@ -38,18 +38,19 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
 
-    def forward(self, batch_titems, batch_citems, batch_pad_ids):
+    def forward(self, batch_titems, batch_citems, batch_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
         t_vecs = self.At(v_l_j).unsqueeze(2)
 
         cosine_sim = self.cos(t_vecs, c_vecs)
-        batch_pad_ids = (batch_pad_ids[0].repeat_interleave(batch_titems.shape[1]),
-                         t.cat([t.tensor(range(batch_titems.shape[1]))] * batch_pad_ids[0].shape[0]),
-                         batch_pad_ids[1].repeat_interleave(batch_titems.shape[1]))
+        if not inference:
+            batch_pad_ids = (batch_pad_ids[0].repeat_interleave(batch_titems.shape[1]),
+                             t.cat([t.tensor(range(batch_titems.shape[1]))] * batch_pad_ids[0].shape[0]),
+                             batch_pad_ids[1].repeat_interleave(batch_titems.shape[1]))
 
-        cosine_sim[batch_pad_ids] = -np.inf
+            cosine_sim[batch_pad_ids] = -np.inf
 
         attention_weights = self.softmax(cosine_sim)
         weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
@@ -88,30 +89,14 @@ class SGNS(nn.Module):
                                                         batch_sub_users - batch_tvecs], 2)))) + \
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
-    def represent_user(self, citems, titem):
-        pad_ids = (citems == self.ai2v.pad_idx).nonzero(as_tuple=True)
-        return self.ai2v(titem, citems, pad_ids)
-
     def inference(self, user_items):
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
-        all_titems = t.tensor(range(num_items))
-        v_l_j = self.ai2v.forward_t(all_titems)
-        u_l_m = self.ai2v.forward_c(citems)
-        c_vecs = self.ai2v.Ac(u_l_m)
-        t_vecs = self.ai2v.At(v_l_j)
-        cosine_sim = self.ai2v.cos(t_vecs.unsqueeze(1), c_vecs)
-        attention_weights = self.ai2v.softmax(cosine_sim)
-        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.ai2v.Bc(u_l_m))
-        alpha_j_1 = weighted_u_l_m.sum(1)
-        z_j_1 = self.ai2v.R(alpha_j_1)
+        all_titems = t.tensor(range(num_items)).unsqueeze(0)
+        sub_users = self.ai2v(all_titems, citems, batch_pad_ids=None, inference=True)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
-        sim = self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([z_j_1,
-                                                              all_tvecs,
-                                                              t.mul(z_j_1, all_tvecs),
-                                                              z_j_1 - all_tvecs], 1)))) + \
-            self.ai2v.b_l_j[all_titems].unsqueeze(1)
-        return sim.squeeze().detach().cpu().numpy()
+        sim = self.similarity(sub_users, all_tvecs, all_titems)
+        return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
         batch_size = batch_titems.size()[0]
