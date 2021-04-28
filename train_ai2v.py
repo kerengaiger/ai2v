@@ -123,6 +123,11 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
+
+        for param in sgns.ai2v.named_parameters():
+            print(param[0])
+            print(t.max(param[1]))
+
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
