@@ -39,56 +39,22 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j.requires_grad = True
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
-        print('batch_titems', batch_titems.shape)
-        print('batch_citems', batch_citems.shape)
         v_l_j = self.forward_t(batch_titems)
-        print('device', t.cuda.current_device())
-        device = t.cuda.current_device()
-        print(t.cuda.memory_allocated(device))
         u_l_m = self.forward_c(batch_citems)
-        print(t.cuda.memory_allocated(device))
-        print('v_l_j', v_l_j.shape)
-        print('u_l_m', u_l_m.shape)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
-        print(t.cuda.memory_allocated(device))
         t_vecs = self.At(v_l_j).unsqueeze(2)
-        del u_l_m, v_l_j
-        print(t.cuda.memory_allocated(device))
-        print('c_vecs', c_vecs.shape)
-        print('t_vecs', t_vecs.shape)
-        # print((c_vecs == 0).nonzero(), 'c_vecs zeros')
-        # print(c_vecs.max(), 'c_vecs max')
-        # print((t_vecs == 0).nonzero(), 't_vecs zeros')
-        # print(t_vecs.max(), 't_vecs max')
+
         cosine_sim = self.cos(t_vecs, c_vecs)
         batch_pad_ids = (batch_pad_ids[0].repeat_interleave(batch_titems.shape[1]),
                          t.cat([t.tensor(range(batch_titems.shape[1]))] * batch_pad_ids[0].shape[0]),
                          batch_pad_ids[1].repeat_interleave(batch_titems.shape[1]))
 
-        # print('cosine sim', cosine_sim.shape)
         cosine_sim[batch_pad_ids] = -np.inf
 
-        # print((cosine_sim == 0).nonzero(), 'cosine_sim zeros')
-        # print(cosine_sim.max(), 'cosine_sim max')
         attention_weights = self.softmax(cosine_sim)
-        # print('attention weights', attention_weights)
-
-        # print((attention_weights == 0).nonzero(), 'attention_weights zeros')
-        # print(attention_weights.max(), 'attention_weights max')
-        # print('Bc(u_l_m)', self.Bc(u_l_m))
         weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
-        # print('weighted_u_l_m', weighted_u_l_m)
-
-        # print((weighted_u_l_m == 0).nonzero(), 'weighted_u_l_m zeros')
-        # print(weighted_u_l_m.max(), 'weighted_u_l_m max')
         alpha_j_1 = weighted_u_l_m.sum(2)
-        # print('alpha_j_1', alpha_j_1)
-        # print((alpha_j_1 == 0).nonzero(), 'alpha_j_1 zeros')
-        # print(alpha_j_1.max(), 'alpha_j_1 max')
         z_j_1 = self.R(alpha_j_1)
-        # print((z_j_1 == 0).nonzero(), 'z_j_1 zeros')
-        # print(z_j_1.max(), 'z_j_1 max')
-        # print('z_j_1', z_j_1)
 
         return z_j_1
 
@@ -156,21 +122,11 @@ class SGNS(nn.Module):
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         batch_sub_users = self.ai2v(batch_titems, batch_citems, batch_pad_ids)
-        # print('batch_sub_users', batch_sub_users.shape)
-        # print((batch_sub_users == 0).nonzero(), 'batch_sub_users zeros')
-        # print(batch_sub_users.max(), 'batch_sub_users max')
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
-        # print('batch_tvecs', batch_tvecs)
-        # print((batch_tvecs == 0).nonzero(), 'batch_tvecs zeros')
-        # print(batch_tvecs.max(), 'batch_tvecs max')
 
         if [param for param in self.ai2v.parameters()][0].is_cuda:
             self.ai2v.b_l_j.cuda()
 
-        # print(self.ai2v.b_l_j.max(), 'b_l_j max')
-        # print(self.ai2v.b_l_j, 'b_l_j')
         sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
-        # print('sim', sim.shape)
-        # print(sim.max(), 'sim max')
 
         return -sim.squeeze(-1).softmax(dim=1)[:, 0].log().sum()
