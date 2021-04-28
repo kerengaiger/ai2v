@@ -16,12 +16,12 @@ AI2V = 'ai2v'
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='i2v', help="model to train: i2v or ai2v")
+    parser.add_argument('--model', type=str, default='ai2v', help="model to train: i2v or ai2v")
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
-    parser.add_argument('--train', type=str, default='train_i2v_batch_u.dat', help="train file name")
-    parser.add_argument('--valid', type=str, default='valid_i2v_batch_u.dat', help="validation users file name")
-    parser.add_argument('--test', type=str, default='test_i2v_batch_u.dat', help="test users file name")
+    parser.add_argument('--train', type=str, default='train_ai2v_batch_u.dat', help="train file name")
+    parser.add_argument('--valid', type=str, default='valid_ai2v_batch_u.dat', help="validation users file name")
+    parser.add_argument('--test', type=str, default='test_ai2v_batch_u.dat', help="test users file name")
     parser.add_argument('--full_train', type=str, default='full_train_i2v_batch_u.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
