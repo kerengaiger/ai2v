@@ -46,8 +46,6 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
     valid_losses = []
 
     for batch_titem, batch_citems in pbar:
-        batch_titem = t.tensor(batch_titem)
-        batch_citems = batch_citems.squeeze(0)
         batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
 
         loss = sgns(batch_titem, batch_citems, batch_pad_ids)
