@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument('--train', type=str, default='train_ai2v_batch_u.dat', help="train file name")
     parser.add_argument('--valid', type=str, default='valid_ai2v_batch_u.dat', help="validation users file name")
     parser.add_argument('--test', type=str, default='test_ai2v_batch_u.dat', help="test users file name")
-    parser.add_argument('--full_train', type=str, default='full_train_i2v_batch_u.dat', help="full train file name")
+    parser.add_argument('--full_train', type=str, default='full_train_ai2v_batch_u.dat', help="full train file name")
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
