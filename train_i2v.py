@@ -70,6 +70,9 @@ def train(cnfg):
                        metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k), f'mrr_{k}': mrr_k(sgns, eval_set, k)},
                        run_name='ai2v_user_batch')
 
+    writer.flush()
+    writer.close()
+
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
     dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, window_size)
