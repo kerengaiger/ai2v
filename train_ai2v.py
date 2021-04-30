@@ -140,6 +140,9 @@ def train(cnfg):
                        metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k), f'mrr_{k}': mrr_k(sgns, eval_set, k)},
                        run_name='ai2v_user_batch')
 
+    writer.flush()
+    writer.close()
+
 
 def train_evaluate(cnfg):
     print(cnfg)
