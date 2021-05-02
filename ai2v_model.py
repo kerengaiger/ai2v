@@ -88,7 +88,7 @@ class SGNS(nn.Module):
     def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
         return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
                                                         t.mul(batch_sub_users, batch_tvecs),
-                                                        batch_sub_users - batch_tvecs], 2)))) + \
+                                                        (batch_sub_users - batch_tvecs).abs()], 2)))) + \
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def inference(self, user_items):
