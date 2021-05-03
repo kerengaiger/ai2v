@@ -115,10 +115,7 @@ class GroupedBatchDataset(Dataset):
 
 
 def calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx):
-
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
-    dataset = UserBatchIncrementDataset(valid_users_path, cnfg['max_batch_size'],
-                                        item2idx['pad'])
+    dataset = GroupedBatchDataset(valid_users_path, cnfg['batch_size'])
     valid_dl = DataLoader(dataset, batch_size=1, shuffle=False)
 
     pbar = tqdm(valid_dl)
@@ -157,8 +154,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     t.autograd.set_detect_anomaly(True)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
-                                            pad_idx)
+        dataset = GroupedBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['batch_size'])
         train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
@@ -198,8 +194,7 @@ def train(cnfg):
 
     model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
-    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
-                                        item2idx['pad'])
+    dataset = GroupedBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['batch_size'])
     train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     if cnfg['cuda']:
