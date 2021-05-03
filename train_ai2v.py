@@ -76,6 +76,44 @@ class UserBatchIncrementDataset(Dataset):
         return batch_iitems, np.array(batch_oitems)
 
 
+class GroupedBatchDataset(Dataset):
+    def __init__(self, datapath, batch_size, ws=None):
+        data = pickle.load(datapath.open('rb'))
+        if ws is not None:
+            data_ws = []
+            for iitem, oitems in data:
+                if random.random() > ws[iitem]:
+                    data_ws.append((iitem, oitems))
+            data = data_ws
+
+        data = [y for x in data for y in x]
+
+        sub_lens = {}
+        data_lens = [(sub[0], sub[1], len(sub[0])) for sub in data]
+        for tup_sub in data_lens:
+            if tup_sub[2] not in sub_lens.keys():
+                sub_lens[tup_sub[2]] = [(tup_sub[0], tup_sub[1])]
+            else:
+                sub_lens[tup_sub[2]].append((tup_sub[0], tup_sub[1]))
+
+        batches = []
+        for k in sub_lens.keys():
+            batches += [sub_lens[k][x:x + batch_size] for x in range(0, len(sub_lens[k]), batch_size)]
+
+        proc_batches = []
+        for batch in batches:
+            proc_batches.append(([i[1] for i in batch], np.array([i[0] for i in batch])))
+
+        self.data = proc_batches
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        batch_iitems, batch_oitems = self.data[idx]
+        return batch_iitems, batch_oitems
+
+
 def calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx):
 
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
