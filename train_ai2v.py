@@ -29,8 +29,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
         batch_titems = t.tensor(batch_titem)
         batch_citems = batch_citems.squeeze(0)
 
-        batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
-        loss = sgns(batch_titems, batch_citems, batch_pad_ids)
+        loss = sgns(batch_titems, batch_citems)
 
         train_losses.append(loss.item())
         optim.zero_grad()
@@ -124,9 +123,8 @@ def calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx):
     for batch_titem, batch_citems in pbar:
         batch_titem = t.tensor(batch_titem)
         batch_citems = batch_citems.squeeze(0)
-        batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
 
-        loss = sgns(batch_titem, batch_citems, batch_pad_ids)
+        loss = sgns(batch_titem, batch_citems)
         valid_losses.append(loss.item())
 
     return np.array(valid_losses).mean()
