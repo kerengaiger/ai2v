@@ -3,52 +3,18 @@
 import datetime
 import pathlib
 import pickle
-import random
 
 import numpy as np
 import torch as t
 from torch.optim import Adagrad
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from i2v_model import Item2Vec
 from i2v_model import SGNS
-from train_utils import save_model, configure_weights
+from train_utils import save_model, configure_weights, UserBatchDataset
 from evaluation import hr_k, mrr_k
-
-
-class UserBatchDataset(Dataset):
-
-    def __init__(self, datapath, max_batch_size, ws=None):
-        data = pickle.load(datapath.open('rb'))
-        if ws is not None:
-            data_ws = []
-            for iitem, oitems in data:
-                if random.random() > ws[iitem]:
-                    data_ws.append((iitem, oitems))
-            data = data_ws
-
-        data_batches = []
-        for user in data:
-            batch = ([], [])
-            for i in range(len(user)):
-                oitems = user[:i] + user[i + 1:]
-                batch[0].append(user[i])
-                batch[1].append(oitems)
-                if len(batch[0]) == max_batch_size and i < (len(user) - 1):
-                    data_batches.append(batch)
-                    batch = ([], [])
-            data_batches.append(batch)
-
-        self.data = data_batches
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        batch_iitems, batch_oitems = self.data[idx]
-        return batch_iitems, np.array(batch_oitems)
 
 
 def run_epoch(train_dl, epoch, sgns, optim):

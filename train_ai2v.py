@@ -8,14 +8,14 @@ import random
 import numpy as np
 import torch as t
 from torch.optim import Adagrad
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from ai2v_model import AttentiveItemToVec
 from ai2v_model import SGNS
 
-from train_utils import save_model, configure_weights
+from train_utils import save_model, configure_weights, UserBatchDataset
 
 from evaluation import hr_k, mrr_k
 
@@ -44,43 +44,8 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     return train_loss, sgns
 
 
-class UserBatchIncrementDataset(Dataset):
-    def __init__(self, datapath, max_batch_size, pad_idx, ws=None):
-        data = pickle.load(datapath.open('rb'))
-        if ws is not None:
-            data_ws = []
-            for iitem, oitems in data:
-                if random.random() > ws[iitem]:
-                    data_ws.append((iitem, oitems))
-            data = data_ws
-
-        data_batches = []
-        for user in data:
-            batch = ([], [])
-            for sub_user_i in range(len(user)):
-                batch[0].append(user[sub_user_i][1])
-                batch[1].append(user[sub_user_i][0] + [pad_idx for _ in range(len(user) - len(user[sub_user_i][0]))])
-
-                if len(batch[0]) == max_batch_size and sub_user_i < (len(user) - 1):
-                    data_batches.append(batch)
-                    batch = ([], [])
-            data_batches.append(batch)
-
-        self.data = data_batches
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        batch_iitems, batch_oitems = self.data[idx]
-        return batch_iitems, np.array(batch_oitems)
-
-
 def calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx):
-
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
-    dataset = UserBatchIncrementDataset(valid_users_path, cnfg['max_batch_size'],
-                                        item2idx['pad'])
+    dataset = UserBatchDataset(valid_users_path, cnfg['max_batch_size'])
     valid_dl = DataLoader(dataset, batch_size=1, shuffle=False)
 
     pbar = tqdm(valid_dl)
@@ -119,8 +84,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     t.autograd.set_detect_anomaly(True)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
-                                            pad_idx)
+        dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
         train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
@@ -160,8 +124,7 @@ def train(cnfg):
 
     model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
-    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'],
-                                        item2idx['pad'])
+    dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
     train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     if cnfg['cuda']:
