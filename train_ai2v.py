@@ -20,7 +20,7 @@ from train_utils import save_model, configure_weights, UserBatchDataset
 from evaluation import hr_k, mrr_k
 
 
-def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
+def run_epoch(train_dl, epoch, sgns, optim):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
@@ -43,7 +43,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     return train_loss, sgns
 
 
-def calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx):
+def calc_loss_on_set(sgns, valid_users_path, cnfg):
     dataset = UserBatchDataset(valid_users_path, cnfg['max_batch_size'])
     valid_dl = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -85,12 +85,12 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         dataset = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), cnfg['max_batch_size'])
         train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
 
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
-        valid_loss = calc_loss_on_set(sgns, valid_users_path, cnfg, pad_idx)
+        valid_loss = calc_loss_on_set(sgns, valid_users_path, cnfg)
         writer.add_scalar("Loss/validation", valid_loss, epoch)
         print(f'valid loss:{valid_loss}')
 
@@ -131,7 +131,7 @@ def train(cnfg):
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        _train_loss = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        _train_loss = run_epoch(train_loader, epoch, sgns, optim)
 
     save_model(cnfg, sgns)
 
@@ -158,5 +158,5 @@ def train_evaluate(cnfg):
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
 
-    valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg, item2idx['pad'])
+    valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg)
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
