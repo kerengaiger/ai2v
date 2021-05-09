@@ -3,7 +3,6 @@
 import datetime
 import pathlib
 import pickle
-import random
 
 import numpy as np
 import torch as t
