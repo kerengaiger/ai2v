@@ -17,16 +17,16 @@ class AttentiveItemToVec(nn.Module):
         self.pad_idx = padding_idx
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
-        # self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
-        #                                               self.embedding_size).uniform_(-0.5 / self.embedding_size,
-        #                                                                             0.5 / self.embedding_size),
-        #                                            t.zeros(1, self.embedding_size)]))
-        # self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
-        #                                               self.embedding_size).uniform_(-0.5 / self.embedding_size,
-        #                                                                             0.5 / self.embedding_size),
-        #                                            t.zeros(1, self.embedding_size)]))
-        # self.tvectors.weight.requires_grad = True
-        # self.cvectors.weight.requires_grad = True
+        self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
+                                                      self.embedding_size).uniform_(-0.5 / self.embedding_size,
+                                                                                    0.5 / self.embedding_size),
+                                                   t.zeros(1, self.embedding_size)]))
+        self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
+                                                      self.embedding_size).uniform_(-0.5 / self.embedding_size,
+                                                                                    0.5 / self.embedding_size),
+                                                   t.zeros(1, self.embedding_size)]))
+        self.tvectors.weight.requires_grad = True
+        self.cvectors.weight.requires_grad = True
         self.Ac = nn.Linear(self.embedding_size, self.d_alpha)
         self.At = nn.Linear(self.embedding_size, self.d_alpha)
         self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
