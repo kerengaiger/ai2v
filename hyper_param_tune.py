@@ -53,10 +53,10 @@ def main():
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [3e-2, 1e-1]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [0.08, 0.15]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
-                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15]},
+                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
@@ -83,10 +83,10 @@ def main():
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-4, 1e-3]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [0.08, 0.15]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
-                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15]},
+                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [80, 100, 20]},
+                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
