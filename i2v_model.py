@@ -29,8 +29,8 @@ class Item2Vec(Bundler):
         self.embedding_size = embedding_size
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
-        self.tvectors.weight = nn.Parameter(t.cat([t.zeros(1, self.embedding_size), FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size)]))
-        self.cvectors.weight = nn.Parameter(t.cat([t.zeros(1, self.embedding_size), FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size)]))
+        self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size), t.zeros(1, self.embedding_size)]))
+        self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size), t.zeros(1, self.embedding_size)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
 
