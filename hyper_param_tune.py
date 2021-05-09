@@ -52,10 +52,10 @@ def main():
     if args.model == I2V:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [3e-2, 1e-1]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [0.08, 0.15]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
-                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15]},
+                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
                 {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [32, 30]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
@@ -83,10 +83,10 @@ def main():
     else:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-4, 1e-3]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [0.08, 0.15]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30]},
-                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [5, 7, 10, 15]},
+                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [70, 80, 100]},
+                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
                 {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [32, 30]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
