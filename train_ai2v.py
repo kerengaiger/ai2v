@@ -125,7 +125,7 @@ def train(cnfg):
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        _train_loss = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
 
     save_model(cnfg, model, sgns)
 

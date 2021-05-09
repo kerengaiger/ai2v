@@ -26,15 +26,16 @@ def parse_args():
 
 class Preprocess(object):
 
-    def __init__(self, window=5, unk='<UNK>', data_dir='./data/'):
+    def __init__(self, window=5, unk='<UNK>', pad='pad', data_dir='./data/'):
         self.window = window
         self.unk = unk
         self.data_dir = data_dir
+        self.pad = pad
+        self.wc = {}
 
     def build(self, filepath, max_vocab=20000):
         print("building vocab...")
         step = 0
-        self.wc = {self.unk: 1}
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
             for line in file:
                 step += 1
@@ -48,11 +49,10 @@ class Preprocess(object):
                     self.wc[item] = self.wc.get(item, 0) + 1
         print("")
         # sorted list of items in a descent order of their frequency
-        self.wc['pad'] = 1
-        self.idx2item = [self.unk] + sorted(self.wc, key=self.wc.get, reverse=True)[:max_vocab - 1]
-        # self.idx2item.append('pad')
+        self.wc[self.unk] = 1
+        self.wc[self.pad] = 1
+        self.idx2item = sorted(self.wc, key=self.wc.get, reverse=True)[:max_vocab - 1]
         self.item2idx = {self.idx2item[idx]: idx for idx, _ in enumerate(self.idx2item)}
-        # self.item2idx['pad'] = len(self.idx2item)
         self.vocab = set([item for item in self.item2idx])
         pickle.dump(self.wc, open(os.path.join(self.data_dir, 'ic.dat'), 'wb'))
         pickle.dump(self.vocab, open(os.path.join(self.data_dir, 'vocab.dat'), 'wb'))
