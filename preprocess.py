@@ -26,10 +26,12 @@ def parse_args():
 
 class Preprocess(object):
 
-    def __init__(self, window=5, unk='<UNK>', data_dir='./data/'):
+    def __init__(self, window=5, unk='<UNK>', pad='pad', data_dir='./data/'):
         self.window = window
         self.unk = unk
         self.data_dir = data_dir
+        self.pad = pad
+        self.wc = {}
 
     def build(self, filepath, max_vocab=20000):
         print("building vocab...")
