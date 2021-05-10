@@ -83,7 +83,7 @@ def main():
     else:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [0.06, 0.15]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [0.06, 0.11]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [20, 70, 80, 100]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
