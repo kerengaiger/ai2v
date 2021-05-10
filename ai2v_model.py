@@ -172,6 +172,6 @@ class SGNS(nn.Module):
         #     print('is nan?', t.isnan(param).any())
         #     print('param max:', param.max())
         #     print('param min:', param.min())
-
-        return -sim.squeeze(-1).softmax(dim=1)[:, 0].log().sum()
+        soft = sim.softmax(dim=1) + 1e-6
+        return -soft[:, 0].log().sum()
 
