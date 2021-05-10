@@ -34,11 +34,12 @@ class AttentiveItemToVec(nn.Module):
         self.Bc = nn.Linear(self.embedding_size, self.embedding_size)
         self.Bt = nn.Linear(self.embedding_size, self.embedding_size)
         self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
-        self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
-        self.W1 = nn.Linear(self.embedding_size, 1)
-        self.relu = nn.ReLU()
-        self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
-        self.b_l_j.requires_grad = True
+        # self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
+        # self.W1 = nn.Linear(self.embedding_size, 1)
+        # self.relu = nn.ReLU()
+        # self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
+        # self.b_l_j.requires_grad = True
+        self.cos_fin = nn.CosineSimilarity(dim=-1, eps=1e-6)
 
     def forward(self, batch_titems, batch_citems):
         v_l_j = self.forward_t(batch_titems)
@@ -79,11 +80,12 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
 
-    def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
-        return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
-                                                        t.mul(batch_sub_users, batch_tvecs),
-                                                        (batch_sub_users - batch_tvecs).abs()], 2)))) + \
-            self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
+    def similarity(self, batch_sub_users, batch_tvecs):
+        # return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
+        #                                                 t.mul(batch_sub_users, batch_tvecs),
+        #                                                 (batch_sub_users - batch_tvecs).abs()], 2)))) + \
+        #     self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
+        return self.ai2v.cos_fin(batch_sub_users, batch_tvecs)
 
     def inference(self, user_items):
         num_items = self.ai2v.tvectors.weight.size()[0]
@@ -91,7 +93,7 @@ class SGNS(nn.Module):
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         sub_users = self.ai2v(all_titems, citems)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
-        sim = self.similarity(sub_users, all_tvecs, all_titems)
+        sim = self.similarity(sub_users, all_tvecs)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems):
@@ -105,9 +107,9 @@ class SGNS(nn.Module):
         batch_sub_users = self.ai2v(batch_titems, batch_citems)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
 
-        if [param for param in self.ai2v.parameters()][0].is_cuda:
-            self.ai2v.b_l_j.cuda()
+        # if [param for param in self.ai2v.parameters()][0].is_cuda:
+        #     self.ai2v.b_l_j.cuda()
 
-        sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
+        sim = self.similarity(batch_sub_users, batch_tvecs)
 
         return -sim.squeeze(-1).softmax(dim=1)[:, 0].log().sum()
