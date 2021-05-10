@@ -113,7 +113,7 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
 
-    def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
+    def similarity(self, batch_sub_users, batch_tvecs):
         # return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
         #                                                 t.mul(batch_sub_users, batch_tvecs),
         #                                                 (batch_sub_users - batch_tvecs).abs()], 2)))) + \
@@ -126,7 +126,7 @@ class SGNS(nn.Module):
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         sub_users = self.ai2v(all_titems, citems, batch_pad_ids=None, inference=True)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
-        sim = self.similarity(sub_users, all_tvecs, all_titems)
+        sim = self.similarity(sub_users, all_tvecs)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids):
@@ -142,7 +142,7 @@ class SGNS(nn.Module):
         # if [param for param in self.ai2v.parameters()][0].is_cuda:
         #     self.ai2v.b_l_j.cuda()
 
-        sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
+        sim = self.similarity(batch_sub_users, batch_tvecs)
 
         # print('batch_sub_users nan', t.isnan(batch_sub_users).any())
         # print('batch_sub_users max', batch_sub_users.max())
