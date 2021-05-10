@@ -111,5 +111,6 @@ class SGNS(nn.Module):
         #     self.ai2v.b_l_j.cuda()
 
         sim = self.similarity(batch_sub_users, batch_tvecs)
+        soft = sim.softmax(dim=1) + 1e-6
 
-        return -sim.squeeze(-1).softmax(dim=1)[:, 0].log().sum()
+        return -soft[:, 0].log().sum()
