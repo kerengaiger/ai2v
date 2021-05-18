@@ -123,7 +123,7 @@ def train(cnfg):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    optim = Adam(sgns.parameters(), lr=cnfg['lr'])
+    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
