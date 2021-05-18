@@ -70,7 +70,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[4, 8, 12, 16], gamma=0.5)
+    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[3, 5, 7, 9, 11, 13, 15, 17], gamma=0.5)
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
 
