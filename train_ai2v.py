@@ -107,6 +107,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
 
 def train(cnfg):
+    print(cnfg)
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
