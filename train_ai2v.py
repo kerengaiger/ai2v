@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 import torch as t
-from torch.optim import Adagrad
+from torch.optim import Adagrad, Adam
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -122,7 +122,7 @@ def train(cnfg):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
