@@ -35,6 +35,9 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
 
     train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
+    print('lrs')
+    for param_group in optim.param_groups:
+        print(param_group['lr'])
     return train_loss, sgns
 
 
@@ -109,6 +112,9 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
 
 def train(cnfg):
+    cnfg['lr'] = 0.094871
+    cnfg['e_dim'] = 20
+    cnfg['n_negs'] = 7
     print(cnfg)
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
