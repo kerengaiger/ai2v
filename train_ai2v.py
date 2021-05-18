@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 import torch as t
-from torch.optim import Adagrad, Adam
+from torch.optim import Adagrad, Adam, lr_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -18,7 +18,7 @@ from train_utils import save_model, configure_weights, UserBatchIncrementDataset
 from evaluation import hr_k, mrr_k
 
 
-def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
+def run_epoch(train_dl, epoch, sgns, optim, scheduler, pad_idx):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
@@ -31,6 +31,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
         optim.zero_grad()
         loss.backward()
         optim.step()
+        scheduler.step()
         pbar.set_postfix(train_loss=loss.item())
 
     train_loss = np.array(train_losses).mean()
@@ -67,6 +68,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[4, 8, 12], gamma=0.5)
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
 
@@ -79,7 +81,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
         train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True)
 
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, scheduler, pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
@@ -124,9 +126,10 @@ def train(cnfg):
         sgns = sgns.cuda()
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[4, 8, 12], gamma=0.5)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, scheduler, item2idx['pad'])
 
     save_model(cnfg, model, sgns)
 
