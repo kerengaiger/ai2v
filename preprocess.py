@@ -114,8 +114,8 @@ class Preprocess(object):
                     continue
                 num_users += 1
                 # create list of [sub-user: lst[item ids], target_item_id]
-                for i in range(1, len(user)):
-                    sub_user = user[:i]
+                for i in range(len(user)):
+                    sub_user = user[:i] + user[i+1:]
                     target_item = user[i]
                     data.append(([self.item2idx[item] for item in sub_user], self.item2idx[target_item]))
 
@@ -130,8 +130,7 @@ def main():
     preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
     preprocess.build(args.vocab, max_vocab=args.max_vocab)
     preprocess.convert(args.full_corpus, args.full_train_file)
-    # preprocess.process_test(args.test_corpus, args.test_file)
-    preprocess.convert(args.test_corpus, args.test_file)
+    preprocess.process_test(args.test_corpus, args.test_file)
     if args.build_train_valid:
         preprocess.convert(args.train_corpus, args.train_file)
         preprocess.convert(args.valid_corpus, args.valid_file)
