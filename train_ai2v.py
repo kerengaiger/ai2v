@@ -146,12 +146,7 @@ def train(cnfg):
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
 
-    eval_set = UserBatchDataset(pathlib.Path(cnfg['data_dir'], cnfg['test']), cnfg['max_batch_size'])
-    rearr_eval_set = []
-    for user in dataset:
-        for sub_idx in range(len(user[0])):
-            rearr_eval_set.append((list(user[1][sub_idx]), user[0][sub_idx]))
-
+    eval_set = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['test']).open('rb'))
     k = cnfg['k']
 
     writer.add_hparams(hparam_dict=cnfg,
