@@ -14,7 +14,7 @@ def parse_args():
 
 
 def mrr_k(model, eval_set, k):
-    in_top_k, rec_rank = 0, 0
+    rec_rank = 0
 
     pbar = tqdm(eval_set)
 
@@ -22,9 +22,8 @@ def mrr_k(model, eval_set, k):
         items_ranked = model.inference(user_itemids).argsort()
         top_k_items = items_ranked[-k:][::-1]
         if target_item in top_k_items:
-            in_top_k += 1
             rec_rank += 1 / (np.where(top_k_items == target_item)[0][0] + 1)
-    return rec_rank / in_top_k
+    return rec_rank / len(eval_set)
 
 
 def hr_k(model, eval_set, k):
