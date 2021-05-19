@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 import torch as t
-from torch.optim import Adagrad
+from torch.optim import Adagrad, lr_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
