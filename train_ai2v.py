@@ -94,7 +94,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         if valid_loss < valid_losses[-1]:
             patience_count = 0
             best_epoch = epoch
-            save_model(cnfg, model, sgns)
+            save_model(cnfg, model, sgns, '_mix_batch_')
 
         else:
             patience_count += 1
@@ -138,7 +138,7 @@ def train(cnfg):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
         scheduler.step()
 
-    save_model(cnfg, model, sgns)
+    save_model(cnfg, model, sgns, '_mix_batch_')
 
     # Evaluate on test set
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
@@ -165,7 +165,7 @@ def train_evaluate(cnfg):
 
     best_epoch = train_early_stop(cnfg, valid_users_path, item2idx['pad'])
 
-    best_model = t.load(pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
+    best_model = t.load(pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_mix_batch_' + '_best.pt'))
 
     valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'], cnfg['window_size'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
