@@ -113,6 +113,10 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
 
 def train(cnfg):
+    cnfg['lr'] = 0.094871
+    cnfg['e_dim'] = 20
+    cnfg['n_negs'] = 7
+    print(cnfg)
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
@@ -149,6 +153,10 @@ def train(cnfg):
 
 
 def train_evaluate(cnfg):
+    cnfg['lr'] = 0.094871
+    cnfg['e_dim'] = 20
+    cnfg['n_negs'] = 7
+    print(cnfg)
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
