@@ -21,8 +21,8 @@ def configure_weights(cnfg, idx2item):
     return weights
 
 
-def save_model(cnfg, sgns):
-    t.save(sgns, pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_best.pt'))
+def save_model(cnfg, sgns, type):
+    t.save(sgns, pathlib.Path(cnfg['save_dir'], cnfg['model'] + type + '_best.pt'))
 
 
 class UserBatchDataset(Dataset):
