@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 import torch as t
-from torch.optim import Adagrad, lr_scheduler
+from torch.optim import Adagrad, lr_scheduler, AdamW
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -69,7 +69,8 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    # optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
@@ -131,7 +132,8 @@ def train(cnfg):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    # optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
