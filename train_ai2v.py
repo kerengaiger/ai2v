@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 import torch as t
-from torch.optim import Adagrad, lr_scheduler, AdamW
+from torch.optim import Adagrad, lr_scheduler, AdamW, Adam
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -70,7 +70,8 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         sgns = sgns.cuda()
 
     # optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
+    # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
+    optim = Adam(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
