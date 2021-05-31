@@ -69,7 +69,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
+    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     # optim = Adam(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
@@ -133,7 +133,7 @@ def train(cnfg):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
+    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
 
