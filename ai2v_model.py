@@ -40,7 +40,7 @@ class AttentiveItemToVec(nn.Module):
         self.relu = nn.ReLU()
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
-        self.dropout = nn.Dropout(0.1)
+        # self.dropout = nn.Dropout(0.1)
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
@@ -61,7 +61,7 @@ class AttentiveItemToVec(nn.Module):
         weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
 
         alpha_j_1 = weighted_u_l_m.sum(2)
-        z_j_1 = self.dropout(self.R(alpha_j_1))
+        z_j_1 = self.R(alpha_j_1)
 
         # print('v_l_j nan', t.isnan(v_l_j).any())
         # print('v_l_j max', v_l_j.max())
