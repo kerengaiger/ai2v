@@ -69,9 +69,9 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    # optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
-    optim = Adam(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
+    # optim = Adam(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
@@ -115,7 +115,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
 def train(cnfg):
     cnfg['lr'] = 0.094871
-    cnfg['e_dim'] = 20
+    cnfg['e_dim'] = 25
     cnfg['n_negs'] = 7
     print(cnfg)
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
@@ -133,8 +133,8 @@ def train(cnfg):
     if cnfg['cuda']:
         sgns = sgns.cuda()
 
-    # optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
+    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+    # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
@@ -160,7 +160,7 @@ def train(cnfg):
 
 def train_evaluate(cnfg):
     cnfg['lr'] = 0.094871
-    cnfg['e_dim'] = 20
+    cnfg['e_dim'] = 25
     cnfg['n_negs'] = 7
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
