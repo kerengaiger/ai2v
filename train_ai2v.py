@@ -18,7 +18,7 @@ from train_utils import save_model, configure_weights, UserBatchIncrementDataset
 from evaluation import hr_k, mrr_k
 
 
-def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
+def run_epoch(train_dl, epoch, sgns, optim, pad_idx, scheduler):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
@@ -31,6 +31,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
         optim.zero_grad()
         loss.backward()
         optim.step()
+        scheduler.step()
         pbar.set_postfix(train_loss=loss.item())
 
     train_loss = np.array(train_losses).mean()
@@ -72,7 +73,9 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     # optim = Adam(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
-    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
+    # scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
+    scheduler = lr_scheduler.CyclicLR(optim, base_lr=0.01, max_lr=0.1)
+
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
 
@@ -85,7 +88,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
         train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True)
 
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx, scheduler)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
@@ -105,7 +108,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
                 break
 
         valid_losses.append(valid_loss)
-        scheduler.step()
+        # scheduler.step()
 
     writer.flush()
     writer.close()
@@ -135,11 +138,12 @@ def train(cnfg):
 
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
-    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
+    # scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
+    scheduler = lr_scheduler.CyclicLR(optim, base_lr=0.01, max_lr=0.1)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
-        scheduler.step()
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'], scheduler)
+        # scheduler.step()
 
     save_model(cnfg, model, sgns, '_mix_batch_')
 
