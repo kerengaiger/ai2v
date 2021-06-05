@@ -76,7 +76,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     # optim = AdamW(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     # optim = Adam(sgns.parameters(), lr=cnfg['lr'], weight_decay=0.01)
     # scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
-    scheduler = lr_scheduler.CyclicLR(optim, base_lr=0.01, max_lr=0.1, cycle_momentum=False)
+    scheduler = lr_scheduler.CyclicLR(optim, base_lr=0.01, max_lr=0.1, cycle_momentum=False, step_size_up=1000, step_size_down=1000)
 
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
