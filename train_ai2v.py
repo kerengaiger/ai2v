@@ -18,7 +18,7 @@ from train_utils import save_model, configure_weights, UserBatchIncrementDataset
 from evaluation import hr_k, mrr_k
 
 
-def run_epoch(train_dl, epoch, sgns, optim, pad_idx, scheduler):
+def run_epoch(train_dl, epoch, sgns, optim, pad_idx, scheduler, writer=None):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_losses = []
@@ -33,6 +33,8 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx, scheduler):
         optim.step()
         scheduler.step()
         pbar.set_postfix(train_loss=loss.item())
+        if writer:
+            writer.add_scalar("lr", optim.param_groups[0]['lr'], epoch)
 
     train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
@@ -88,7 +90,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
         train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True)
 
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx, scheduler)
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx, scheduler, writer)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss
 
