@@ -122,7 +122,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
 def train(cnfg):
     # cnfg['lr'] = 0.094871
-    cnfg['lr'] = 0.15
+    cnfg['lr'] = 0.1
     cnfg['e_dim'] = 20
     cnfg['n_negs'] = 7
     print(cnfg)
@@ -170,7 +170,7 @@ def train(cnfg):
 
 def train_evaluate(cnfg):
     # cnfg['lr'] = 0.094871
-    cnfg['lr'] = 0.15
+    cnfg['lr'] = 0.1
     cnfg['e_dim'] = 20
     cnfg['n_negs'] = 7
     print(cnfg)
