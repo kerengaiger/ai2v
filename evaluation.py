@@ -20,7 +20,7 @@ def mrr_k(model, eval_set, k, out_file):
 
     pbar = tqdm(eval_set)
 
-    with open(out_file, 'wb') as file:
+    with open(out_file, 'w') as file:
         for user_itemids, target_item in pbar:
             items_ranked = model.inference(user_itemids).argsort()
             top_k_items = items_ranked[-k:][::-1]
@@ -40,7 +40,7 @@ def hr_k(model, eval_set, k, out_file):
 
     pbar = tqdm(eval_set)
 
-    with open(out_file, 'wb') as file:
+    with open(out_file, 'w') as file:
         for user_itemids, target_item in pbar:
             items_ranked = model.inference(user_itemids).argsort()
             top_k_items = items_ranked[-k:][::-1]
