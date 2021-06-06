@@ -21,15 +21,15 @@ def mrr_k(model, eval_set, k, out_file):
     pbar = tqdm(eval_set)
 
     with open(out_file, 'w') as file:
-        for user_itemids, target_item in pbar:
+        for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
                 rec_rank += 1 / (np.where(top_k_items == target_item)[0][0] + 1)
-                file.write(f'{user_itemids}, {target_item}, {rec_rank}')
+                file.write(f'{str(i)}, {target_item}, {rec_rank}')
                 file.write('\n')
             else:
-                file.write(f'{user_itemids}, {target_item}, 0')
+                file.write(f'{str(i)}, {target_item}, 0')
                 file.write('\n')
     mrp_k = rec_rank / len(eval_set)
     return mrp_k
@@ -41,15 +41,15 @@ def hr_k(model, eval_set, k, out_file):
     pbar = tqdm(eval_set)
 
     with open(out_file, 'w') as file:
-        for user_itemids, target_item in pbar:
+        for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
                 in_top_k += 1
-                file.write(f'{user_itemids}, {target_item}, 1')
+                file.write(f'{str(i)}, {target_item}, 1')
                 file.write('\n')
             else:
-                file.write(f'{user_itemids}, {target_item}, 0')
+                file.write(f'{str(i)}, {target_item}, 0')
                 file.write('\n')
     return in_top_k / len(eval_set)
 
