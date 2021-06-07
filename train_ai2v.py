@@ -162,7 +162,6 @@ def train_evaluate(cnfg):
     cnfg['e_dim'] = 20
     cnfg['n_negs'] = 7
     print(cnfg)
-    print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
