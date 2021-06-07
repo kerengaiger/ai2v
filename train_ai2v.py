@@ -17,6 +17,27 @@ from ai2v_model import SGNS
 from train_utils import save_model, configure_weights, UserBatchDataset
 
 from evaluation import hr_k, mrr_k
+import argparse
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default='ai2v', help="model to train: i2v or ai2v")
+    parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
+    parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
+    parser.add_argument('--train', type=str, default='train_batch_u.dat', help="train file name")
+    parser.add_argument('--test', type=str, default='test_batch_u.dat', help="test users file name")
+    parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
+    parser.add_argument('--cuda', action='store_true', help="use CUDA")
+    parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
+    parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
+    parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
+    parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
+    parser.add_argument('--rr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
+    parser.add_argument('--best_cnfg', type=str, default='./output/best_cnfg.csv', help="best cnfg of hyper params")
+    parser.add_argument('--max_epochs', type=int, default=50, help='number of early stop epochs to train the model over')
+
+    return parser.parse_args()
 
 
 def run_epoch(train_dl, epoch, sgns, optim):
@@ -115,9 +136,9 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
 
 def train(cnfg):
-    cnfg['lr'] = 0.094871
-    cnfg['e_dim'] = 20
-    cnfg['n_negs'] = 7
+    # cnfg['lr'] = 0.094871
+    # cnfg['e_dim'] = 20
+    # cnfg['n_negs'] = 7
     print(cnfg)
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
@@ -171,3 +192,14 @@ def train_evaluate(cnfg):
 
     valid_loss = calc_loss_on_set(best_model, valid_users_path, cnfg)
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
+
+
+def main():
+    args = parse_args()
+    cnfg = pickle.load(open(args.best_cnfg, "rb"))
+    args = vars(args)
+    train({**cnfg, **args})
+
+
+if __name__ == '__main__':
+    main()
