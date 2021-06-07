@@ -1,73 +1,128 @@
-import argparse
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 17 08:44:14 2019
 
-import pandas as pd
+@author: t-avcaci
+"""
 
-DATA_COLS = ['user_id', 'item_id', 'rating', 'timestamp']
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
-    parser.add_argument('--source_data', type=str, default='./data/ratings.dat', help="source data of user-item rankings")
-    parser.add_argument('--full_corpus_path', type=str, default='./data/corpus.txt', help="path to save corpus")
-    parser.add_argument('--train_corpus_path', type=str, default='./data/train_corpus.txt', help="path to save train corpus")
-    parser.add_argument('--valid_path', type=str, default='./data/valid.txt', help="path to save validation")
-    parser.add_argument('--test_path', type=str, default='./data/test.txt', help="path to save test")
-    parser.add_argument('--pos_thresh', type=float, default=3.5, help="rank threshold to assign for positive items")
-    parser.add_argument('--min_items', type=int, default=3, help="min number of positive items needed to store a user")
-    return parser.parse_args()
+import numpy as np
+import time
+import csv
+from collections import Counter
 
 
-def filter_group(group, pos_thresh, min_items):
-    ret_group = group[group['rating'] >= pos_thresh]
-    if ret_group.empty or ret_group.shape[0] < min_items:
-        print(f'user {group.name} ranked less than {min_items} items above {pos_thresh}')
-        return []
-    else:
-        return ret_group.sort_values('timestamp')['item_id'].tolist()
+class User:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.items = []
+
+    def ArrangeItemList(self):
+        self.items = [item_index[0] for item_index in sorted(self.items, key=lambda x: x[1])]
 
 
-def split_train_valid_test(lsts, corpus_path, train_corpus_path, valid_path, test_path):
-    with open(train_corpus_path, 'a') as corpus_train_file, open(corpus_path, 'a') as corpus_full_file, \
-            open(valid_path, 'a') as valid_file, open(test_path, 'a') as test_file:
-        valid_file.write('user_id,item_id\n')
-        test_file.write('user_id,item_id\n')
-        for u in range(lsts.shape[0]):
-            u_lst = lsts[u]
-            if len(u_lst):
-                target_test_item = u_lst[-1]
-                test_file.write(str(u) + ',' + str(target_test_item) + '\n')
-                u_lst.remove(target_test_item)
-                target_valid_item = u_lst[-1]
-                valid_file.write(str(u) + ',' + str(target_valid_item) + '\n')
-                corpus_full_file.write(' '.join([str(i) for i in u_lst]) + '\n')
-                u_lst.remove(target_valid_item)
-                corpus_train_file.write(' '.join([str(i) for i in u_lst]) + '\n')
-            else:
-                corpus_full_file.write('' + '\n')
-                corpus_train_file.write('' + '\n')
+positive_threshold = 4.0
+
+user2data = {}
+t = time.clock()
+with open(r'./data/ratings.dat') as rating_file:
+    for i, line in enumerate(rating_file):
+        if i == 0:
+            continue
+        if i % 5000000 == 0:
+            print(i)
+        line = line.strip().split(':')
+        line = [i for i in line if i != '']
+        user_id = line[0]
+        if user_id not in user2data:
+            user2data[user_id] = User(user_id)
+        user = user2data[user_id]
+
+        if float(line[2]) > positive_threshold:
+            user.items.append((line[1], int(line[-1])))
+
+valid_users = []
+for user in list(user2data.values()):
+    if len(user.items) > 1 and len(user.items) < 60:
+        user.ArrangeItemList()
+        valid_users.append(user.user_id)
+print(len(valid_users))
+print(time.clock() - t)
 
 
-def read_data(path, data_cols):
-    data = pd.read_csv(path, delimiter='::', names=data_cols, engine='python')
-    data[['user_id', 'item_id']] = data[['user_id', 'item_id']].apply(lambda col: col-1)
-    return data
+def IndexLabels(labels, mask_zero=False):
+    label2index = {}
+    index2label = {}
+    for i, label in enumerate(labels):
+        if mask_zero:
+            i += 1
+        label2index[label] = i
+        index2label[i] = label
+    return label2index, index2label
 
 
-def main():
-    args = parse_args()
-    data = read_data(args.source_data, DATA_COLS)
-    users2items = data.groupby('user_id').apply(lambda group: filter_group(group, args.pos_thresh, args.min_items))
-    print(f'number of users: {len([user for user in users2items if len(user)])}, number of items: '
-          f'{len(set([items for item in users2items.tolist() for items in item]))}')
-    split_train_valid_test(users2items, args.full_corpus_path, args.train_corpus_path, args.valid_path, args.test_path)
+class Index(object):
+    def __init__(self):
+        self.item2index = {}
+        self.index2item = {}
 
 
-if __name__ == '__main__':
-    main()
+def MinCountFilter(counter, min_count=10):
+    return [item for item, count in counter.most_common(len(counter)) if count > min_count]
 
 
+np.random.seed(0)
 
 
+def ComputeSplitIndices(num_instances, test_size=0.1):
+    permutation = np.random.permutation(num_instances)
+    split_index = int((1 - test_size) * num_instances)
+    return permutation[:split_index], permutation[split_index:]
 
 
+item_counter = Counter()
+index = Index()
+
+for user in list(valid_users):
+    user = user2data[user]
+    item_counter.update(user.items)
+
+index.item2index, index.index2item = IndexLabels(MinCountFilter(item_counter, min_count=1), True)
+
+valid_users_filtered = []
+for user_id in list(valid_users):
+    user = user2data[user_id]
+    items = [item for item in user.items if item in index.item2index]
+    if len(items) > 2:
+        valid_users_filtered.append(user_id)
+valid_users = valid_users_filtered
+
+train_indices, test_indices = ComputeSplitIndices(len(valid_users), test_size=0.1)
+train_users = [valid_users[i] for i in train_indices]
+train_item_lists = [user2data[user].items for user in train_users]
+test_users = [valid_users[i] for i in test_indices]
+test_item_lists = [user2data[user].items for user in test_users]
+
+with open(r'./data/corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(train_item_lists)
+
+with open(r'./data/test_corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(test_item_lists)
+
+train_indices, validation_indices = ComputeSplitIndices(len(train_indices), test_size=0.1)
+train_users = [valid_users[i] for i in train_indices]
+train_item_lists = [user2data[user].items for user in train_users]
+validation_users = [valid_users[i] for i in validation_indices]
+validation_item_lists = [user2data[user].items for user in validation_users]
+
+
+with open(r'./data/train_corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(train_item_lists)
+with open(r'./data/valid_corpus_avi.txt', 'w', newline="") as x:
+    csv.writer(x, delimiter=" ").writerows(validation_item_lists)
+
+
+print("Items#: ", len(index.item2index))
+print("Full corpus users#:", len(valid_users))
+print("Train users#: ", len(train_users))
+print("validation users#: ", len(validation_users))
+print("Test users#: ", len(test_users))
