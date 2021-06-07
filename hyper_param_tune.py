@@ -2,6 +2,7 @@ import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 import argparse
+import pickle
 
 from ax.service.managed_loop import optimize
 
@@ -33,6 +34,7 @@ def parse_args():
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
     parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="out file name of hr for test set")
     parser.add_argument('--rr_out', type=str, default='./output/rr_out.csv', help="out file name of rr for test set")
+    parser.add_argument('--cnfg_out', type=str, default='./output/best_cnfg.pkl', help="best configuration file name")
 
     return parser.parse_args()
 
@@ -82,6 +84,7 @@ def main():
             total_trials=args.trials
         )
 
+        pickle.dump(best_parameters, open(args.cnfg_out, "wb"))
         i2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
     else:
@@ -115,6 +118,7 @@ def main():
             total_trials=args.trials
         )
 
+        pickle.dump(best_parameters, open(args.cnfg_out, "wb"))
         ai2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
 
