@@ -11,7 +11,7 @@ def parse_args():
     parser.add_argument('--model', type=str, default='./output/i2v_mix_batch__best.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='./data/test.dat', help="test set for evaluation")
     parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
-    parser.add_argument('--mrr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
+    parser.add_argument('--rr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
     return parser.parse_args()
 
 
@@ -59,7 +59,7 @@ def main():
     model = t.load(args.model)
     eval_set = pickle.load(open(args.test, 'rb'))
     print(f'hit ratio at {args.k}:', hr_k(model, eval_set, args.k, args.hr_out))
-    print(f'mrr at {args.k}:', mrr_k(model, eval_set, args.k, args.mrr_out))
+    print(f'mrr at {args.k}:', mrr_k(model, eval_set, args.k, args.rr_out))
 
 
 if __name__ == '__main__':
