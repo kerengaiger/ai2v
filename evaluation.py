@@ -1,8 +1,10 @@
 import torch as t
 import pickle
 import numpy as np
+import pandas as pd
 import argparse
 from tqdm import tqdm
+from scipy.stats import ttest_ind
 
 
 def parse_args():
@@ -52,6 +54,17 @@ def hr_k(model, eval_set, k, out_file):
                 file.write(f'{str(i)}, {target_item}, 0')
                 file.write('\n')
     return in_top_k / len(eval_set)
+
+
+def test_p_value(ai2v_file, i2v_file):
+    '''
+    :param ai2v_file: csv file containing u_id, item_id and the result of the tested metric, applied on ai2v model
+    :param i2v_file: csv file containing u_id, item_id and the result of the tested metric, applied on i2v model
+    :return: p_value of the paired_ttest between metric means of two models
+    '''
+    ai2v_pop = pd.read_csv(ai2v_file, header=None, names=['u_id', 'i_id', 'met'])
+    i2v_pop = pd.read_csv(i2v_file, header=None, names=['u_id', 'i_id', 'met'])
+    return ttest_ind(ai2v_pop['met'], i2v_pop['met'])[1]
 
 
 def main():
