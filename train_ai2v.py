@@ -150,7 +150,8 @@ def train(cnfg):
     k = cnfg['k']
 
     writer.add_hparams(hparam_dict=cnfg,
-                       metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k), f'mrr_{k}': mrr_k(sgns, eval_set, k)},
+                       metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k, cnfg['hr_out']),
+                                    f'mrr_{k}': mrr_k(sgns, eval_set, k, cnfg['rr_out'])},
                        run_name='ai2v_user_batch')
     writer.flush()
     writer.close()
