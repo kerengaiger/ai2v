@@ -31,6 +31,8 @@ def parse_args():
     parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
     parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
+    parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
+    parser.add_argument('--mrr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
 
     return parser.parse_args()
 
@@ -70,6 +72,8 @@ def main():
                 {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
+                {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
+                {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
@@ -100,6 +104,8 @@ def main():
                 {"name": "max_batch_size", "type": "fixed", "value_type": "int", "value": args.max_batch_size},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
+                {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
+                {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
