@@ -12,8 +12,6 @@ def parse_args():
     parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
     parser.add_argument('--model', type=str, default='./output/i2v_mix_batch__best.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='./data/test.dat', help="test set for evaluation")
-    parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
-    parser.add_argument('--rr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
     return parser.parse_args()
 
 
