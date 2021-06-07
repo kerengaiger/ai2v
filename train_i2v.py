@@ -172,3 +172,14 @@ def train_evaluate(cnfg):
 
     valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'], cnfg['window_size'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
+
+
+def main():
+    args = parse_args()
+    cnfg = pickle.load(open(args.best_cnfg, "rb"))
+    args = vars(args)
+    train({**cnfg, **args})
+
+
+if __name__ == '__main__':
+    main()
