@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from scipy.stats import ttest_ind
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
