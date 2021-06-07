@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
     parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
     parser.add_argument('--rr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
-    parser.add_argument('--cnfg_out', type=str, default='./output/best_cnfg.csv', help="best cnfg of hyper params")
+    parser.add_argument('--cnfg_out', type=str, default='./output/best_cnfg.pkl', help="best cnfg of hyper params")
 
     return parser.parse_args()
 
