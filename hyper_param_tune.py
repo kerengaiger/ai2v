@@ -84,6 +84,7 @@ def main():
             total_trials=args.trials
         )
 
+        best_parameters['best_epoch'] = values[0]['early_stop_epoch']
         pickle.dump(best_parameters, open(args.cnfg_out, "wb"))
         i2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
@@ -118,6 +119,7 @@ def main():
             total_trials=args.trials
         )
 
+        best_parameters['best_epoch'] = values[0]['early_stop_epoch']
         pickle.dump(best_parameters, open(args.cnfg_out, "wb"))
         ai2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
