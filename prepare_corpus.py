@@ -21,7 +21,7 @@ class User:
 
 
 positive_threshold = 4.0
-input_file = r'./data/netflix_corpus.csv'
+input_file = r'./data/netflix_ratings.csv'
 line_sep = ','
 min_usr_len = 3
 max_usr_len = 2700
