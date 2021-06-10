@@ -9,6 +9,7 @@ import numpy as np
 import time
 import csv
 from collections import Counter
+from datetime import datetime
 
 
 class User:
@@ -20,6 +21,10 @@ class User:
         self.items = [item_index[0] for item_index in sorted(self.items, key=lambda x: x[1])]
 
 
+item_pos = 0
+usr_pos = 1
+rate_pos = 2
+date_pos = 3
 positive_threshold = 4.0
 input_file = r'./data/netflix_ratings.csv'
 line_sep = ','
@@ -43,13 +48,18 @@ with open(input_file) as rating_file:
             print(i)
         line = line.strip().split(line_sep)
         line = [i for i in line if i != '']
-        user_id = line[0]
+        user_id = line[usr_pos]
         if user_id not in user2data:
             user2data[user_id] = User(user_id)
         user = user2data[user_id]
+        # treat date format
+        try:
+            date = int(line[date_pos])
 
-        if float(line[2]) > positive_threshold:
-            user.items.append((line[1], int(line[-1])))
+        except:
+            date = int(datetime.strptime(line[date_pos], '%Y-%m-%d').timestamp())
+        if float(line[rate_pos]) > positive_threshold:
+            user.items.append((line[item_pos], date))
 
 valid_users = []
 for user in list(user2data.values()):
