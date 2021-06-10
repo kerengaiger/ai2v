@@ -26,6 +26,7 @@ line_sep = ','
 min_usr_len = 1
 max_usr_len = 60
 min_items_cnt = 1
+max_items_cnt = 1000000
 final_usr_len = 2
 out_full_train = r'./data/corpus_netflix.txt'
 out_test = r'./data/test_corpus_netflix.txt'
@@ -76,8 +77,8 @@ class Index(object):
         self.index2item = {}
 
 
-def MinCountFilter(counter, min_count=10):
-    return [item for item, count in counter.most_common(len(counter)) if count > min_count]
+def CountFilter(counter, min_count=10, max_count=10000000):
+    return [item for item, count in counter.most_common(len(counter)) if count > min_count and count < max_count]
 
 
 np.random.seed(0)
@@ -96,7 +97,7 @@ for user in list(valid_users):
     user = user2data[user]
     item_counter.update(user.items)
 
-index.item2index, index.index2item = IndexLabels(MinCountFilter(item_counter, min_count=min_items_cnt), True)
+index.item2index, index.index2item = IndexLabels(CountFilter(item_counter, min_count=min_items_cnt, max_count=max_items_cnt), True)
 
 valid_users_filtered = []
 for user_id in list(valid_users):
