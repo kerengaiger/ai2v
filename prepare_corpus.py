@@ -27,6 +27,10 @@ min_usr_len = 1
 max_usr_len = 60
 min_items_cnt = 1
 final_usr_len = 2
+out_full_train = r'./data/corpus_avi.txt'
+out_test = r'./data/test_corpus_avi.txt'
+out_train = r'./data/train_corpus_avi.txt'
+out_valid = r'./data/valid_corpus_avi.txt'
 
 user2data = {}
 t = time.clock()
@@ -109,10 +113,10 @@ train_item_lists = [user2data[user].items for user in train_users]
 test_users = [valid_users[i] for i in test_indices]
 test_item_lists = [user2data[user].items for user in test_users]
 
-with open(r'./data/corpus_avi.txt', 'w', newline="") as x:
+with open(out_full_train, 'w', newline="") as x:
     csv.writer(x, delimiter=" ").writerows(train_item_lists)
 
-with open(r'./data/test_corpus_avi.txt', 'w', newline="") as x:
+with open(out_test, 'w', newline="") as x:
     csv.writer(x, delimiter=" ").writerows(test_item_lists)
 
 train_indices, validation_indices = ComputeSplitIndices(len(train_indices), test_size=0.1)
@@ -122,9 +126,9 @@ validation_users = [valid_users[i] for i in validation_indices]
 validation_item_lists = [user2data[user].items for user in validation_users]
 
 
-with open(r'./data/train_corpus_avi.txt', 'w', newline="") as x:
+with open(out_train, 'w', newline="") as x:
     csv.writer(x, delimiter=" ").writerows(train_item_lists)
-with open(r'./data/valid_corpus_avi.txt', 'w', newline="") as x:
+with open(out_valid, 'w', newline="") as x:
     csv.writer(x, delimiter=" ").writerows(validation_item_lists)
 
 
