@@ -23,11 +23,11 @@ class User:
 positive_threshold = 4.0
 input_file = r'./data/netflix_corpus.csv'
 line_sep = ','
-min_usr_len = 1
-max_usr_len = 60
-min_items_cnt = 1
-max_items_cnt = 350000
-final_usr_len = 2
+min_usr_len = 3
+max_usr_len = 2700
+min_items_cnt = 100
+max_items_cnt = 130000
+final_usr_len = 3
 out_full_train = r'./data/corpus_netflix.txt'
 out_test = r'./data/test_corpus_netflix.txt'
 out_train = r'./data/train_corpus_netflix.txt'
