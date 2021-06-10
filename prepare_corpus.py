@@ -21,16 +21,22 @@ class User:
 
 
 positive_threshold = 4.0
+input_file = r'./data/netflix_corpus.csv'
+line_sep = ','
+min_usr_len = 1
+max_usr_len = 60
+min_items_cnt = 1
+final_usr_len = 2
 
 user2data = {}
 t = time.clock()
-with open(r'./data/ratings.dat') as rating_file:
+with open(input_file) as rating_file:
     for i, line in enumerate(rating_file):
         if i == 0:
             continue
         if i % 5000000 == 0:
             print(i)
-        line = line.strip().split(':')
+        line = line.strip().split(line_sep)
         line = [i for i in line if i != '']
         user_id = line[0]
         if user_id not in user2data:
@@ -42,7 +48,7 @@ with open(r'./data/ratings.dat') as rating_file:
 
 valid_users = []
 for user in list(user2data.values()):
-    if len(user.items) > 1 and len(user.items) < 60:
+    if len(user.items) > min_usr_len and len(user.items) < max_usr_len:
         user.ArrangeItemList()
         valid_users.append(user.user_id)
 print(len(valid_users))
@@ -86,13 +92,13 @@ for user in list(valid_users):
     user = user2data[user]
     item_counter.update(user.items)
 
-index.item2index, index.index2item = IndexLabels(MinCountFilter(item_counter, min_count=1), True)
+index.item2index, index.index2item = IndexLabels(MinCountFilter(item_counter, min_count=min_items_cnt), True)
 
 valid_users_filtered = []
 for user_id in list(valid_users):
     user = user2data[user_id]
     items = [item for item in user.items if item in index.item2index]
-    if len(items) > 2:
+    if len(items) > final_usr_len:
         valid_users_filtered.append(user_id)
 valid_users = valid_users_filtered
 
