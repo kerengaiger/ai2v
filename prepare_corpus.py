@@ -27,10 +27,10 @@ min_usr_len = 1
 max_usr_len = 60
 min_items_cnt = 1
 final_usr_len = 2
-out_full_train = r'./data/corpus_avi.txt'
-out_test = r'./data/test_corpus_avi.txt'
-out_train = r'./data/train_corpus_avi.txt'
-out_valid = r'./data/valid_corpus_avi.txt'
+out_full_train = r'./data/corpus_netflix.txt'
+out_test = r'./data/test_corpus_netflix.txt'
+out_train = r'./data/train_corpus_netflix.txt'
+out_valid = r'./data/valid_corpus_netflix.txt'
 
 user2data = {}
 t = time.clock()
