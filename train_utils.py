@@ -31,6 +31,31 @@ class UserBatchIncrementDataset(Dataset):
         return titem, np.array(citems)
 
 
+class UserBatchIncrementDataset(Dataset):
+    def __init__(self, datapath, pad_idx, window_size, ws=None):
+        data = pickle.load(datapath.open('rb'))
+        self.pad_idx = pad_idx
+        self.window_size = window_size
+
+        if ws is not None:
+            data_ws = []
+            for citems, titem in data:
+                if random.random() > ws[titem]:
+                    data_ws.append((citems, titem))
+            data = data_ws
+        self.data = data
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        len_samp = self.data[idx]
+        pad_times = len_samp - self.window_size
+        citems = self.data[idx][0] + [self.pad_idx] * pad_times
+        titem = self.data[idx][1]
+        return titem, np.array(citems)
+
+
 def configure_weights(cnfg, idx2item):
     ic = pickle.load(pathlib.Path(cnfg['data_dir'], 'ic.dat').open('rb'))
 
