@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('--test_file', type=str, default='./data/test.dat', help="test file of sub users and target items")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--max_vocab', type=int, default=20000, help="maximum number of vocab")
+    parser.add_argument('--max_user', type=int,default=1000, help='maximum length of usr')
     return parser.parse_args()
 
 
@@ -65,11 +66,10 @@ class Preprocess(object):
         target_item = user[item_target]
         return [self.item2idx[item] for item in sub_user], self.item2idx[target_item]
 
-    def convert(self, filepath, savepath):
+    def convert(self, filepath, savepath, max_user):
         print("converting corpus...")
         step = 0
         data = []
-        max_user = 0
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
             num_users = 0
             for line in file:
@@ -89,10 +89,11 @@ class Preprocess(object):
                     print('skip user')
                     continue
                 num_users += 1
-                if len(user) > max_user:
-                    max_user = len(user)
-                for item_target in range(1, len(user)):
-                    data.append((self.create_sub_user(user, item_target)))
+                # split large users to sub users
+                sub_users = [user[x:x+max_user] for x in range(0, len(user), max_user)]
+                for user in sub_users:
+                    for item_target in range(1, len(user)):
+                        data.append((self.create_sub_user(user, item_target)))
 
         print("")
         pickle.dump(data, open(savepath, 'wb'))
@@ -105,11 +106,11 @@ def main():
     args = parse_args()
     preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
     preprocess.build(args.vocab, max_vocab=args.max_vocab)
-    preprocess.convert(args.full_corpus, args.full_train_file)
-    preprocess.convert(args.test_corpus, args.test_file)
+    preprocess.convert(args.full_corpus, args.full_train_file, args.max_user)
+    preprocess.convert(args.test_corpus, args.test_file, args.max_user)
     if args.build_train_valid:
-        preprocess.convert(args.train_corpus, args.train_file)
-        preprocess.convert(args.valid_corpus, args.valid_file)
+        preprocess.convert(args.train_corpus, args.train_file, args.max_user)
+        preprocess.convert(args.valid_corpus, args.valid_file, args.max_user)
 
 
 if __name__ == '__main__':
