@@ -49,7 +49,7 @@ class UserBatchIncrementDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        len_samp = self.data[idx]
+        len_samp = len(self.data[idx][0])
         pad_times = len_samp - self.window_size
         citems = self.data[idx][0] + [self.pad_idx] * pad_times
         titem = self.data[idx][1]
