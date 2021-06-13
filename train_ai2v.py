@@ -68,7 +68,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
     dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, window_size)
-    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
 
     pbar = tqdm(valid_dl)
     valid_losses = []
@@ -110,7 +110,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=4, pin_memory=True)
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
 
         # train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx, scheduler, writer)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
@@ -156,7 +156,7 @@ def train(cnfg):
     sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                         cnfg['window_size'])
-    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=4)
+    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=16)
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
