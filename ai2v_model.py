@@ -113,6 +113,8 @@ class SGNS(nn.Module):
             batch_nitems = t.multinomial(self.weights, batch_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
             batch_nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
+        if next(self.parameters()).is_cuda:
+            batch_nitems = batch_nitems.cuda()
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         batch_sub_users = self.ai2v(batch_titems, batch_citems, batch_pad_ids)
