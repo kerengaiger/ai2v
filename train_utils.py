@@ -49,11 +49,11 @@ class UserBatchIncrementDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # len_samp = len(self.data[idx][0])
-        # pad_times = self.window_size - len_samp
-        # citems = self.data[idx][0] + [self.pad_idx] * pad_times
+        len_samp = len(self.data[idx][0])
+        pad_times = self.window_size - len_samp
+        citems = self.data[idx][0] + [self.pad_idx] * pad_times
         titem = self.data[idx][1]
-        citems = self.data[idx][0]
+        # citems = self.data[idx][0]
         return titem, np.array(citems)
 
 
