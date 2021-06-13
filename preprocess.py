@@ -64,8 +64,8 @@ class Preprocess(object):
 
     def create_train_samp(self, user, item_target, pad_idx, max_user):
         sub_user = user[:item_target]
-        pad_times = max_user - len(user)
-        sub_user = sub_user + pad_times * ['pad']
+        pad_times = max_user - len(sub_user)
+        sub_user += pad_times * ['pad']
         target_item = user[item_target]
         return [self.item2idx[item] for item in sub_user], self.item2idx[target_item]
 
