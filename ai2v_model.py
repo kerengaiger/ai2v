@@ -69,12 +69,12 @@ class AttentiveItemToVec(nn.Module):
 
     def forward_t(self, data):
         v = data.long()
-        v = v.cuda() if self.tvectors.weight.is_cuda else v
+        # v = v.cuda() if self.tvectors.weight.is_cuda else v
         return self.tvectors(v)
 
     def forward_c(self, data):
         v = data.long()
-        v = v.cuda() if self.cvectors.weight.is_cuda else v
+        # v = v.cuda() if self.cvectors.weight.is_cuda else v
         return self.cvectors(v)
 
 
