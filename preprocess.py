@@ -4,6 +4,7 @@ import os
 import codecs
 import pickle
 import argparse
+import pathlib
 
 
 def parse_args():
@@ -61,8 +62,10 @@ class Preprocess(object):
         pickle.dump(self.item2idx, open(os.path.join(self.data_dir, 'item2idx.dat'), 'wb'))
         print("build done")
 
-    def create_sub_user(self, user, item_target):
+    def create_train_samp(self, user, item_target, pad_idx, max_user):
         sub_user = user[:item_target]
+        pad_times = max_user - len(user)
+        sub_user = sub_user + pad_times * [pad_idx]
         target_item = user[item_target]
         return [self.item2idx[item] for item in sub_user], self.item2idx[target_item]
 
@@ -70,6 +73,8 @@ class Preprocess(object):
         print("converting corpus...")
         step = 0
         data = []
+        item2idx = pickle.load(pathlib.Path(self.data_dir, 'item2idx.dat').open('rb'))
+        pad_idx = item2idx['pad']
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
             num_users = 0
             for line in file:
@@ -93,7 +98,7 @@ class Preprocess(object):
                 sub_users = [user[x:x+max_user] for x in range(0, len(user), max_user)]
                 for user in sub_users:
                     for item_target in range(1, len(user)):
-                        data.append((self.create_sub_user(user, item_target)))
+                        data.append((self.create_train_samp(user, item_target, pad_idx, max_user)))
 
         print("")
         pickle.dump(data, open(savepath, 'wb'))
