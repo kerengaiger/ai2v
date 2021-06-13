@@ -63,31 +63,6 @@ class AttentiveItemToVec(nn.Module):
         alpha_j_1 = weighted_u_l_m.sum(2)
         z_j_1 = self.R(alpha_j_1)
 
-        # print('v_l_j nan', t.isnan(v_l_j).any())
-        # print('v_l_j max', v_l_j.max())
-        # print('v_l_j min', v_l_j.min())
-        # print('u_l_m nan', t.isnan(u_l_m).any())
-        # print('u_l_m max', u_l_m.max())
-        # print('u_l_m min', u_l_m.min())
-        # print('c_vecs nan', t.isnan(c_vecs).any())
-        # print('c_vecs max', c_vecs.max())
-        # print('c_vecs min', c_vecs.min())
-        # print('t_vecs nan', t.isnan(t_vecs).any())
-        # print('t_vecs max', t_vecs.max())
-        # print('t_vecs min', t_vecs.min())
-        # print('cosine_sim nan', t.isnan(cosine_sim).any())
-        # print('cosine_sim max', cosine_sim.max())
-        # print('cosine_sim min', cosine_sim.min())
-        # print('attention_weights nan', t.isnan(attention_weights).any())
-        # print('attention_weights max', attention_weights.max())
-        # print('attention_weights min', attention_weights.min())
-        # print('weighted_u_l_m nan', t.isnan(weighted_u_l_m).any())
-        # print('weighted_u_l_m max', weighted_u_l_m.max())
-        # print('weighted_u_l_m min', weighted_u_l_m.min())
-        # print('alpha_j_1 nan', t.isnan(alpha_j_1).any())
-        # print('alpha_j_1 max', alpha_j_1.max())
-        # print('alpha_j_1 min', alpha_j_1.min())
-
         return z_j_1
 
     def forward_t(self, data):
@@ -143,36 +118,8 @@ class SGNS(nn.Module):
         if [param for param in self.ai2v.parameters()][0].is_cuda:
             self.ai2v.b_l_j.cuda()
 
-        sim = self.similarity(batch_sub_users, batch_tvecs,batch_titems)
+        sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
 
-        # print('batch_sub_users nan', t.isnan(batch_sub_users).any())
-        # print('batch_sub_users max', batch_sub_users.max())
-        # print('batch_sub_users min', batch_sub_users.min())
-        # print('batch_tvecs nan', t.isnan(batch_tvecs).any())
-        # print('cosine_sim max', batch_tvecs.max())
-        # print('cosine_sim min', batch_tvecs.min())
-        #
-        # print('sim max', sim.max())
-        # print('sim min', sim.min())
-        # print('sim nan', t.isnan(sim).any())
-        #
-        # print('softmax min', sim.squeeze(-1).softmax(dim=1).min())
-        # print('softmax min', sim.squeeze(-1).softmax(dim=1).max())
-        #
-        # print('soft and log min', sim.squeeze(-1).softmax(dim=1)[:, 0].log().min())
-        # print('soft and log min', sim.squeeze(-1).softmax(dim=1)[:, 0].log().max())
-        #
-        # for name, param in self.ai2v.named_parameters():
-        #     print(name)
-        #     grad = param.grad
-        #     if grad is None:
-        #         continue
-        #     else:
-        #         print('grad max', grad.max())
-        #         print('grad min', grad.min())
-        # print('is nan?', t.isnan(param).any())
-        # print('param max:', param.max())
-        # print('param min:', param.min())
         soft = sim.softmax(dim=1) + 1e-6
         return -soft[:, 0].log().sum()
 
