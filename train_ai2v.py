@@ -43,13 +43,15 @@ def parse_args():
 def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
-    train_losses = []
+    # train_losses = []
+    train_loss = 0
 
     for batch_titems, batch_citems in pbar:
         batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
         loss = sgns(batch_titems, batch_citems, batch_pad_ids)
 
-        train_losses.append(loss.item())
+        # train_losses.append(loss.item())
+        train_loss += loss.item()
         optim.zero_grad()
         loss.backward()
         optim.step()
@@ -58,12 +60,12 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
         # if writer:
         #     writer.add_scalar("lr", optim.param_groups[0]['lr'], epoch)
 
-    train_loss = np.array(train_losses).mean()
-    print(f'train_loss: {train_loss}')
-    print('lrs')
-    for param_group in optim.param_groups:
-        print(param_group['lr'])
-    return train_loss, sgns
+    # train_loss = np.array(train_losses).mean()
+    # print(f'train_loss: {train_loss}')
+    # print('lrs')
+    # for param_group in optim.param_groups:
+    #     print(param_group['lr'])
+    return train_loss / len(pbar), sgns
 
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
