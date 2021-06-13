@@ -43,6 +43,7 @@ class AttentiveItemToVec(nn.Module):
         # self.dropout = nn.Dropout(0.1)
 
     def forward(self, batch_titems, batch_citems, batch_pad_ids=None, inference=False):
+        device = t.device("cuda:0" if next(self.parameters()).is_cuda else "cpu")
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
@@ -50,10 +51,11 @@ class AttentiveItemToVec(nn.Module):
 
         cosine_sim = self.cos(t_vecs, c_vecs)
         if not inference:
-            batch_pad_ids = (batch_pad_ids[0].repeat_interleave(batch_titems.shape[1]),
-                             t.cat([t.tensor(range(batch_titems.shape[1]))] * batch_pad_ids[0].shape[0]),
-                             batch_pad_ids[1].repeat_interleave(batch_titems.shape[1]))
-
+            tens = batch_pad_ids.repeat_interleave(batch_titems.shape[1], dim=1)
+            batch_pad_ids = t.cat([tens[:1],
+                                   t.cat([t.tensor(range(batch_titems.shape[1]),
+                                                   device=device)] * batch_pad_ids.shape[1]).unsqueeze(0),
+                                   tens[1:]], 0)
             cosine_sim[batch_pad_ids] = -np.inf
 
         attention_weights = self.softmax(cosine_sim)
