@@ -61,14 +61,15 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
         # if writer:
         #     writer.add_scalar("lr", optim.param_groups[0]['lr'], epoch)
 
+    train_loss = train_loss / len(pbar)
     # train_loss = np.array(train_losses).mean()
-    # print(f'train_loss: {train_loss}')
+    print(f'train_loss: {train_loss}')
     # print('lrs')
     # for param_group in optim.param_groups:
     #     print(param_group['lr'])
     end = datetime.datetime.now().replace(microsecond=0)
-    print(end-srt)
-    return train_loss / len(pbar), sgns
+    print('epoch time: ', end-srt)
+    return train_loss, sgns
 
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
