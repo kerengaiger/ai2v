@@ -50,7 +50,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     for batch_titems, batch_citems in pbar:
         if next(sgns.parameters()).is_cuda:
             batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
-            batch_pad_ids = (batch_citems == pad_idx).nonzero()
+            batch_pad_ids = (batch_citems == pad_idx).nonzero().T
             batch_pad_ids = batch_pad_ids.cuda()
         else:
             batch_pad_ids = (batch_citems == pad_idx).nonzero().T
