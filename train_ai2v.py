@@ -46,6 +46,7 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     # train_losses = []
     train_loss = 0
 
+    srt = datetime.datetime.now().replace(microsecond=0)
     for batch_titems, batch_citems in pbar:
         batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
         loss = sgns(batch_titems, batch_citems, batch_pad_ids)
@@ -65,6 +66,8 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
     # print('lrs')
     # for param_group in optim.param_groups:
     #     print(param_group['lr'])
+    end = datetime.datetime.now().replace(microsecond=0)
+    print(end-srt)
     return train_loss / len(pbar), sgns
 
 
