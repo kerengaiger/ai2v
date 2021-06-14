@@ -64,7 +64,6 @@ def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
         #     writer.add_scalar("lr", optim.param_groups[0]['lr'], epoch)
 
     train_loss = train_loss / len(pbar)
-    # train_loss = np.array(train_losses).mean()
     print(f'train_loss: {train_loss}')
     # print('lrs')
     # for param_group in optim.param_groups:
@@ -81,10 +80,12 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
     pbar = tqdm(valid_dl)
     valid_losses = []
 
-    for batch_titem, batch_citems in pbar:
-        batch_pad_ids = (batch_citems == pad_idx).nonzero(as_tuple=True)
+    for batch_titems, batch_citems in pbar:
+        if next(sgns.parameters()).is_cuda:
+            batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
 
-        loss = sgns(batch_titem, batch_citems, batch_pad_ids)
+        mask_pad_ids = (batch_citems == pad_idx)
+        loss = sgns(batch_titems, batch_citems, mask_pad_ids)
         valid_losses.append(loss.item())
 
     return np.array(valid_losses).mean()
