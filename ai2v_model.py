@@ -42,8 +42,7 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j.requires_grad = True
         # self.dropout = nn.Dropout(0.1)
 
-    def forward(self, batch_titems, batch_citems, batch_pad_ids=None, inference=False):
-        device = t.device("cuda:0" if next(self.parameters()).is_cuda else "cpu")
+    def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
@@ -51,12 +50,8 @@ class AttentiveItemToVec(nn.Module):
 
         cosine_sim = self.cos(t_vecs, c_vecs)
         if not inference:
-            tens = batch_pad_ids.repeat_interleave(batch_titems.shape[1], dim=1)
-            batch_pad_ids = t.cat([tens[:1],
-                                   t.cat([t.tensor(range(batch_titems.shape[1]),
-                                                   device=device)] * batch_pad_ids.shape[1]).unsqueeze(0),
-                                   tens[1:]], 0)
-            cosine_sim[batch_pad_ids] = -np.inf
+            cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
+                batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
 
         attention_weights = self.softmax(cosine_sim)
 
@@ -107,17 +102,16 @@ class SGNS(nn.Module):
         sim = self.similarity(sub_users, all_tvecs,all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
-    def forward(self, batch_titems, batch_citems, batch_pad_ids):
-        batch_size = batch_titems.size()[0]
+    def forward(self, batch_titems, batch_citems, mask_pad_ids):
         if self.weights is not None:
-            batch_nitems = t.multinomial(self.weights, batch_size * self.n_negs, replacement=True).view(batch_size, -1)
+            batch_nitems = t.multinomial(self.weights, batch_titems.size()[0] * self.n_negs, replacement=True).view(batch_titems.size()[0], -1)
         else:
-            batch_nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
+            batch_nitems = FT(batch_titems.size()[0], self.n_negs).uniform_(0, self.vocab_size - 1).long()
         if next(self.parameters()).is_cuda:
             batch_nitems = batch_nitems.cuda()
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
-        batch_sub_users = self.ai2v(batch_titems, batch_citems, batch_pad_ids)
+        batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
         if [param for param in self.ai2v.parameters()][0].is_cuda:
             self.ai2v.b_l_j.cuda()
