@@ -34,13 +34,11 @@ class AttentiveItemToVec(nn.Module):
         self.Bc = nn.Linear(self.embedding_size, self.embedding_size)
         self.Bt = nn.Linear(self.embedding_size, self.embedding_size)
         self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
-        # self.cos_fin = nn.CosineSimilarity(dim=-1, eps=1e-6)
         self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
         self.W1 = nn.Linear(self.embedding_size, 1)
         self.relu = nn.ReLU()
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
-        # self.dropout = nn.Dropout(0.1)
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
@@ -64,12 +62,10 @@ class AttentiveItemToVec(nn.Module):
 
     def forward_t(self, data):
         v = data.long()
-        # v = v.cuda() if self.tvectors.weight.is_cuda else v
         return self.tvectors(v)
 
     def forward_c(self, data):
         v = data.long()
-        # v = v.cuda() if self.cvectors.weight.is_cuda else v
         return self.cvectors(v)
 
 
@@ -91,7 +87,6 @@ class SGNS(nn.Module):
                                                         t.mul(batch_sub_users, batch_tvecs),
                                                         (batch_sub_users - batch_tvecs).abs()], 2)))) + \
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
-        # return self.ai2v.cos_fin(batch_sub_users, batch_tvecs)
 
     def inference(self, user_items):
         num_items = self.ai2v.tvectors.weight.size()[0]
