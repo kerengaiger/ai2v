@@ -73,6 +73,7 @@ class Preprocess(object):
         print("converting corpus...")
         step = 0
         data = []
+        usrs_len = []
         item2idx = pickle.load(pathlib.Path(self.data_dir, 'item2idx.dat').open('rb'))
         pad_idx = item2idx['pad']
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
@@ -85,6 +86,7 @@ class Preprocess(object):
                 if not line:
                     continue
                 user = []
+                usrs_len.append(len(user))
                 for item in line.split():
                     if item in self.vocab:
                         user.append(item)
@@ -104,7 +106,7 @@ class Preprocess(object):
         pickle.dump(data, open(savepath, 'wb'))
         print("conversion done")
         print("num of users:", num_users)
-        print("max user:", max_user)
+        print("max user:", max(usrs_len))
 
 
 def main():
