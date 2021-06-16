@@ -163,7 +163,7 @@ def train(cnfg):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
         scheduler.step()
 
-    save_model(cnfg, model, sgns, '_mix_batch')
+    save_model(cnfg, model, sgns)
 
     # Evaluate on test set
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
