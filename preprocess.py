@@ -86,12 +86,12 @@ class Preprocess(object):
                 if not line:
                     continue
                 user = []
-                usrs_len.append(len(user))
                 for item in line.split():
                     if item in self.vocab:
                         user.append(item)
                     else:
                         user.append(self.unk)
+                usrs_len.append(len(user))
                 if len(user) < 2:
                     print('skip user')
                     continue
