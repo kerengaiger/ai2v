@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('--rr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
     parser.add_argument('--best_cnfg', type=str, default='./output/best_cnfg.csv', help="best cnfg of hyper params")
     parser.add_argument('--max_epochs', type=int, default=50, help='number of early stop epochs to train the model over')
+    parser.add_argument('--ds_name', type=str, default='movie_lens', help="dataset name to index the model out file")
 
     return parser.parse_args()
 
@@ -118,7 +119,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         if valid_loss < valid_losses[-1]:
             patience_count = 0
             best_epoch = epoch
-            save_model(cnfg, model, sgns, '_mix_batch_')
+            save_model(cnfg, model, sgns)
 
         else:
             patience_count += 1
@@ -162,7 +163,7 @@ def train(cnfg):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
         scheduler.step()
 
-    save_model(cnfg, model, sgns, '_mix_batch_')
+    save_model(cnfg, model, sgns, '_mix_batch')
 
     # Evaluate on test set
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
@@ -190,7 +191,7 @@ def train_evaluate(cnfg):
 
     best_epoch = train_early_stop(cnfg, valid_users_path, item2idx['pad'])
 
-    best_model = t.load(pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_mix_batch_' + '_best.pt'))
+    best_model = t.load(pathlib.Path(cnfg['save_dir'], cnfg['model'] + '_mix_batch' + '_best.pt'))
 
     valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'], cnfg['window_size'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
