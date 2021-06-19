@@ -92,7 +92,7 @@ class SGNS(nn.Module):
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
-        if next(self.parameters()).is_cuda():
+        if next(self.parameters()).is_cuda:
             citems = citems.cuda()
             all_titems = all_titems.cuda()
         sub_users = self.ai2v(all_titems, citems, mask_pad_ids=None, inference=True)
