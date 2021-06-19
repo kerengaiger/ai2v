@@ -1,11 +1,16 @@
 import torch as t
+from torch.utils.data import DataLoader
 import pickle
 import numpy as np
 import pandas as pd
 import argparse
 from tqdm import tqdm
+import pathlib
 
 from scipy.stats import ttest_ind
+
+from train_utils import UserBatchIncrementDataset
+
 
 
 def parse_args():
@@ -18,43 +23,77 @@ def parse_args():
     return parser.parse_args()
 
 
-def mrr_k(model, eval_set, k, out_file):
+def mrr_k(model, test_path, k, out_file, pad_idx, batch_size):
+    test_dataset = UserBatchIncrementDataset(pathlib.Path('./data/', test_path), pad_idx, 60)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=16)
+    pbar = tqdm(test_loader)
+
     rec_rank = 0
+    for batch_citems, batch_titmes in pbar:
+        all_titems = t.tensor(np.repeat(np.array([range(model.ai2v.tvectors.weight.size()[0])]), batch_size, axis=0))
+        if next(model.parameters()).is_cuda:
+            batch_citems, batch_titmes = batch_citems.cuda(), batch_titmes.cuda()
+            all_titems = all_titems.cuda()
+        mask_pad_ids = (batch_citems == pad_idx)
+        batch_sub_users = model.ai2v(all_titems, batch_citems, mask_pad_ids)
+        all_tvecs = model.ai2v.Bt(model.ai2v.forward_t(all_titems))
+        sim = model.similarity(batch_sub_users, all_tvecs, all_titems).squeeze()
+        items_ranked = t.argsort(sim, descending=True)[:, :k]
+        rec_rank += 1 / (items_ranked.nonzero()[:,1] +1)
 
-    pbar = tqdm(eval_set)
+    return rec_rank / len(pbar)
+    # rec_rank = 0
+    #
+    # pbar = tqdm(eval_set)
+    #
+    # with open(out_file, 'w') as file:
+    #     for i, (user_itemids, target_item) in enumerate(pbar):
+    #         items_ranked = model.inference(user_itemids).argsort()
+    #         top_k_items = items_ranked[-k:][::-1]
+    #         if target_item in top_k_items:
+    #             rec_rank += 1 / (np.where(top_k_items == target_item)[0][0] + 1)
+    #             file.write(f'{str(i)}, {target_item}, {rec_rank}')
+    #             file.write('\n')
+    #         else:
+    #             file.write(f'{str(i)}, {target_item}, 0')
+    #             file.write('\n')
+    # mrp_k = rec_rank / len(eval_set)
+    # return mrp_k
 
-    with open(out_file, 'w') as file:
-        for i, (user_itemids, target_item) in enumerate(pbar):
-            items_ranked = model.inference(user_itemids).argsort()
-            top_k_items = items_ranked[-k:][::-1]
-            if target_item in top_k_items:
-                rec_rank += 1 / (np.where(top_k_items == target_item)[0][0] + 1)
-                file.write(f'{str(i)}, {target_item}, {rec_rank}')
-                file.write('\n')
-            else:
-                file.write(f'{str(i)}, {target_item}, 0')
-                file.write('\n')
-    mrp_k = rec_rank / len(eval_set)
-    return mrp_k
 
+def hr_k(model, test_path, k, out_file, pad_idx, batch_size):
+    test_dataset = UserBatchIncrementDataset(pathlib.Path('./data/', test_path), pad_idx, 60)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=16)
+    pbar = tqdm(test_loader)
 
-def hr_k(model, eval_set, k, out_file):
     in_top_k = 0
+    for batch_citems, batch_titmes in pbar:
+        all_titems = t.tensor(np.repeat(np.array([range(model.ai2v.tvectors.weight.size()[0])]), batch_size, axis=0))
+        if next(model.parameters()).is_cuda:
+            batch_citems, batch_titmes = batch_citems.cuda(), batch_titmes.cuda()
+            all_titems = all_titems.cuda()
+        mask_pad_ids = (batch_citems == pad_idx)
+        batch_sub_users = model.ai2v(all_titems, batch_citems, mask_pad_ids)
+        all_tvecs = model.ai2v.Bt(model.ai2v.forward_t(all_titems))
+        sim = model.similarity(batch_sub_users, all_tvecs, all_titems).squeeze()
+        items_ranked = t.argsort(sim, descending=True)[:, :k]
+        in_top_k += items_ranked.eq(batch_titmes.view(-1, 1)).sum()
 
-    pbar = tqdm(eval_set)
+    return in_top_k / len(pbar)
 
-    with open(out_file, 'w') as file:
-        for i, (user_itemids, target_item) in enumerate(pbar):
-            items_ranked = model.inference(user_itemids).argsort()
-            top_k_items = items_ranked[-k:][::-1]
-            if target_item in top_k_items:
-                in_top_k += 1
-                file.write(f'{str(i)}, {target_item}, 1')
-                file.write('\n')
-            else:
-                file.write(f'{str(i)}, {target_item}, 0')
-                file.write('\n')
-    return in_top_k / len(eval_set)
+    # pbar = tqdm(eval_set)
+    # with open(out_file, 'w') as file:
+    #     for i, (user_itemids, target_item) in enumerate(pbar):
+    #         items_ranked = model.inference(user_itemids).argsort()
+    #         top_k_items = items_ranked[-k:][::-1]
+    #         if target_item in top_k_items:
+    #             in_top_k += 1
+    #             file.write(f'{str(i)}, {target_item}, 1')
+    #             file.write('\n')
+    #         else:
+    #             file.write(f'{str(i)}, {target_item}, 0')
+    #             file.write('\n')
+    # return in_top_k / len(eval_set)
 
 
 def test_p_value(ai2v_file, i2v_file):
