@@ -16,6 +16,7 @@ from train_utils import UserBatchIncrementDataset
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
+    parser.add_argument('--window_size', type=int, default=1010, help="window size to pad all the rest")
     parser.add_argument('--data_dir', type=str, default='./data/', help="directory of all input data files")
     parser.add_argument('--model', type=str, default='./output/i2v_mix_batch__best.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
@@ -25,13 +26,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def mrr_k(model, test_path, k, out_file, pad_idx, batch_size):
-    test_dataset = UserBatchIncrementDataset(test_path, pad_idx, 60)
+def mrr_k(model, test_path, k, out_file, pad_idx, batch_size, window_size):
+    test_dataset = UserBatchIncrementDataset(test_path, pad_idx, window_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=16)
     pbar = tqdm(test_loader)
 
     rec_rank = 0
-    for batch_citems, batch_titmes in pbar:
+    for batch_titmes, batch_citmes in pbar:
         all_titems = t.tensor(np.repeat(np.array([range(model.ai2v.tvectors.weight.size()[0])]), batch_size, axis=0))
         if next(model.parameters()).is_cuda:
             batch_citems, batch_titmes = batch_citems.cuda(), batch_titmes.cuda()
@@ -63,13 +64,13 @@ def mrr_k(model, test_path, k, out_file, pad_idx, batch_size):
     # return mrp_k
 
 
-def hr_k(model, test_path, k, out_file, pad_idx, batch_size):
-    test_dataset = UserBatchIncrementDataset(test_path, pad_idx, 60)
+def hr_k(model, test_path, k, out_file, pad_idx, batch_size, window_size):
+    test_dataset = UserBatchIncrementDataset(test_path, pad_idx, window_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=16)
     pbar = tqdm(test_loader)
 
     in_top_k = 0
-    for batch_citems, batch_titmes in pbar:
+    for batch_titmes, batch_citems in pbar:
         all_titems = t.tensor(np.repeat(np.array([range(model.ai2v.tvectors.weight.size()[0])]), batch_size, axis=0))
         if next(model.parameters()).is_cuda:
             batch_citems, batch_titmes = batch_citems.cuda(), batch_titmes.cuda()
@@ -115,9 +116,9 @@ def main():
     # eval_set = pickle.load(open(args.test, 'rb'))
     item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
     print(f'hit ratio at {args.k}:', hr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
-                                          item2idx['pad'], args.batch_size))
+                                          item2idx['pad'], args.batch_size, args.window_size))
     print(f'mrr at {args.k}:', mrr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.mrr_out,
-                                     item2idx['pad'], args.batch_size))
+                                     item2idx['pad'], args.batch_size, args.window_size))
 
 
 if __name__ == '__main__':
