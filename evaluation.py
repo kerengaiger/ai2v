@@ -116,9 +116,9 @@ def main():
     model = t.nn.DataParallel(model)
     # eval_set = pickle.load(open(args.test, 'rb'))
     item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
-    print(f'hit ratio at {args.k}:', hr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
+    print(f'hit ratio at {args.k}:', hr_k(model.module, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
                                           item2idx['pad'], args.batch_size, args.window_size))
-    print(f'mrr at {args.k}:', mrr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.mrr_out,
+    print(f'mrr at {args.k}:', mrr_k(model.module, pathlib.Path(args.data_dir, args.test), args.k, args.mrr_out,
                                      item2idx['pad'], args.batch_size, args.window_size))
 
 
