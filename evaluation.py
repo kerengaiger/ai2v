@@ -113,7 +113,7 @@ def main():
     args = parse_args()
     model = t.load(args.model)
     eval_set = pickle.load(open(args.test, 'rb'))
-    item2idx = pickle.load(pathlib.Path(args.data_sir, 'item2idx.dat').open('rb'))
+    item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
     print(f'hit ratio at {args.k}:', hr_k(model, eval_set, args.k, args.hr_out, item2idx['pad'], args.batch_size))
     print(f'mrr at {args.k}:', mrr_k(model, eval_set, args.k, args.mrr_out, item2idx['pad'], args.batch_size))
 
