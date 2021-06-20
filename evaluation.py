@@ -113,6 +113,7 @@ def test_p_value(ai2v_file, i2v_file):
 def main():
     args = parse_args()
     model = t.load(args.model)
+    model = t.nn.DataParallel(model)
     # eval_set = pickle.load(open(args.test, 'rb'))
     item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
     print(f'hit ratio at {args.k}:', hr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
