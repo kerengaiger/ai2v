@@ -26,7 +26,7 @@ def parse_args():
 
 
 def mrr_k(model, test_path, k, out_file, pad_idx, batch_size):
-    test_dataset = UserBatchIncrementDataset(pathlib.Path('./data/', test_path), pad_idx, 60)
+    test_dataset = UserBatchIncrementDataset(test_path, pad_idx, 60)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=16)
     pbar = tqdm(test_loader)
 
@@ -64,7 +64,7 @@ def mrr_k(model, test_path, k, out_file, pad_idx, batch_size):
 
 
 def hr_k(model, test_path, k, out_file, pad_idx, batch_size):
-    test_dataset = UserBatchIncrementDataset(pathlib.Path('./data/', test_path), pad_idx, 60)
+    test_dataset = UserBatchIncrementDataset(test_path, pad_idx, 60)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=16)
     pbar = tqdm(test_loader)
 
@@ -112,10 +112,10 @@ def test_p_value(ai2v_file, i2v_file):
 def main():
     args = parse_args()
     model = t.load(args.model)
-    eval_set = pickle.load(open(args.test, 'rb'))
+    # eval_set = pickle.load(open(args.test, 'rb'))
     item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
-    print(f'hit ratio at {args.k}:', hr_k(model, eval_set, args.k, args.hr_out, item2idx['pad'], args.batch_size))
-    print(f'mrr at {args.k}:', mrr_k(model, eval_set, args.k, args.mrr_out, item2idx['pad'], args.batch_size))
+    print(f'hit ratio at {args.k}:', hr_k(model, args.test, args.k, args.hr_out, item2idx['pad'], args.batch_size))
+    print(f'mrr at {args.k}:', mrr_k(model, args.test, args.k, args.mrr_out, item2idx['pad'], args.batch_size))
 
 
 if __name__ == '__main__':
