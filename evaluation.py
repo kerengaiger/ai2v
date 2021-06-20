@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
     parser.add_argument('--data_dir', type=str, default='./data/', help="directory of all input data files")
     parser.add_argument('--model', type=str, default='./output/i2v_mix_batch__best.pt', help="best model trained")
-    parser.add_argument('--test', type=str, default='./data/test.dat', help="test set for evaluation")
+    parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
     parser.add_argument('--batch_size', type=int, default=2000, help="batch size to iterate with when predicting")
     parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
     parser.add_argument('--mrr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
@@ -114,8 +114,10 @@ def main():
     model = t.load(args.model)
     # eval_set = pickle.load(open(args.test, 'rb'))
     item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
-    print(f'hit ratio at {args.k}:', hr_k(model, args.test, args.k, args.hr_out, item2idx['pad'], args.batch_size))
-    print(f'mrr at {args.k}:', mrr_k(model, args.test, args.k, args.mrr_out, item2idx['pad'], args.batch_size))
+    print(f'hit ratio at {args.k}:', hr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
+                                          item2idx['pad'], args.batch_size))
+    print(f'mrr at {args.k}:', mrr_k(model, pathlib.Path(args.data_dir, args.test), args.k, args.mrr_out,
+                                     item2idx['pad'], args.batch_size))
 
 
 if __name__ == '__main__':
