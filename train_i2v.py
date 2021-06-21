@@ -106,6 +106,8 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
     valid_losses = []
 
     for batch_titems, batch_citems in pbar:
+        if next(sgns.parameters()).is_cuda:
+            batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
         loss = sgns(batch_titems, batch_citems)
         valid_losses.append(loss.item())
 
