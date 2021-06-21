@@ -66,6 +66,8 @@ class SGNS(nn.Module):
             nitems = t.multinomial(self.weights, batch_size * context_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
             nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
+        if next(self.parameters()).is_cuda:
+            nitems = nitems.cuda()
         tvectors = self.embedding.forward_t(titems)
         cvectors = self.embedding.forward_c(citems)
         nvectors = self.embedding.forward_t(nitems).neg()
