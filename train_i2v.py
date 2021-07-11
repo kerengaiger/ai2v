@@ -134,9 +134,10 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     valid_losses = [np.inf]
     patience_count = 0
 
+    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
+    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
+
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim)
         writer.add_scalar("Loss/train", train_loss, epoch)
         # log specific training example loss

@@ -105,10 +105,10 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     patience_count = 0
     t.autograd.set_detect_anomaly(True)
 
-    for epoch in range(1, cnfg['max_epoch'] + 1):
-        dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
+    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
+    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
 
+    for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
