@@ -27,7 +27,8 @@ def parse_args():
     parser.add_argument('--min_items_cnt', type=int, default=100, help="minimum numbers of users per item")
     parser.add_argument('--max_items_cnt', type=int, default=130000, help="maximum numbers of users per item")
     parser.add_argument('--final_usr_len', type=int, default=130000, help="final minimum user length")
-    parser.add_argument('--split_strategy', choices=['time_order', 'users_split'], help="way of splitting to train and test")
+    parser.add_argument('--split_strategy', choices=['time_order', 'users_split'], default='users_split',
+                        help="way of splitting to train and test")
     parser.add_argument('--out_full_train', type=str, default='./data/corpus_netflix.txt', help="input file")
     parser.add_argument('--out_test', type=str, default='./data/test_corpus_netflix.txt', help="input file")
     parser.add_argument('--out_train', type=str, default='./data/train_corpus_netflix.txt', help="input file")
