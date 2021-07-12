@@ -83,7 +83,7 @@ def split_usr_itms(usrs_lst, user2data, test_size=0.2):
         pickle.dump(usrs_lst, f)
     train_usrs = usrs_lst[:int(len(usrs_lst) * test_size)]
     test_usrs = usrs_lst[int(len(usrs_lst) * test_size):]
-    return train_usrs, [user2data[usr] for usr in train_usrs], [user2data[usr] for usr in test_usrs]
+    return train_usrs, [user2data[usr].items for usr in train_usrs], [user2data[usr].items for usr in test_usrs]
 
 
 def main():
@@ -112,7 +112,7 @@ def main():
     print('valid_users after pos: ', len(user2data.keys()))
     valid_users = []
     for user in list(user2data.values()):
-        if len(user.items) > args.min_usr_len and len(user.items) < args.max_usr_len:
+        if args.min_usr_len < len(user.items) < args.max_usr_len:
             user.ArrangeItemList()
             valid_users.append(user.user_id)
 
