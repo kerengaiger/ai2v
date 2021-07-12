@@ -106,7 +106,6 @@ def main():
             if float(line[args.rate_pos]) > args.positive_threshold:
                 user.items.append((line[args.item_pos], date))
 
-    print('valid_users after pos: ', len(user2data.keys()))
     valid_users = []
     for user in list(user2data.values()):
         if args.min_usr_len < len(user.items) < args.max_usr_len:
@@ -114,7 +113,6 @@ def main():
             valid_users.append(user.user_id)
 
     np.random.seed(0)
-    print('valid_users after first filter: ', len(valid_users))
 
     item_counter = Counter()
     index = Index()
@@ -126,7 +124,6 @@ def main():
     index.item2index, index.index2item = IndexLabels(CountFilter(item_counter, min_count=args.min_items_cnt,
                                                                  max_count=args.max_items_cnt), True)
 
-    print('items cnt after filter: ', len(item_counter.keys()))
     valid_users_filtered = []
     for user_id in list(valid_users):
         user = user2data[user_id]
@@ -134,7 +131,6 @@ def main():
         if len(items) > args.final_usr_len:
             valid_users_filtered.append(user_id)
     valid_users = valid_users_filtered
-    print('users cnt after final filter: ', len(valid_users_filtered))
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
@@ -158,7 +154,6 @@ def main():
 
     print("Items#: ", len(index.item2index))
     print("Full corpus users#:", len(valid_users))
-    print("Train users#: ", len(train_users))
 
 
 if __name__ == '__main__':
