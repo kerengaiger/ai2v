@@ -92,6 +92,7 @@ def main():
             if float(line[args.rate_pos]) > args.positive_threshold:
                 user.items.append((line[args.item_pos], date))
 
+    print('valid_users after pos: ', len(user2data.keys()))
     valid_users = []
     for user in list(user2data.values()):
         if len(user.items) > args.min_usr_len and len(user.items) < args.max_usr_len:
@@ -99,6 +100,7 @@ def main():
             valid_users.append(user.user_id)
 
     np.random.seed(0)
+    print('valid_users after first filter: ', len(valid_users))
 
     item_counter = Counter()
     index = Index()
@@ -110,6 +112,7 @@ def main():
     index.item2index, index.index2item = IndexLabels(CountFilter(item_counter, min_count=args.min_items_cnt,
                                                                  max_count=args.max_items_cnt), True)
 
+    print('items cnt after filter: ', len(item_counter.keys()))
     valid_users_filtered = []
     for user_id in list(valid_users):
         user = user2data[user_id]
@@ -117,6 +120,7 @@ def main():
         if len(items) > args.final_usr_len:
             valid_users_filtered.append(user_id)
     valid_users = valid_users_filtered
+    print('users cnt after final filter: ', len(valid_users_filtered))
 
     train_indices, test_indices = ComputeSplitIndices(len(valid_users), test_size=0.1)
     train_users = [valid_users[i] for i in train_indices]
