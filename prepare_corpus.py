@@ -79,11 +79,11 @@ def split_usrs(usrs_lst, user2data, test_size=0.2):
     return train_users, [user2data[user].items for user in train_users], [user2data[user].items for user in test_users]
 
 
-def split_usr_itms(usrs_lst, user2data, test_size=0.2):
+def split_usr_itms(usrs_lst, user2data, train_size=0.8):
     with open('train_usr_ids.pkl', 'wb') as f:
         pickle.dump(usrs_lst, f)
-    train_usrs = usrs_lst[:int(len(usrs_lst) * test_size)]
-    test_usrs = usrs_lst[int(len(usrs_lst) * test_size):]
+    train_usrs = usrs_lst[:int(len(usrs_lst) * train_size)]
+    test_usrs = usrs_lst[int(len(usrs_lst) * train_size):]
     return train_usrs, [user2data[usr].items for usr in train_usrs], [user2data[usr].items for usr in test_usrs]
 
 
