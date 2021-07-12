@@ -10,6 +10,7 @@ import csv
 from collections import Counter
 from datetime import datetime
 import argparse
+import pickle
 
 
 def parse_args():
@@ -26,6 +27,7 @@ def parse_args():
     parser.add_argument('--min_items_cnt', type=int, default=100, help="minimum numbers of users per item")
     parser.add_argument('--max_items_cnt', type=int, default=130000, help="maximum numbers of users per item")
     parser.add_argument('--final_usr_len', type=int, default=130000, help="final minimum user length")
+    parser.add_argument('--split_strategy', choices=['time_order', 'users_split'], help="way of splitting to train and test")
     parser.add_argument('--out_full_train', type=str, default='./data/corpus_netflix.txt', help="input file")
     parser.add_argument('--out_test', type=str, default='./data/test_corpus_netflix.txt', help="input file")
     parser.add_argument('--out_train', type=str, default='./data/train_corpus_netflix.txt', help="input file")
@@ -67,6 +69,21 @@ def ComputeSplitIndices(num_instances, test_size=0.1):
     permutation = np.random.permutation(num_instances)
     split_index = int((1 - test_size) * num_instances)
     return permutation[:split_index], permutation[split_index:]
+
+
+def split_usrs(usrs_lst, user2data, test_size=0.2):
+    train_indices, test_indices = ComputeSplitIndices(len(usrs_lst), test_size=test_size)
+    train_users = [usrs_lst[i] for i in train_indices]
+    test_users = [usrs_lst[i] for i in test_indices]
+    return train_users, [user2data[user].items for user in train_users], [user2data[user].items for user in test_users]
+
+
+def split_usr_itms(usrs_lst, user2data, test_size=0.2):
+    with open('train_usr_ids.pkl', 'wb') as f:
+        pickle.dump(usrs_lst, f)
+    train_usrs = usrs_lst[:int(len(usrs_lst) * test_size)]
+    test_usrs = usrs_lst[int(len(usrs_lst) * test_size):]
+    return train_usrs, [user2data[usr] for usr in train_usrs], [user2data[usr] for usr in test_usrs]
 
 
 def main():
@@ -122,34 +139,25 @@ def main():
     valid_users = valid_users_filtered
     print('users cnt after final filter: ', len(valid_users_filtered))
 
-    train_indices, test_indices = ComputeSplitIndices(len(valid_users), test_size=0.1)
-    train_users = [valid_users[i] for i in train_indices]
-    train_item_lists = [user2data[user].items for user in train_users]
-    test_users = [valid_users[i] for i in test_indices]
-    test_item_lists = [user2data[user].items for user in test_users]
+    if args.split_strategy == 'users_split':
+        full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
+        train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
+    else:
+        full_train_users, full_train_item_lsts, test_item_lsts = split_usr_itms(valid_users, user2data)
+        train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
 
     with open(args.out_full_train, 'w', newline="") as x:
-        csv.writer(x, delimiter=" ").writerows(train_item_lists)
-
+        csv.writer(x, delimiter=" ").writerows(full_train_item_lsts)
     with open(args.out_test, 'w', newline="") as x:
-        csv.writer(x, delimiter=" ").writerows(test_item_lists)
-
-    train_indices, validation_indices = ComputeSplitIndices(len(train_indices), test_size=0.1)
-    train_users = [valid_users[i] for i in train_indices]
-    train_item_lists = [user2data[user].items for user in train_users]
-    validation_users = [valid_users[i] for i in validation_indices]
-    validation_item_lists = [user2data[user].items for user in validation_users]
-
+        csv.writer(x, delimiter=" ").writerows(test_item_lsts)
     with open(args.out_train, 'w', newline="") as x:
-        csv.writer(x, delimiter=" ").writerows(train_item_lists)
+        csv.writer(x, delimiter=" ").writerows(train_item_lsts)
     with open(args.out_valid, 'w', newline="") as x:
-        csv.writer(x, delimiter=" ").writerows(validation_item_lists)
+        csv.writer(x, delimiter=" ").writerows(validation_item_lsts)
 
     print("Items#: ", len(index.item2index))
     print("Full corpus users#:", len(valid_users))
     print("Train users#: ", len(train_users))
-    print("validation users#: ", len(validation_users))
-    print("Test users#: ", len(test_users))
 
 
 if __name__ == '__main__':
