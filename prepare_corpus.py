@@ -79,12 +79,8 @@ def split_usrs(usrs_lst, user2data, test_size=0.2):
     return train_users, [user2data[user].items for user in train_users], [user2data[user].items for user in test_users]
 
 
-def split_usr_itms(usrs_lst, user2data, train_size=0.8):
-    with open('train_usr_ids.pkl', 'wb') as f:
-        pickle.dump(usrs_lst, f)
-    train_usrs = usrs_lst[:int(len(usrs_lst) * train_size)]
-    test_usrs = usrs_lst[int(len(usrs_lst) * train_size):]
-    return train_usrs, [user2data[usr].items for usr in train_usrs], [user2data[usr].items for usr in test_usrs]
+def split_usr_itms(itms_lsts, train_size=0.8):
+    return itms_lsts[:int(len(itms_lsts) * train_size)], itms_lsts[int(len(itms_lsts) * train_size):]
 
 
 def main():
@@ -144,8 +140,12 @@ def main():
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
     else:
-        full_train_users, full_train_item_lsts, test_item_lsts = split_usr_itms(valid_users, user2data)
-        train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
+        # TODO: remove this output
+        with open('full_train_usr_ids.pkl', 'wb') as f:
+            pickle.dump(valid_users, f)
+        itms_lsts = [user2data[usr].items for usr in valid_users]
+        full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
+        train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
     with open(args.out_full_train, 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(full_train_item_lsts)
