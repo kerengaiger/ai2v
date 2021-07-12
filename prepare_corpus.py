@@ -6,7 +6,6 @@ Created on Wed Apr 17 08:44:14 2019
 """
 
 import numpy as np
-import time
 import csv
 from collections import Counter
 from datetime import datetime
@@ -73,7 +72,6 @@ def ComputeSplitIndices(num_instances, test_size=0.1):
 def main():
     args = parse_args()
     user2data = {}
-    t = time.clock()
     with open(args.input_file) as rating_file:
         for i, line in enumerate(rating_file):
             if i == 0:
@@ -99,8 +97,6 @@ def main():
         if len(user.items) > args.min_usr_len and len(user.items) < args.max_usr_len:
             user.ArrangeItemList()
             valid_users.append(user.user_id)
-    print(len(valid_users))
-    print(time.clock() - t)
 
     np.random.seed(0)
 
