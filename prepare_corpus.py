@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument('--max_usr_len', type=int, default=2700, help="maximum number of items per user")
     parser.add_argument('--min_items_cnt', type=int, default=100, help="minimum numbers of users per item")
     parser.add_argument('--max_items_cnt', type=int, default=130000, help="maximum numbers of users per item")
-    parser.add_argument('--final_usr_len', type=int, default=130000, help="final minimum user length")
+    parser.add_argument('--final_usr_len', type=int, default=4, help="final minimum user length")
     parser.add_argument('--split_strategy', choices=['leave_one_out', 'users_split'], default='users_split',
                         help="way of splitting to train and test")
     parser.add_argument('--out_full_train', type=str, default='./data/corpus_netflix.txt', help="input file")
@@ -128,7 +128,7 @@ def main():
     for user_id in list(valid_users):
         user = user2data[user_id]
         items = [item for item in user.items if item in index.item2index]
-        if len(items) > args.final_usr_len:
+        if len(items) >= args.final_usr_len:
             valid_users_filtered.append(user_id)
     valid_users = valid_users_filtered
 
