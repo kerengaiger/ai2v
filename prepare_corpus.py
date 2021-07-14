@@ -88,8 +88,6 @@ def main():
     user2data = {}
     with open(args.input_file) as rating_file:
         for i, line in enumerate(rating_file):
-            if i == 0:
-                continue
             if i % 5000000 == 0:
                 print(i)
             line = line.strip().split(args.line_sep)
@@ -131,6 +129,7 @@ def main():
         if len(items) >= args.final_usr_len:
             valid_users_filtered.append(user_id)
             user2data[user_id].items = items
+
     valid_users = valid_users_filtered
 
     if args.split_strategy == 'users_split':
