@@ -10,27 +10,27 @@ import pathlib
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
-    parser.add_argument('--vocab', type=str, default='./data/corpus_avi.txt', help="corpus path for building vocab")
+    parser.add_argument('--vocab', type=str, default='./data/movelen_full_train.txt', help="corpus path for building vocab")
     parser.add_argument('--split_strategy', type=str, choices=['leave_one_out', 'users_split'],
                         help="way of splitting to train and test")
-    parser.add_argument('--full_corpus', type=str, default='./data/corpus_avi.txt', help="corpus path")
-    parser.add_argument('--test_corpus', type=str, default='./data/test_corpus_avi.txt', help="test corpus path")
+    parser.add_argument('--full_corpus', type=str, default='./data/movelen_full_train.txt', help="corpus path")
+    parser.add_argument('--test_corpus', type=str, default='./data/movelen_test.txt', help="test corpus path")
     parser.add_argument('--build_train_valid', action='store_true',
                         help="build part train and validation sets from provided paths")
-    parser.add_argument('--train_corpus', type=str, default='./data/train_corpus_avi.txt',
+    parser.add_argument('--train_corpus', type=str, default='./data/movelen_train.txt',
                         help="part train corpus path to build part train set, in case build_train_valid is True")
-    parser.add_argument('--valid_corpus', type=str, default='./data/valid_corpus_avi.txt',
+    parser.add_argument('--valid_corpus', type=str, default='./data/movelen_valid.txt',
                         help="validation corpys path to build validation set, in case build_train_valid is True")
-    parser.add_argument('--full_train_file', type=str, default='./data/full_train.dat', help="full train file name")
-    parser.add_argument('--train_file', type=str, default='./data/train.dat',
+    parser.add_argument('--full_train_file', type=str, default='./data/movelen_full_train.dat', help="full train file name")
+    parser.add_argument('--train_file', type=str, default='./data/movelen_train.dat',
                         help="train file name, in case of build_valid")
-    parser.add_argument('--valid_file', type=str, default='./data/valid.dat',
+    parser.add_argument('--valid_file', type=str, default='./data/movelen_valid.dat',
                         help="validation file name, in case of build_valid")
-    parser.add_argument('--test_file', type=str, default='./data/test.dat',
+    parser.add_argument('--test_file', type=str, default='./data/movelen_test.dat',
                         help="test file of sub users and target items")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--max_vocab', type=int, default=20000, help="maximum number of vocab")
-    parser.add_argument('--max_user', type=int,default=1000, help='maximum length of usr')
+    parser.add_argument('--max_user', type=int, default=1000, help='maximum length of usr')
     return parser.parse_args()
 
 
