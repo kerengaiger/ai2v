@@ -80,7 +80,7 @@ def split_usrs(usrs_lst, user2data, test_size=0.2):
 
 
 def split_usr_itms(itms_lsts):
-    return itms_lsts[:-1], itms_lsts[-1]
+    return [usr_itms[:-1] for usr_itms in itms_lsts], [usr_itms[-1] for usr_itms in itms_lsts]
 
 
 def main():
