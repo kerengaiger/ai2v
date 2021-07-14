@@ -80,7 +80,7 @@ def split_usrs(usrs_lst, user2data, test_size=0.2):
 
 
 def split_usr_itms(itms_lsts):
-    return [usr_itms[:-1] for usr_itms in itms_lsts], [usr_itms[-1] for usr_itms in itms_lsts]
+    return [usr_itms[:-1] for usr_itms in itms_lsts], [[usr_itms[-1]] for usr_itms in itms_lsts]
 
 
 def main():
@@ -141,6 +141,7 @@ def main():
             pickle.dump(valid_users, f)
         itms_lsts = [user2data[usr].items for usr in valid_users]
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
+        print(test_item_lsts[:5])
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
     with open(args.out_full_train, 'w', newline="") as x:
