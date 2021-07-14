@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument('--min_items_cnt', type=int, default=100, help="minimum numbers of users per item")
     parser.add_argument('--max_items_cnt', type=int, default=130000, help="maximum numbers of users per item")
     parser.add_argument('--final_usr_len', type=int, default=130000, help="final minimum user length")
-    parser.add_argument('--split_strategy', choices=['time_order', 'users_split'], default='users_split',
+    parser.add_argument('--split_strategy', choices=['leave_one_out', 'users_split'], default='users_split',
                         help="way of splitting to train and test")
     parser.add_argument('--out_full_train', type=str, default='./data/corpus_netflix.txt', help="input file")
     parser.add_argument('--out_test', type=str, default='./data/test_corpus_netflix.txt', help="input file")
@@ -79,8 +79,8 @@ def split_usrs(usrs_lst, user2data, test_size=0.2):
     return train_users, [user2data[user].items for user in train_users], [user2data[user].items for user in test_users]
 
 
-def split_usr_itms(itms_lsts, train_size=0.8):
-    return itms_lsts[:int(len(itms_lsts) * train_size)], itms_lsts[int(len(itms_lsts) * train_size):]
+def split_usr_itms(itms_lsts):
+    return itms_lsts[:-1], itms_lsts[-1]
 
 
 def main():
