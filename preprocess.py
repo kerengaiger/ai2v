@@ -96,9 +96,6 @@ class Preprocess(object):
                     else:
                         user.append(self.unk)
                 usrs_len.append(len(user))
-                if len(user) < 2:
-                    print('skip user')
-                    continue
                 num_users += 1
                 # split large users to sub users
                 sub_users = [user[x:x+max_user] for x in range(0, len(user), max_user)]
