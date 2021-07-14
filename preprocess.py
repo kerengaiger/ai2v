@@ -120,10 +120,14 @@ def main():
     args = parse_args()
     preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
     preprocess.build(args.vocab, max_vocab=args.max_vocab)
+    print("Full train")
     preprocess.convert(args.full_corpus, args.full_train_file, args.max_user)
+    print("Test")
     preprocess.convert(args.test_corpus, args.test_file, args.max_user, split_strategy=args.split_strategy)
     if args.build_train_valid:
+        print("Train")
         preprocess.convert(args.train_corpus, args.train_file, args.max_user)
+        print("valid")
         preprocess.convert(args.valid_corpus, args.valid_file, args.max_user, split_strategy=args.split_strategy)
 
 
