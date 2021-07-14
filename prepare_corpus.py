@@ -130,6 +130,7 @@ def main():
         items = [item for item in user.items if item in index.item2index]
         if len(items) >= args.final_usr_len:
             valid_users_filtered.append(user_id)
+            user2data[user_id].items = items
     valid_users = valid_users_filtered
 
     if args.split_strategy == 'users_split':
