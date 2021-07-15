@@ -60,8 +60,8 @@ def run_epoch(train_dl, epoch, sgns, optim):
 
 
 def train(cnfg):
-    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
+    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -115,7 +115,7 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
 
 
 def train_early_stop(cnfg, valid_users_path, pad_idx):
-    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
+    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -168,7 +168,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
 def train_evaluate(cnfg):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
 
     best_epoch = train_early_stop(cnfg, valid_users_path, item2idx['pad'])
 

@@ -24,6 +24,10 @@ def parse_args():
     parser.add_argument('--valid', type=str, default='valid.dat', help="validation users file name")
     parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
     parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
+    parser.add_argument('--vocab', type=str, default='./data/movelen_vocab.dat', help="vocab file")
+    parser.add_argument('--ic', type=str, default='./data/movelen_ic.dat', help='items counts file')
+    parser.add_argument('--item2idx', type=str, default='./data/item2idx.dat', help='item2index mapping')
+    parser.add_argument('--idx2item', default='./data/idx2item.dat', help='index2item mapping')
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
@@ -72,6 +76,10 @@ def main():
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
                 {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
+                {"name": "ic", "type": "fixed", "value_type": "str", "value": args.ic},
+                {"name": "vocab", "type": "fixed", "value_type": "str", "value": args.vocab},
+                {"name": "item2idx", "type": "fixed", "value_type": "str", "value": args.item2idx},
+                {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
                 {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
@@ -108,6 +116,10 @@ def main():
                 {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
                 {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
                 {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
+                {"name": "ic", "type": "fixed", "value_type": "str", "value": args.ic},
+                {"name": "vocab", "type": "fixed", "value_type": "str", "value": args.vocab},
+                {"name": "item2idx", "type": "fixed", "value_type": "str", "value": args.item2idx},
+                {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
                 {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
