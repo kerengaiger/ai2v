@@ -93,7 +93,7 @@ def hr_k(model, eval_set, k, out_file):
     with open(out_file, 'w') as file:
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
-            ranked_itms_lst.append(list(items_ranked[:np.where(top_k_items == target_item)[0][0]]))
+            ranked_itms_lst.append(list(items_ranked[np.where(top_k_items == target_item)[0][0]:]))
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
                 in_top_k += 1
