@@ -55,8 +55,9 @@ def mrr_k(model, eval_set, k, out_file):
             items_ranked = model.inference(user_itemids).argsort()
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
-                rec_rank += 1 / (np.where(top_k_items == target_item)[0][0] + 1)
-                file.write(f'{str(i)}, {target_item}, {rec_rank}')
+                cur_rec_rank = np.where(top_k_items == target_item)[0][0] + 1
+                rec_rank += 1 / cur_rec_rank
+                file.write(f'{str(i)}, {target_item}, {cur_rec_rank}')
                 file.write('\n')
             else:
                 file.write(f'{str(i)}, {target_item}, 0')
