@@ -47,7 +47,7 @@ class Preprocess(object):
         self.pad = pad
         self.wc = {}
 
-    def build(self, filepath, ic_out, vocab_out, idx2item_out, item2idx_out, max_vocab=20000):
+    def build(self, filepath, ic_out, vocab_out, idx2item, item2idx, max_vocab=20000):
         print("building vocab...")
         step = 0
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
@@ -70,8 +70,8 @@ class Preprocess(object):
         self.vocab = set([item for item in self.item2idx])
         pickle.dump(self.wc, open(os.path.join(self.data_dir, ic_out), 'wb'))
         pickle.dump(self.vocab, open(os.path.join(self.data_dir, vocab_out), 'wb'))
-        pickle.dump(self.idx2item, open(os.path.join(self.data_dir, idx2item_out), 'wb'))
-        pickle.dump(self.item2idx, open(os.path.join(self.data_dir, item2idx_out), 'wb'))
+        pickle.dump(self.idx2item, open(os.path.join(self.data_dir, idx2item), 'wb'))
+        pickle.dump(self.item2idx, open(os.path.join(self.data_dir, item2idx), 'wb'))
         print("build done")
 
     def create_train_samp(self, user, item_target):
@@ -121,7 +121,7 @@ class Preprocess(object):
 def main():
     args = parse_args()
     preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
-    preprocess.build(args.vocab, args.ic_out, args.vocab_out, args.idx2item_out, args.item2idx_out,
+    preprocess.build(args.vocab, args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
                      max_vocab=args.max_vocab)
     print("Full train")
     preprocess.convert(args.full_corpus, args.full_train_file, args.max_user)
