@@ -21,10 +21,10 @@ def parse_args():
                         help="part train corpus path to build part train set, in case build_train_valid is True")
     parser.add_argument('--valid_corpus', type=str, default='./data/movelen_valid.txt',
                         help="validation corpys path to build validation set, in case build_train_valid is True")
-    parser.add_argument('--vocab_out', type=str, default='./data/vocab.dat', help="vocab file")
-    parser.add_argument('--ic_out', type=str, default='./data/ic.dat', help='items counts file')
-    parser.add_argument('--item2idx', type=str, default='./data/item2idx.dat', help='item2index mapping')
-    parser.add_argument('--idx2item', default='./data/idx2item.dat', help='index2item mapping')
+    parser.add_argument('--vocab_out', type=str, default='vocab.dat', help="vocab file")
+    parser.add_argument('--ic_out', type=str, default='ic.dat', help='items counts file')
+    parser.add_argument('--item2idx', type=str, default='item2idx.dat', help='item2index mapping')
+    parser.add_argument('--idx2item', default='idx2item.dat', help='index2item mapping')
     parser.add_argument('--full_train_file', type=str, default='./data/movelen_full_train.dat', help="full train file name")
     parser.add_argument('--train_file', type=str, default='./data/movelen_train.dat',
                         help="train file name, in case of build_valid")
