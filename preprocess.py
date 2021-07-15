@@ -101,12 +101,13 @@ class Preprocess(object):
                 sub_users = [user[x:x+max_user] for x in range(0, len(user), max_user)]
                 for user in sub_users:
                     for item_target in range(1, len(user)):
+                        if split_strategy == 'leave_one_out' and item_target < (len(user) - 1):
+                            # in case we want to have as validation/test only the last item with sub-user of all the
+                            # rest, skip all other target items
+                            continue
                         data.append((self.create_train_samp(user, item_target)))
 
         print("")
-        if split_strategy == 'leave_one_out':
-            # send leave_one_out when converting valid and test, then take only the last (sub-user, item)
-            data = data[-1]
         pickle.dump(data, open(savepath, 'wb'))
         print("conversion done")
         print("num of users:", num_users)
