@@ -11,6 +11,8 @@ from scipy.stats import ttest_ind
 
 from train_utils import UserBatchIncrementDataset
 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "2"
 
 def parse_args():
     parser = argparse.ArgumentParser()
