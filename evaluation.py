@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument('--model', type=str, default='./output/i2v_mix_batch__best.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
     parser.add_argument('--batch_size', type=int, default=2000, help="batch size to iterate with when predicting")
+    parser.add_argument('--rank_out', type=str, default=2000, help="ranked list of items for test users")
     parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
     parser.add_argument('--mrr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
     return parser.parse_args()
@@ -86,7 +87,7 @@ def mrr_k(model, eval_set, k, out_file):
 #
 #     return in_top_k / len(pbar)
 
-def hr_k(model, eval_set, k, out_file):
+def hr_k(model, eval_set, k, out_file, rank_out_file):
     pbar = tqdm(eval_set)
     in_top_k = 0
     ranked_itms_lst = []
@@ -102,7 +103,7 @@ def hr_k(model, eval_set, k, out_file):
             else:
                 file.write(f'{str(i)}, {target_item}, 0')
                 file.write('\n')
-    pickle.dump(ranked_itms_lst, open('test_ranked_itms.pkl', 'wb'))
+    pickle.dump(ranked_itms_lst, open(rank_out_file, 'wb'))
     return in_top_k / len(eval_set)
 
 
@@ -125,7 +126,7 @@ def main():
     item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
     # print(f'hit ratio at {args.k}:', hr_k(model.module, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
     #                                       item2idx['pad'], args.batch_size, args.window_size))
-    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, args.hr_out))
+    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, args.hr_out, args.rank_out))
     # print(f'mrr at {args.k}:', mrr_k(model.module, pathlib.Path(args.data_dir, args.test), args.k, args.mrr_out,
     #                                  item2idx['pad'], args.batch_size, args.window_size))
     print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, args.mrr_out))
