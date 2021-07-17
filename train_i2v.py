@@ -83,16 +83,16 @@ def train(cnfg):
     save_model(cnfg, model, sgns)
 
     # Evaluate on test set
-    log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
-    writer = SummaryWriter(log_dir=log_dir)
-
-    eval_set = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['test']).open('rb'))
-    k = cnfg['k']
-
-    writer.add_hparams(hparam_dict=cnfg,
-                       metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k, cnfg['hr_out']),
-                                    f'mrr_{k}': mrr_k(sgns, eval_set, k, cnfg['rr_out'])},
-                       run_name='ai2v_user_batch')
+    # log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
+    # writer = SummaryWriter(log_dir=log_dir)
+    #
+    # eval_set = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['test']).open('rb'))
+    # k = cnfg['k']
+    #
+    # writer.add_hparams(hparam_dict=cnfg,
+    #                    metric_dict={f'hit_ratio_{k}': hr_k(sgns, eval_set, k, cnfg['hr_out']),
+    #                                 f'mrr_{k}': mrr_k(sgns, eval_set, k, cnfg['rr_out'])},
+    #                    run_name='ai2v_user_batch')
 
     writer.flush()
     writer.close()
