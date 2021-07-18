@@ -1,5 +1,4 @@
 import torch as t
-from torch.utils.data import DataLoader
 import pickle
 import numpy as np
 import pandas as pd
@@ -9,22 +8,22 @@ import pathlib
 
 from scipy.stats import ttest_ind
 
-from train_utils import UserBatchIncrementDataset
-
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = "2"
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--k', type=int, default=20, help="k for hr and mrr")
     parser.add_argument('--window_size', type=int, default=1010, help="window size to pad all the rest")
     parser.add_argument('--data_dir', type=str, default='./data/', help="directory of all input data files")
-    parser.add_argument('--model', type=str, default='./output/i2v_mix_batch__best.pt', help="best model trained")
+    parser.add_argument('--output_dir', type=str, default='./output/', help="output directory")
+    parser.add_argument('--model', type=str, default='i2v_mix_batch__best.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
     parser.add_argument('--batch_size', type=int, default=2000, help="batch size to iterate with when predicting")
-    parser.add_argument('--rank_out', type=str, default=2000, help="ranked list of items for test users")
-    parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="hit at K for each test row")
-    parser.add_argument('--mrr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
+    parser.add_argument('--rank_out', type=str, default='rank_out.csv', help="ranked list of items for test users")
+    parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="hit at K for each test row")
+    parser.add_argument('--mrr_out', type=str, default='mrr_out.csv', help="hit at K for each test row")
     return parser.parse_args()
 
 
@@ -121,16 +120,12 @@ def test_p_value(ai2v_file, i2v_file):
 
 def main():
     args = parse_args()
-    model = t.load(args.model)
+    model = t.load(os.path.join(args.output_dir, args.model))
     model = t.nn.DataParallel(model)
-    eval_set = pickle.load(open(args.test, 'rb'))
-    item2idx = pickle.load(pathlib.Path(args.data_dir, 'item2idx.dat').open('rb'))
-    # print(f'hit ratio at {args.k}:', hr_k(model.module, pathlib.Path(args.data_dir, args.test), args.k, args.hr_out,
-    #                                       item2idx['pad'], args.batch_size, args.window_size))
-    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, args.hr_out, args.rank_out))
-    # print(f'mrr at {args.k}:', mrr_k(model.module, pathlib.Path(args.data_dir, args.test), args.k, args.mrr_out,
-    #                                  item2idx['pad'], args.batch_size, args.window_size))
-    print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, args.mrr_out))
+    eval_set = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
+    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, os.path.join(args.data_dir, args.hr_out),
+                                          os.path.join(args.data_dir, args.rank_out)))
+    print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, os.path.join(args.data_dir, args.mrr_out)))
 
 
 if __name__ == '__main__':
