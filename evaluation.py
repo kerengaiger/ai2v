@@ -92,20 +92,19 @@ def mrr_k(model, eval_set, k, out_file):
 def hr_k(model, eval_set, k, out_file, rank_out_file):
     pbar = tqdm(eval_set)
     in_top_k = 0
-    ranked_itms_lst = []
-    with open(out_file, 'w') as file:
+    with open(out_file, 'w') as hr_file, open(rank_out_file, 'wb') as rank_file:
+        pickler = pickle.Pickler(rank_file)
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
-            ranked_itms_lst.append(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
+            pickler.dump(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
                 in_top_k += 1
-                file.write(f'{str(i)}, {target_item}, 1')
-                file.write('\n')
+                hr_file.write(f'{str(i)}, {target_item}, 1')
+                hr_file.write('\n')
             else:
-                file.write(f'{str(i)}, {target_item}, 0')
-                file.write('\n')
-    pickle.dump(ranked_itms_lst, open(rank_out_file, 'wb'))
+                hr_file.write(f'{str(i)}, {target_item}, 0')
+                hr_file.write('\n')
     return in_top_k / len(eval_set)
 
 
