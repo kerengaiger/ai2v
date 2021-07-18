@@ -124,14 +124,18 @@ def main():
     preprocess.build(os.path.join(args.data_dir, args.vocab), args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
                      max_vocab=args.max_vocab)
     print("Full train")
-    preprocess.convert(os.path.join(args.data_dir, args.full_corpus), args.full_train_file, args.max_user)
+    preprocess.convert(os.path.join(args.data_dir, args.full_corpus), os.path.join(args.data_dir, args.full_train_file),
+                       args.max_user)
     print("Test")
-    preprocess.convert(os.path.join(args.data_dir, args.test_corpus), args.test_file, args.max_user, split_strategy=args.split_strategy)
+    preprocess.convert(os.path.join(args.data_dir, args.test_corpus), os.path.join(args.data_dir, args.test_file),
+                       args.max_user, split_strategy=args.split_strategy)
     if args.build_train_valid:
         print("Train")
-        preprocess.convert(os.path.join(args.data_dir, args.train_corpus), args.train_file, args.max_user)
+        preprocess.convert(os.path.join(args.data_dir, args.train_corpus), os.path.join(args.data_dir, args.train_file),
+                           args.max_user)
         print("valid")
-        preprocess.convert(os.path.join(args.data_dir, args.valid_corpus), args.valid_file, args.max_user, split_strategy=args.split_strategy)
+        preprocess.convert(os.path.join(args.data_dir, args.valid_corpus), os.path.join(args.data_dir, args.valid_file),
+                           args.max_user, split_strategy=args.split_strategy)
 
 
 if __name__ == '__main__':
