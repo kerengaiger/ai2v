@@ -36,9 +36,9 @@ def parse_args():
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=60, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
-    parser.add_argument('--hr_out', type=str, default='./output/hr_out.csv', help="out file name of hr for test set")
-    parser.add_argument('--rr_out', type=str, default='./output/rr_out.csv', help="out file name of rr for test set")
-    parser.add_argument('--cnfg_out', type=str, default='./output/best_cnfg.pkl', help="best configuration file name")
+    parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="out file name of hr for test set")
+    parser.add_argument('--rr_out', type=str, default='rr_out.csv', help="out file name of rr for test set")
+    parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
     parser.add_argument('--ds_name', type=str, default='movie_lens', help="dataset name to index the model out file")
 
     return parser.parse_args()
