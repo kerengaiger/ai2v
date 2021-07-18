@@ -25,12 +25,12 @@ def parse_args():
     parser.add_argument('--ic_out', type=str, default='ic.dat', help='items counts file')
     parser.add_argument('--item2idx', type=str, default='item2idx.dat', help='item2index mapping')
     parser.add_argument('--idx2item', default='idx2item.dat', help='index2item mapping')
-    parser.add_argument('--full_train_file', type=str, default='./data/movelen_full_train.dat', help="full train file name")
-    parser.add_argument('--train_file', type=str, default='./data/movelen_train.dat',
+    parser.add_argument('--full_train_file', type=str, default='full_train.dat', help="full train file name")
+    parser.add_argument('--train_file', type=str, default='train.dat',
                         help="train file name, in case of build_valid")
-    parser.add_argument('--valid_file', type=str, default='./data/movelen_valid.dat',
+    parser.add_argument('--valid_file', type=str, default='valid.dat',
                         help="validation file name, in case of build_valid")
-    parser.add_argument('--test_file', type=str, default='./data/movelen_test.dat',
+    parser.add_argument('--test_file', type=str, default='test.dat',
                         help="test file of sub users and target items")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--max_vocab', type=int, default=20000, help="maximum number of vocab")
@@ -124,14 +124,14 @@ def main():
     preprocess.build(args.vocab, args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
                      max_vocab=args.max_vocab)
     print("Full train")
-    preprocess.convert(args.full_corpus, args.full_train_file, args.max_user)
+    preprocess.convert(os.path.join(args.data_dir, args.full_corpus), args.full_train_file, args.max_user)
     print("Test")
-    preprocess.convert(args.test_corpus, args.test_file, args.max_user, split_strategy=args.split_strategy)
+    preprocess.convert(os.path.join(args.data_dir, args.test_corpus), args.test_file, args.max_user, split_strategy=args.split_strategy)
     if args.build_train_valid:
         print("Train")
-        preprocess.convert(args.train_corpus, args.train_file, args.max_user)
+        preprocess.convert(os.path.join(args.data_dir, args.train_corpus), args.train_file, args.max_user)
         print("valid")
-        preprocess.convert(args.valid_corpus, args.valid_file, args.max_user, split_strategy=args.split_strategy)
+        preprocess.convert(os.path.join(args.data_dir, args.valid_corpus), args.valid_file, args.max_user, split_strategy=args.split_strategy)
 
 
 if __name__ == '__main__':
