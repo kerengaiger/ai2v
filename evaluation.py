@@ -80,9 +80,9 @@ def main():
     model = t.load(os.path.join(args.output_dir, args.model))
     model = t.nn.DataParallel(model)
     eval_set = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
-    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, os.path.join(args.data_dir, args.hr_out),
-                                          os.path.join(args.data_dir, args.rank_out)))
-    print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, os.path.join(args.data_dir, args.mrr_out)))
+    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, os.path.join(args.output_dir, args.hr_out),
+                                          os.path.join(args.output_dir, args.rank_out)))
+    print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, os.path.join(args.output_dir, args.mrr_out)))
 
 
 if __name__ == '__main__':
