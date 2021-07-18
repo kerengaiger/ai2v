@@ -10,16 +10,16 @@ import pathlib
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
-    parser.add_argument('--vocab', type=str, default='./data/movelen_full_train.txt', help="corpus path for building vocab")
+    parser.add_argument('--vocab', type=str, default='full_train.txt', help="corpus path for building vocab")
     parser.add_argument('--split_strategy', type=str, choices=['leave_one_out', 'users_split'],
                         help="way of splitting to train and test")
-    parser.add_argument('--full_corpus', type=str, default='./data/movelen_full_train.txt', help="corpus path")
-    parser.add_argument('--test_corpus', type=str, default='./data/movelen_test.txt', help="test corpus path")
+    parser.add_argument('--full_corpus', type=str, default='full_train.txt', help="corpus path")
+    parser.add_argument('--test_corpus', type=str, default='test.txt', help="test corpus path")
     parser.add_argument('--build_train_valid', action='store_true',
                         help="build part train and validation sets from provided paths")
-    parser.add_argument('--train_corpus', type=str, default='./data/movelen_train.txt',
+    parser.add_argument('--train_corpus', type=str, default='train.txt',
                         help="part train corpus path to build part train set, in case build_train_valid is True")
-    parser.add_argument('--valid_corpus', type=str, default='./data/movelen_valid.txt',
+    parser.add_argument('--valid_corpus', type=str, default='valid.txt',
                         help="validation corpys path to build validation set, in case build_train_valid is True")
     parser.add_argument('--vocab_out', type=str, default='vocab.dat', help="vocab file")
     parser.add_argument('--ic_out', type=str, default='ic.dat', help='items counts file')
@@ -121,7 +121,7 @@ class Preprocess(object):
 def main():
     args = parse_args()
     preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
-    preprocess.build(args.vocab, args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
+    preprocess.build(os.path.join(args.data_dir, args.vocab), args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
                      max_vocab=args.max_vocab)
     print("Full train")
     preprocess.convert(os.path.join(args.data_dir, args.full_corpus), args.full_train_file, args.max_user)
