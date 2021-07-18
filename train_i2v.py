@@ -94,8 +94,8 @@ def train(cnfg):
     #                                 f'mrr_{k}': mrr_k(sgns, eval_set, k, cnfg['rr_out'])},
     #                    run_name='ai2v_user_batch')
 
-    writer.flush()
-    writer.close()
+    # writer.flush()
+    # writer.close()
 
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
