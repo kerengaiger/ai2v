@@ -76,7 +76,7 @@ def save_model(cnfg, model, sgns):
 
     pickle.dump(tvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2tvec.dat'), 'wb'))
     pickle.dump(cvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2cvec.dat'), 'wb'))
-    t.save(sgns, pathlib.Path(cnfg['save_dir'], cnfg['model'] + f'_{cnfg["ds_name"]}.pt'))
+    t.save(sgns, pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
 
 
