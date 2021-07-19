@@ -39,7 +39,6 @@ def parse_args():
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="out file name of hr for test set")
     parser.add_argument('--rr_out', type=str, default='rr_out.csv', help="out file name of rr for test set")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
-    parser.add_argument('--ds_name', type=str, default='movie_lens', help="dataset name to index the model out file")
 
     return parser.parse_args()
 
@@ -86,7 +85,6 @@ def main():
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
                 {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
                 {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
-                {"name": "ds_name", "type": "fixed", "value_type": "str", "value": args.ds_name},
             ],
             evaluation_function=train_evaluate_i2v,
             minimize=True,
@@ -126,7 +124,6 @@ def main():
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
                 {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
                 {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
-                {"name": "ds_name", "type": "fixed", "value_type": "str", "value": args.ds_name},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
