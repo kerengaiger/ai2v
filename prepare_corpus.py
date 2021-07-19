@@ -15,8 +15,8 @@ import pickle
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--item_pos', type=int, default=0, help="position of item in row")
-    parser.add_argument('--usr_pos', type=int, default=1, help="position of user in row")
+    parser.add_argument('--usr_pos', type=int, default=0, help="position of user in row")
+    parser.add_argument('--item_pos', type=int, default=1, help="position of item in row")
     parser.add_argument('--rate_pos', type=int, default=2, help="position of rating in row")
     parser.add_argument('--date_pos', type=int, default=3, help="position of date in row")
     parser.add_argument('--positive_threshold', type=float, default=4.0, help="threshold to consider positive items")
