@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument('--output_dir', type=str, default='./output/', help="output directory")
     parser.add_argument('--model', type=str, default='model.pt', help="best model trained")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
-    parser.add_argument('--rank_out', type=str, default='rank_out.csv', help="ranked list of items for test users")
+    parser.add_argument('--rank_out', type=str, default='rank_out.pkl', help="ranked list of items for test users")
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="hit at K for each test row")
     parser.add_argument('--mrr_out', type=str, default='mrr_out.csv', help="hit at K for each test row")
     parser.add_argument('--mpr_out', type=str, default='mpr_out.csv', help="percentile for each test row")
