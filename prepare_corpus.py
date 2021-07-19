@@ -30,11 +30,11 @@ def parse_args():
     parser.add_argument('--final_usr_len', type=int, default=4, help="final minimum user length")
     parser.add_argument('--split_strategy', choices=['leave_one_out', 'users_split'], default='users_split',
                         help="way of splitting to train and test")
-    parser.add_argument('--data_dir', type=str, default='./data/', help="data_dir")
-    parser.add_argument('--out_full_train', type=str, default='corpus_netflix.txt', help="input file")
-    parser.add_argument('--out_test', type=str, default='test_corpus_netflix.txt', help="input file")
-    parser.add_argument('--out_train', type=str, default='train_corpus_netflix.txt', help="input file")
-    parser.add_argument('--out_valid', type=str, default='valid_corpus_netflix.txt', help="input file")
+    parser.add_argument('--data_dir', type=str, default='./corpus/netflix/', help="data_dir")
+    parser.add_argument('--out_full_train', type=str, default='full_train.txt', help="output file")
+    parser.add_argument('--out_test', type=str, default='test.txt', help="output file")
+    parser.add_argument('--out_train', type=str, default='train.txt', help="output file")
+    parser.add_argument('--out_valid', type=str, default='valid.txt', help="output file")
     return parser.parse_args()
 
 

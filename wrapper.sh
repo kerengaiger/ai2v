@@ -1,18 +1,31 @@
 #!/bin/bash
 # the running function:
-# wrapper.sh movielens
+# bash wrapper.sh movielens split
+
+# split choices ['leave_one_out', 'users_split']
 
 function prepare_database_corpus(){
   echo "preparing $1"
 
   # If to check what data base I want to run.
   if [ "$1" = "movielens" ]; then
-    python prepare_corpus.py --input_file ./data/movielens_corpus.dat --line_sep :: --min_usr_len 2 --max_usr_len 1000 --min_items_cnt 5 --max_items_cnt 1000 --final_usr_len 2
+    if [ "$2" = "llo" ]; then
+      python prepare_corpus.py --input_file ./data/movielens_corpus.dat --line_sep :: --min_usr_len 2 --max_usr_len 60 \
+      --min_items_cnt 10 --max_items_cnt 10000 --final_usr_len 4 --split_strategy "$2" --data_dir ./corpus/movielens/
+    else
+      python prepare_corpus.py --input_file ./data/movielens_corpus.dat --line_sep :: --min_usr_len 2 --max_usr_len 60 \
+      --min_items_cnt 10 --max_items_cnt 10000 --final_usr_len 3 --split_strategy "$2" --data_dir ./corpus/movielens/
+    fi
   fi
 
   if [ "$1" = "netflix" ]; then
-    python prepare_corpus.py --input_file ./data/netflix_corpus.csv --line_sep , --min_usr_len 3 --max_usr_len 2700 \
-    --min_items_cnt 100 --max_items_cnt 130000 --final_usr_len 3
+    if [ "$2" = "llo" ]; then
+      python prepare_corpus.py --input_file ./data/netflix_corpus.dat --line_sep , --min_usr_len 3 --max_usr_len 2700 \
+      --min_items_cnt 100 --max_items_cnt 130000 --final_usr_len 4 --split_strategy "$2" --data_dir ./corpus/netflix/
+    else
+      python prepare_corpus.py --input_file ./data/netflix_corpus.dat --line_sep , --min_usr_len 3 --max_usr_len 2700 \
+      --min_items_cnt 100 --max_items_cnt 130000 --final_usr_len 3 --split_strategy "$2" --data_dir ./corpus/netflix/
+    fi
   fi
 
   if [ "$1" = "moviesdat" ]; then
@@ -50,7 +63,7 @@ function run_pipeline() {
 
   python preprocess.py --vocab ./data/full_train.txt --full_corpus ./data/full_train.txt --test_corpus ./data/test.txt \
   --build_train_valid --train_corpus ./data/train.txt --valid_corpus ./data/valid.txt \
-  --full_train_file ./data/full_train.dat --train_file "./data/train_$1.dat" --valid_file ./data/valid_.dat \
+  --full_train_file ./data/full_train.dat --train_file "./data/train_$1_$2.dat" --valid_file ./data/valid_.dat \
   --test_file ./data/test.dat
 
   python hyper_param_tune.py --model ai2v --data_dir ./data/ --save_dir ./output/ --train train.dat --valid valid.dat \
