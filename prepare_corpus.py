@@ -90,19 +90,20 @@ def main():
         for i, line in enumerate(rating_file):
             if i % 5000000 == 0:
                 print(i)
-            line = line.strip().split(args.line_sep)
-            line = [i for i in line if i != '']
-            user_id = line[args.usr_pos]
-            if user_id not in user2data:
-                user2data[user_id] = User(user_id)
-            user = user2data[user_id]
-            # treat date format
-            try:
-                date = int(line[args.date_pos])
-            except:
-                date = int(datetime.strptime(line[args.date_pos], '%Y-%m-%d').timestamp())
-            if float(line[args.rate_pos]) > args.positive_threshold:
-                user.items.append((line[args.item_pos], date))
+            if line != "\n":
+                line = line.strip().split(args.line_sep)
+                line = [i for i in line if i != '']
+                user_id = line[args.usr_pos]
+                if user_id not in user2data:
+                    user2data[user_id] = User(user_id)
+                user = user2data[user_id]
+                # treat date format
+                try:
+                    date = int(line[args.date_pos])
+                except:
+                    date = int(datetime.strptime(line[args.date_pos], '%Y-%m-%d').timestamp())
+                if float(line[args.rate_pos]) > args.positive_threshold:
+                    user.items.append((line[args.item_pos], date))
 
     valid_users = []
     for user in list(user2data.values()):
