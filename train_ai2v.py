@@ -35,7 +35,6 @@ def parse_args():
     parser.add_argument('--rr_out', type=str, default='./output/mrr_out.csv', help="hit at K for each test row")
     parser.add_argument('--best_cnfg', type=str, default='./output/best_cnfg.csv', help="best cnfg of hyper params")
     parser.add_argument('--max_epochs', type=int, default=50, help='number of early stop epochs to train the model over')
-    parser.add_argument('--ds_name', type=str, default='movie_lens', help="dataset name to index the model out file")
 
     return parser.parse_args()
 
