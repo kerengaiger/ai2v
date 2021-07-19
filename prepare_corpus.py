@@ -11,6 +11,7 @@ from collections import Counter
 from datetime import datetime
 import argparse
 import pickle
+import os
 
 
 def parse_args():
@@ -29,10 +30,11 @@ def parse_args():
     parser.add_argument('--final_usr_len', type=int, default=4, help="final minimum user length")
     parser.add_argument('--split_strategy', choices=['leave_one_out', 'users_split'], default='users_split',
                         help="way of splitting to train and test")
-    parser.add_argument('--out_full_train', type=str, default='./data/corpus_netflix.txt', help="input file")
-    parser.add_argument('--out_test', type=str, default='./data/test_corpus_netflix.txt', help="input file")
-    parser.add_argument('--out_train', type=str, default='./data/train_corpus_netflix.txt', help="input file")
-    parser.add_argument('--out_valid', type=str, default='./data/valid_corpus_netflix.txt', help="input file")
+    parser.add_argument('--data_dir', type=str, default='./data/', help="data_dir")
+    parser.add_argument('--out_full_train', type=str, default='corpus_netflix.txt', help="input file")
+    parser.add_argument('--out_test', type=str, default='test_corpus_netflix.txt', help="input file")
+    parser.add_argument('--out_train', type=str, default='train_corpus_netflix.txt', help="input file")
+    parser.add_argument('--out_valid', type=str, default='valid_corpus_netflix.txt', help="input file")
     return parser.parse_args()
 
 
@@ -141,13 +143,13 @@ def main():
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
-    with open(args.out_full_train, 'w', newline="") as x:
+    with open(os.path.join(args.data_dir, args.out_full_train), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(full_train_item_lsts)
-    with open(args.out_test, 'w', newline="") as x:
+    with open(os.path.join(args.data_dir, args.out_test), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(test_item_lsts)
-    with open(args.out_train, 'w', newline="") as x:
+    with open(os.path.join(args.data_dir, args.out_train), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(train_item_lsts)
-    with open(args.out_valid, 'w', newline="") as x:
+    with open(os.path.join(args.data_dir, args.out_valid), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(validation_item_lsts)
 
     print("Items#: ", len(index.item2index))
