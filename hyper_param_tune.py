@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
-    parser.add_argument('--trials', type=int, default=10, help="number of trials ")
+    parser.add_argument('--trials', type=int, default=5, help="number of trials ")
     parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=60, help="window size")
