@@ -8,7 +8,7 @@ from tqdm import tqdm
 from scipy.stats import ttest_ind
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "2"
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 
 def parse_args():
@@ -53,6 +53,7 @@ def hr_k(model, eval_set, k, out_file, rank_out_file):
         pickler = pickle.Pickler(rank_file)
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
+            print(items_ranked[np.where(items_ranked == target_item)[0][0]:])
             pickler.dump(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
