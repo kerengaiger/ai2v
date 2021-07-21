@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument('--data_dir', type=str, default='./data/', help="directory of all input data files")
     parser.add_argument('--output_dir', type=str, default='./output/', help="output directory")
     parser.add_argument('--model', type=str, default='model.pt', help="best model trained")
+    parser.add_argument('--rank', ction='store_true', help="output ranked items list")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
     parser.add_argument('--rank_out', type=str, default='rank_out.pkl', help="ranked list of items for test users")
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="hit at K for each test row")
