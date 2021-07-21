@@ -7,7 +7,7 @@ data_dir = './archive'
 
 with open(file_out, 'w', newline='') as w_file:
     writer = csv.writer(w_file, escapechar='\n', quoting=csv.QUOTE_NONE)
-    for file in os.listdir(data_dir):
+    for file in sorted(os.listdir(data_dir)):
         print(file)
         with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
             for line in r_file:
