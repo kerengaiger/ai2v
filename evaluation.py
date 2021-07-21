@@ -51,7 +51,7 @@ def hr_k(model, eval_set, k, out_file, rank_out_file, do_rank):
     pbar = tqdm(eval_set)
     in_top_k = 0
     lst = []
-    with open(out_file, 'w') as hr_file, open(rank_out_file, 'wb') as rank_file:
+    with open(out_file, 'w') as hr_file:
         # pickler = pickle.Pickler(rank_file)
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
@@ -67,8 +67,7 @@ def hr_k(model, eval_set, k, out_file, rank_out_file, do_rank):
                 hr_file.write(f'{str(i)}, {target_item}, 0')
                 hr_file.write('\n')
     if do_rank:
-        pickle.dump(lst, rank_file)
-    # rank_file.close()
+        pickle.dump(lst, open(rank_out_file, 'wb'))
     return in_top_k / len(eval_set)
 
 
