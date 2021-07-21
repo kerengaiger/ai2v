@@ -28,9 +28,7 @@ def parse_args():
 
 def mrr_k(model, eval_set, k, out_file):
     rec_rank = 0
-
     pbar = tqdm(eval_set)
-
     with open(out_file, 'w') as file:
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
@@ -77,15 +75,15 @@ def mpr(model, eval_set, out_file):
     with open(out_file, 'w') as file:
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
-            items = items_ranked[:][::-1]
-            if target_item in items:
-                rec_percent += (float(np.where(items == target_item)[0][0]) / len(items))
+            all_items = items_ranked[:][::-1]
+            if target_item in all_items:
+                rec_percent += (float(np.where(all_items == target_item)[0][0]) / len(all_items))
                 file.write(f'{str(i)}, {target_item}, {rec_percent}')
                 file.write('\n')
             else:
                 file.write(f'{str(i)}, {target_item}, 0')
                 file.write('\n')
-    mpr = rec_percent / float(len(eval_set))
+    mpr = 1 - (rec_percent / float(len(eval_set)))
     return mpr
 
 
