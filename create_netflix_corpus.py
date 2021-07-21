@@ -5,8 +5,8 @@ import os
 file_out = './data/netflix_corpus.csv'
 data_dir = './archive'
 
-with codecs.open(file_out, mode='w') as w_file:
-    writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+with open(file_out, 'w', newline='') as w_file:
+    writer = csv.writer(w_file, escapechar='\n', quoting=csv.QUOTE_NONE)
     for file in os.listdir(data_dir):
         print(file)
         with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
@@ -16,4 +16,4 @@ with codecs.open(file_out, mode='w') as w_file:
 
                 else:
                     cus_id, rating, date = line.split(',')
-                    writer.writerow([user, cus_id, rating, date])
+                    writer.writerow([str(user), str(cus_id), str(rating), str(date)])
