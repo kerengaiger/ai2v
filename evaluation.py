@@ -65,7 +65,7 @@ def hr_k(model, eval_set, k, out_file, rank_out_file):
                 hr_file.write(f'{str(i)}, {target_item}, 0')
                 hr_file.write('\n')
     pickle.dump(lst, rank_file)
-    rank_file.close()
+    # rank_file.close()
     return in_top_k / len(eval_set)
 
 
