@@ -12,9 +12,9 @@ import time
 def create_netflix_corpus():  # https://www.kaggle.com/netflix-inc/netflix-prize-data
     file_out = './data/netflix_corpus.csv'  # The file of the output, the ready corpus
     data_dir = './archive/netflix'  # The directory of the files.
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
                 for line in r_file:
@@ -22,16 +22,16 @@ def create_netflix_corpus():  # https://www.kaggle.com/netflix-inc/netflix-prize
                         user = int(line.split(':')[0])
                     else:
                         cus_id, rating, date = line.split(',')
-                        writer.writerow([user, cus_id, rating, date])
+                        writer.writerow([str(user), str(cus_id), str(rating), str(date)])
 
 
 def create_moviesdat_corpus():  # https://www.kaggle.com/rounakbanik/the-movies-dataset
     file_out = './data/moviesdat_corpus.csv'  # The file of the output, the ready corpus
     data_dir = './archive/moviesdat'  # The directory of the files.
     count = 0
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
                 for line in r_file:
@@ -51,9 +51,9 @@ def create_yahoo_corpus():  # https://webscope.sandbox.yahoo.com/catalog.php?dat
     file_out = './data/yahoo_corpus.csv'  # The file of the output, the ready corpus
     data_dir = './archive/yahoo'  # The directory of the files.
     start_date = datetime.date(2000, 1, 1)
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
                 for line in r_file:
@@ -76,9 +76,9 @@ def create_goodbooks_corpus():  # https://www.kaggle.com/zygmunt/goodbooks-10k
     data_dir = './archive/goodbooks'  # The directory of the files.
     count = 0
     last_cus = '0'
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
                 for line in r_file:
@@ -96,8 +96,6 @@ def create_goodbooks_corpus():  # https://www.kaggle.com/zygmunt/goodbooks-10k
                         else:
                             date_time = date_time + datetime.timedelta(days=1)
                         date = time.mktime(datetime.datetime.strptime(str(date_time), "%Y-%m-%d").timetuple())
-                        print("row")
-                        print([user, cus_id, rating, int(date)])
                         writer.writerow([user, cus_id, rating, int(date)])
 
 
@@ -110,9 +108,9 @@ def create_booksrec_corpus():  # https://www.kaggle.com/arashnic/book-recommenda
     start_date = datetime.date(2000, 1, 1)
     id_to_num = {}
     id_counter = 1
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU', encoding="utf8") as r_file:
                 for line in r_file:
@@ -138,9 +136,9 @@ def create_animerec_corpus():  # https://www.kaggle.com/CooperUnion/anime-recomm
     data_dir = './archive/animerec'  # The directory of the files.
     count = 0
     start_date = datetime.date(2000, 1, 1)
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
                 for line in r_file:
@@ -163,9 +161,9 @@ def create_animerec20_corpus():  # https://www.kaggle.com/hernan4444/anime-recom
     data_dir = './archive/animerec20'  # The directory of the files.
     count = 0
     start_date = datetime.date(2000, 1, 1)
-    with codecs.open(file_out, mode='w') as w_file:
-        writer = csv.writer(w_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for file in os.listdir(data_dir):
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
             print(file)
             with codecs.open(os.path.join(data_dir, file), 'rU') as r_file:
                 for line in r_file:
@@ -182,15 +180,49 @@ def create_animerec20_corpus():  # https://www.kaggle.com/hernan4444/anime-recom
                         writer.writerow([user, cus_id, rating, int(date)])
 
 
+def create_amazonbeauty_corpus():  # https://www.kaggle.com/skillsmuggler/amazon-ratings
+    # We create a random timestamp.
+    # Because the item id isn't int, we make sure to pass every id to an int id.
+    file_out = './data/amazonbeauty_corpus.csv'  # The file of the output, the ready corpus
+    data_dir = './archive/amazonbeauty'  # The directory of the files.
+    count = 0
+    user_to_num = {}
+    user_counter = 1
+    id_to_num = {}
+    id_counter = 1
+    with open(file_out, 'w', newline='') as w_file:
+        writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+        for file in sorted(os.listdir(data_dir)):
+            print(file)
+            with codecs.open(os.path.join(data_dir, file), 'rU', encoding="utf8") as r_file:
+                for line in r_file:
+                    if count < 1:
+                        count += 1
+                    elif count >= 1:
+                        line = line.split(',')
+                        if line[0] not in user_to_num.keys():
+                            user_to_num[line[0]] = user_counter
+                            user_counter += 1
+                        user = user_to_num[line[0]]
+                        if line[1] not in id_to_num.keys():
+                            id_to_num[line[1]] = id_counter
+                            id_counter += 1
+                        cus_id = id_to_num[line[1]]
+                        rating = line[2][:-1]
+                        date = line[3][:-1]
+                        writer.writerow([user, cus_id, rating, date])
+
+
 def main():
-    #create_netflix_corpus()
-    #create_moviesdat_corpus()
-    #create_yahoo_corpus()
+    create_netflix_corpus()
+    create_moviesdat_corpus()
+    create_yahoo_corpus()
     create_goodbooks_corpus()
-    #create_booksrec_corpus()
-    #create_animerec_corpus()
-    #create_animerec20_corpus()
-    # https://www.kaggle.com/skillsmuggler/amazon-ratings
+    create_booksrec_corpus()
+    create_animerec_corpus()
+    create_animerec20_corpus()
+    create_amazonbeauty_corpus()
+
 
 if __name__ == '__main__':
     main()
