@@ -53,7 +53,6 @@ def hr_k(model, eval_set, k, out_file, rank_out_file):
         pickler = pickle.Pickler(rank_file)
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
-            print(items_ranked[np.where(items_ranked == target_item)[0][0]:])
             pickler.dump(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
@@ -63,6 +62,7 @@ def hr_k(model, eval_set, k, out_file, rank_out_file):
             else:
                 hr_file.write(f'{str(i)}, {target_item}, 0')
                 hr_file.write('\n')
+    rank_file.close()
     return in_top_k / len(eval_set)
 
 
