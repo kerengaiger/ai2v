@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument('--data_dir', type=str, default='./data/', help="directory of all input data files")
     parser.add_argument('--output_dir', type=str, default='./output/', help="output directory")
     parser.add_argument('--model', type=str, default='model.pt', help="best model trained")
-    parser.add_argument('--rank', ction='store_true', help="output ranked items list")
+    parser.add_argument('--rank', action='store_true', help="output ranked items list")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
     parser.add_argument('--rank_out', type=str, default='rank_out.pkl', help="ranked list of items for test users")
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="hit at K for each test row")
@@ -47,7 +47,7 @@ def mrr_k(model, eval_set, k, out_file):
     return mrp_k
 
 
-def hr_k(model, eval_set, k, out_file, rank_out_file):
+def hr_k(model, eval_set, k, out_file, do_rank, rank_out_file):
     pbar = tqdm(eval_set)
     in_top_k = 0
     lst = []
@@ -56,7 +56,8 @@ def hr_k(model, eval_set, k, out_file, rank_out_file):
         for i, (user_itemids, target_item) in enumerate(pbar):
             items_ranked = model.inference(user_itemids).argsort()
             # pickler.dump(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
-            lst.append(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
+            if do_rank:
+                lst.append(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
             top_k_items = items_ranked[-k:][::-1]
             if target_item in top_k_items:
                 in_top_k += 1
@@ -65,7 +66,8 @@ def hr_k(model, eval_set, k, out_file, rank_out_file):
             else:
                 hr_file.write(f'{str(i)}, {target_item}, 0')
                 hr_file.write('\n')
-    pickle.dump(lst, rank_file)
+    if do_rank:
+        pickle.dump(lst, rank_file)
     # rank_file.close()
     return in_top_k / len(eval_set)
 
@@ -105,7 +107,7 @@ def main():
     model = t.nn.DataParallel(model)
     eval_set = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
     print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, os.path.join(args.output_dir, args.hr_out),
-                                          os.path.join(args.output_dir, args.rank_out)))
+                                          os.path.join(args.output_dir, args.rank, args.rank_out)))
     print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, os.path.join(args.output_dir, args.mrr_out)))
     print(f'mpr:', mpr(model.module, eval_set, os.path.join(args.output_dir, args.mpr_out)))
 
