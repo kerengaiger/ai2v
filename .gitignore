@@ -103,7 +103,10 @@ ENV/
 # project-specific
 *.dat
 *.pt
+*.csv
 data/
+archive/
+corpus/
 result/
 .DS_Store
 
