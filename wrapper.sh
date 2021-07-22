@@ -38,10 +38,10 @@ function prepare_database_corpus(){
 
   if [ "$1" = "yahoo" ]; then
     if [ "$2" = "llo" ]; then
-      python prepare_corpus.py --input_file ./data/yahoo_corpus.dat --line_sep , --min_usr_len 2 --max_usr_len 2500 \
+      python prepare_corpus.py --input_file ./data/yahoo_all_corpus.dat --line_sep , --min_usr_len 2 --max_usr_len 2500 \
       --min_items_cnt 20 --max_items_cnt 100000 --final_usr_len 4 --split_strategy "$2" --data_dir ./corpus/yahoo/
     else
-      python prepare_corpus.py --input_file ./data/yahoo_corpus.dat --line_sep , --min_usr_len 2 --max_usr_len 2500 \
+      python prepare_corpus.py --input_file ./data/yahoo_all_corpus.dat --line_sep , --min_usr_len 2 --max_usr_len 2500 \
       --min_items_cnt 20 --max_items_cnt 100000 --final_usr_len 3 --split_strategy "$2" --data_dir ./corpus/yahoo/
     fi
   fi
