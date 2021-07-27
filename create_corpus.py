@@ -214,13 +214,13 @@ def create_amazonbeauty_corpus():  # https://www.kaggle.com/skillsmuggler/amazon
 
 
 def main():
-    create_netflix_corpus()
+#    create_netflix_corpus()
     create_moviesdat_corpus()
-    create_yahoo_corpus()
+#    create_yahoo_corpus()
     create_goodbooks_corpus()
-    create_booksrec_corpus()
-    create_animerec_corpus()
-    create_animerec20_corpus()
+#    create_booksrec_corpus()
+#    create_animerec_corpus()
+#g    create_animerec20_corpus()
     create_amazonbeauty_corpus()
 
 
