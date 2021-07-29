@@ -135,7 +135,7 @@ def main():
             user2data[user_id].items = items
 
     valid_users = valid_users_filtered
-    with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1], 'w'), newline="") as x:
+    with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
         csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
                                                 [len(valid_users), len(index.item2index)], sum([len(usr) for usr in valid_users])])
 
