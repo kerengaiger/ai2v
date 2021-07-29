@@ -8,7 +8,6 @@ from tqdm import tqdm
 from scipy.stats import ttest_ind
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 
 def parse_args():
