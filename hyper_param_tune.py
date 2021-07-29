@@ -3,6 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 import argparse
 import pickle
+import pathlib
 
 from ax.service.managed_loop import optimize
 
@@ -93,7 +94,7 @@ def main():
         )
 
         best_parameters['best_epoch'] = values[0]['early_stop_epoch']
-        pickle.dump(best_parameters, open(args.cnfg_out, "wb"))
+        pickle.dump(best_parameters, open(pathlib.Path(args.data_dir, args.cnfg_out), "wb"))
         i2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
     else:
@@ -132,7 +133,7 @@ def main():
         )
 
         best_parameters['best_epoch'] = values[0]['early_stop_epoch']
-        pickle.dump(best_parameters, open(args.cnfg_out, "wb"))
+        pickle.dump(best_parameters, open(pathlib.Path(args.data_dir, args.cnfg_out), "wb"))
         ai2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
 
