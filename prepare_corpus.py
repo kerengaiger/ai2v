@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('--rate_pos', type=int, default=2, help="position of rating in row")
     parser.add_argument('--date_pos', type=int, default=3, help="position of date in row")
     parser.add_argument('--positive_threshold', type=float, default=4.0, help="threshold to consider positive items")
+    parser.add_argument('--stats_dir', type=str, default='./stats/', help="directory to save stats of created corpus")
     parser.add_argument('--input_file', type=str, default='./data/corpus_netflix.txt', help="input file")
     parser.add_argument('--line_sep', type=str, default=',', help="line separator")
     parser.add_argument('--min_usr_len', type=int, default=3, help="minimum number of items per user")
@@ -134,6 +135,9 @@ def main():
             user2data[user_id].items = items
 
     valid_users = valid_users_filtered
+    with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1], 'w'), newline="") as x:
+        csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
+                                                [len(valid_users), len(index.item2index)], sum([len(usr) for usr in valid_users])])
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
