@@ -137,7 +137,8 @@ def main():
     valid_users = valid_users_filtered
     with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
         csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
-                                                [len(valid_users), len(index.item2index)], sum([len(usr) for usr in valid_users])])
+                                                [str(len(valid_users)), str(len(index.item2index)),
+                                                 str(sum([len(usr) for usr in valid_users]))]])
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
