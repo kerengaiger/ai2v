@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--trials', type=int, default=5, help="number of trials ")
     parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--window_size', type=int, default=60, help="window size")
+    parser.add_argument('--window_size', type=int, default=1000, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="out file name of hr for test set")
     parser.add_argument('--rr_out', type=str, default='rr_out.csv', help="out file name of rr for test set")
