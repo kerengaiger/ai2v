@@ -135,20 +135,19 @@ def main():
             user2data[user_id].items = items
 
     valid_users = valid_users_filtered
-    with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
-        csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
-                                                [str(len(valid_users)), str(len(index.item2index)),
-                                                 str(sum([len(usr) for usr in valid_users]))]])
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
     else:
         itms_lsts = [user2data[usr].items for usr in valid_users]
-        print(sum([len(lst) for lst in itms_lsts]))
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
+    with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
+        csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
+                                                [str(len(valid_users)), str(len(index.item2index)),
+                                                 str(sum([len(usr) for usr in itms_lsts]))]])
     with open(os.path.join(args.data_dir, args.out_full_train), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(full_train_item_lsts)
     with open(os.path.join(args.data_dir, args.out_test), 'w', newline="") as x:
