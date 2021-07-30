@@ -65,7 +65,7 @@ def main():
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 17, 20, 25, 30, 50, 100]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
-                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [30, 32, 128, 256]},
+                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [30, 32]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
