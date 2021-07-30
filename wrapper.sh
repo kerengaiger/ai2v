@@ -134,7 +134,7 @@ function run_pipeline() {
 }
 
 if [ "$1" = "all" ]; then
-  declare -a databases_list=("moviesdat" "goodbooks" "amazonbeauty")
+  declare -a databases_list=("goodbooks" "amazonbeauty")
 else
   declare -a databases_list=($1)
 fi
