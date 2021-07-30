@@ -145,6 +145,7 @@ def main():
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
     else:
         itms_lsts = [user2data[usr].items for usr in valid_users]
+        print(sum([len(lst) for lst in itms_lsts]))
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
