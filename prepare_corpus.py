@@ -135,12 +135,13 @@ def main():
             user2data[user_id].items = items
 
     valid_users = valid_users_filtered
+    itms_lsts = [user2data[usr].items for usr in valid_users]
+    unique_items = set([item for sublist in itms_lsts for item in sublist])
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
     else:
-        itms_lsts = [user2data[usr].items for usr in valid_users]
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
@@ -157,7 +158,7 @@ def main():
     with open(os.path.join(args.data_dir, args.out_valid), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(validation_item_lsts)
 
-    print("Items#: ", len(index.item2index))
+    print("Items#: ", len(list(set(index.item2index).difference(unique_items))))
     print("Full corpus users#:", len(valid_users))
 
 
