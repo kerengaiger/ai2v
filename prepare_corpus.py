@@ -145,9 +145,13 @@ def main():
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
+    num_itms = len(list(set(index.item2index).difference(unique_items)))
+    print("Items#: ", num_itms)
+    print("Full corpus users#:", len(valid_users))
+
     with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
         csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
-                                                [str(len(valid_users)), str(len(index.item2index)),
+                                                [str(len(valid_users)), str(num_itms),
                                                  str(sum([len(usr) for usr in itms_lsts]))]])
     with open(os.path.join(args.data_dir, args.out_full_train), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(full_train_item_lsts)
@@ -158,8 +162,6 @@ def main():
     with open(os.path.join(args.data_dir, args.out_valid), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(validation_item_lsts)
 
-    print("Items#: ", len(list(set(index.item2index).difference(unique_items))))
-    print("Full corpus users#:", len(valid_users))
 
 
 if __name__ == '__main__':
