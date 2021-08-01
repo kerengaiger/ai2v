@@ -145,7 +145,7 @@ def main():
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
-    num_itms = len(list(set(index.item2index).difference(unique_items)))
+    num_itms = len(list(set(index.item2index).intersection(unique_items)))
     print("Items#: ", num_itms)
     print("Full corpus users#:", len(valid_users))
 
