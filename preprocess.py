@@ -13,7 +13,8 @@ def parse_args():
     parser.add_argument('--vocab', type=str, default='full_train.txt', help="corpus path for building vocab")
     parser.add_argument('--split_strategy', type=str, choices=['leave_one_out', 'users_split'],
                         help="way of splitting to train and test")
-    parser.add_argument('--full_corpus', type=str, default='full_train.txt', help="corpus path")
+    parser.add_argument('--full_corpus', type=str, default='full_corpus.txt', help="full corpus path")
+    parser.add_argument('--full_train', type=str, default='full_train.txt', help="full train path")
     parser.add_argument('--test_corpus', type=str, default='test.txt', help="test corpus path")
     parser.add_argument('--build_train_valid', action='store_true',
                         help="build part train and validation sets from provided paths")
@@ -121,6 +122,9 @@ class Preprocess(object):
 def main():
     args = parse_args()
     preprocess = Preprocess(unk=args.unk, data_dir=args.data_dir)
+    preprocess.build(os.path.join(args.data_dir, args.full_corpus), f'full_{args.ic_out}', f'full_{args.vocab_out}',
+                     f'full_{args.idx2item}', f'full_{args.item2idx}',
+                     max_vocab=args.max_vocab)
     preprocess.build(os.path.join(args.data_dir, args.vocab), args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
                      max_vocab=args.max_vocab)
     print("Full train")
