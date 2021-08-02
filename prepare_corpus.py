@@ -137,9 +137,8 @@ def main():
 
     valid_users = valid_users_filtered
 
-    unique_items = list(set([item for sublist in valid_users for item in sublist]))
-
     itms_lsts = [user2data[usr].items for usr in valid_users]
+    unique_items = list(set([item for sublist in itms_lsts for item in sublist]))
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
