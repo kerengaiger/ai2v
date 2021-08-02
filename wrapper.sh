@@ -8,7 +8,7 @@ function prepare_database_corpus(){
   # If to check what data base I want to run.
   if [ "$1" = "movielens" ]; then
     if [ "$2" = "llo" ]; then
-      python prepare_corpus.py --input_file ./data/movielens_corpus.csv --line_sep :: --min_usr_len 1 --max_usr_len 1000 \
+      python prepare_corpus.py --input_file ./data/ratings.dat --line_sep :: --min_usr_len 1 --max_usr_len 1000 \
       --min_items_cnt 10 --max_items_cnt 10000 --final_usr_len 4 --split_strategy leave_one_out --data_dir ./corpus/movielens_llo/
     else
       python prepare_corpus.py --input_file ./data/movielens_corpus.csv --line_sep :: --min_usr_len 1 --max_usr_len 1000 \
