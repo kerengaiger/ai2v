@@ -137,19 +137,7 @@ def main():
 
     valid_users = valid_users_filtered
 
-    ###################################################################
-    # Create the items counter and index again
-    item_counter = Counter()
-    index = Index()
-
-    for user in list(valid_users):
-        user = user2data[user]
-        item_counter.update(user.items)
-
-    index.item2index, index.index2item = IndexLabels(CountFilter(item_counter, min_count=args.min_items_cnt,
-                                                                 max_count=args.max_items_cnt), True)
-
-    ###################################################################
+    unique_items = list(set([item for sublist in valid_users for item in sublist]))
 
     itms_lsts = [user2data[usr].items for usr in valid_users]
 
@@ -160,12 +148,12 @@ def main():
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
-    print("Items#: ", len(index.item2index))
+    print("Items#: ", len(unique_items))
     print("Full corpus users#:", len(valid_users))
 
     with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
         csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
-                                                [str(len(valid_users)), str(len(index.item2index)),
+                                                [str(len(valid_users)), str(len(unique_items)),
                                                  str(sum([len(usr) for usr in itms_lsts]))]])
     with open(os.path.join(args.data_dir, args.out_full_corpus), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(itms_lsts)
