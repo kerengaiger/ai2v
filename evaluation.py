@@ -86,7 +86,6 @@ def test_p_value(ai2v_file, i2v_file):
 def main():
     args = parse_args()
     model = t.load(os.path.join(args.output_dir, args.model))
-    model = t.nn.DataParallel(model)
     eval_set_lst = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
     eval_set_df = pd.read_csv(os.path.join(args.data_dir, args.test_raw), names=['usr', 'itm'])
     predict(model, eval_set_lst, eval_set_df, os.path.join(args.output_dir, args.preds_out))
