@@ -147,9 +147,8 @@ def main():
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
     elif args.split_strategy == 'leave_one_out':
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
-        pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(args.out_test_raw,
-                                                                                         header=False,
-                                                                                         index=False)
+        pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(
+            os.path.join(args.data_dir, args.out_test_raw), header=False, index=False)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
     else:
         print('Split strategy not valid')
