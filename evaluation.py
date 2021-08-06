@@ -27,14 +27,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def mrr_k(preds_df, k):
-    intopk = preds_df[preds_df['pred_loc'] <= k]
-    intopk['rr_k'] = 1 / intopk['pred_loc']
-    return intopk['rr_k'].mean()
+def mrr_k(preds_df, k, out_file):
+    preds_df['rr_k'] = 1 / preds_df['pred_loc']
+    preds_df.loc[preds_df['pred_loc'] > k, 'rr_k'] = 0
+    preds_df.to_csv(out_file, index=False)
+    return preds_df.loc[preds_df['pred_loc'] > 0, 'rr_k'].mean()
 
 
-def hr_k(preds_df, k):
-    return preds_df[preds_df['pred_loc'] <= k].shape[0] / preds_df.shape[0]
+def hr_k(preds_df, k, out_file):
+    preds_df['hit'] = 0
+    preds_df.loc[preds_df['pred_loc'] <= k, 'hit'] = 1
+    preds_df.to_csv(out_file, index=False)
+    return preds_df['hit'].mean()
 
 
 def mpr(model, eval_set, out_file):
@@ -65,7 +69,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
         loc = np.where(all_items == target_item)[0][0] + 1
         eval_set_df.loc[i, 'pred_loc'] = loc
 
-    pd.to_csv(out_file, index=False, hesder=False)
+    pd.to_csv(out_file, index=False)
 
 
 def test_p_value(ai2v_file, i2v_file):
@@ -86,10 +90,10 @@ def main():
     eval_set_lst = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
     eval_set_df = pd.read_csv(os.path.join(args.test_raw, args.test_ids), names=['usr', 'itm'])
     predict(model, eval_set_lst, eval_set_df, os.path.join(args.output_dir, args.preds_out))
-    preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out), names=['usr', 'item', 'pred_loc'])
-    print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k))
-    print(f'mrr at {args.k}:', mrr_k(preds_df, args.k))
-    print(f'mpr:', mpr(model.module, eval_set_lst, os.path.join(args.output_dir, args.mpr_out)))
+    preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out))
+    print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
+    print(f'mrr at {args.k}:', mrr_k(preds_df, args.k,os.path.join(args.output_dir, args.hr_out)))
+    print(f'mpr:', mpr(model.module, eval_set_lst, os.path.join(args.output_dir, args.mrr_out)))
 
 
 if __name__ == '__main__':
