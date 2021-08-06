@@ -145,7 +145,7 @@ def main():
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
-    elif args.split_strategy == 'leave_out_out':
+    elif args.split_strategy == 'leave_one_out':
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(args.out_test_raw,
                                                                                          header=False,
