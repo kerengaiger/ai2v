@@ -69,7 +69,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
         loc = np.where(all_items == target_item)[0][0] + 1
         eval_set_df.loc[i, 'pred_loc'] = loc
 
-    pd.to_csv(out_file, index=False)
+    eval_set_df.to_csv(out_file, index=False)
 
 
 def test_p_value(ai2v_file, i2v_file):
