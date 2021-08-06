@@ -88,7 +88,7 @@ def main():
     model = t.load(os.path.join(args.output_dir, args.model))
     model = t.nn.DataParallel(model)
     eval_set_lst = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
-    eval_set_df = pd.read_csv(os.path.join(args.test_raw, args.test_ids), names=['usr', 'itm'])
+    eval_set_df = pd.read_csv(os.path.join(args.data_dir, args.test_raw), names=['usr', 'itm'])
     predict(model, eval_set_lst, eval_set_df, os.path.join(args.output_dir, args.preds_out))
     preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out))
     print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
