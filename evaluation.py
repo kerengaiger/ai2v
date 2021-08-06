@@ -18,6 +18,8 @@ def parse_args():
     parser.add_argument('--model', type=str, default='model.pt', help="best model trained")
     parser.add_argument('--rank', action='store_true', help="output ranked items list")
     parser.add_argument('--test', type=str, default='test.dat', help="test set for evaluation")
+    parser.add_argument('--test_raw', type=str, default='test_raw.csv', help="file containing raw usr and item test ids")
+    parser.add_argument('--preds_out', type=str, default='preds_out.csv', help="ranked list of items for test users")
     parser.add_argument('--rank_out', type=str, default='rank_out.pkl', help="ranked list of items for test users")
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="hit at K for each test row")
     parser.add_argument('--mrr_out', type=str, default='mrr_out.csv', help="hit at K for each test row")
@@ -25,47 +27,14 @@ def parse_args():
     return parser.parse_args()
 
 
-def mrr_k(model, eval_set, k, out_file):
-    rec_rank = 0
-    pbar = tqdm(eval_set)
-    with open(out_file, 'w') as file:
-        for i, (user_itemids, target_item) in enumerate(pbar):
-            items_ranked = model.inference(user_itemids).argsort()
-            top_k_items = items_ranked[-k:][::-1]
-            if target_item in top_k_items:
-                cur_rec_rank = 1 / (np.where(top_k_items == target_item)[0][0] + 1)
-                rec_rank += cur_rec_rank
-                file.write(f'{str(i)}, {target_item}, {cur_rec_rank}')
-                file.write('\n')
-            else:
-                file.write(f'{str(i)}, {target_item}, 0')
-                file.write('\n')
-    mrp_k = rec_rank / len(eval_set)
-    return mrp_k
+def mrr_k(preds_df, k):
+    intopk = preds_df[preds_df['pred_loc'] <= k]
+    intopk['rr_k'] = 1 / intopk['pred_loc']
+    return intopk['rr_k'].mean()
 
 
-def hr_k(model, eval_set, k, out_file, rank_out_file, do_rank):
-    pbar = tqdm(eval_set)
-    in_top_k = 0
-    lst = []
-    with open(out_file, 'w') as hr_file:
-        # pickler = pickle.Pickler(rank_file)
-        for i, (user_itemids, target_item) in enumerate(pbar):
-            items_ranked = model.inference(user_itemids).argsort()
-            # pickler.dump(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
-            if do_rank:
-                lst.append(list(items_ranked[np.where(items_ranked == target_item)[0][0]:]))
-            top_k_items = items_ranked[-k:][::-1]
-            if target_item in top_k_items:
-                in_top_k += 1
-                hr_file.write(f'{str(i)}, {target_item}, 1')
-                hr_file.write('\n')
-            else:
-                hr_file.write(f'{str(i)}, {target_item}, 0')
-                hr_file.write('\n')
-    if do_rank:
-        pickle.dump(lst, open(rank_out_file, 'wb'))
-    return in_top_k / len(eval_set)
+def hr_k(preds_df, k):
+    return preds_df[preds_df['pred_loc'] <= k].shape[0] / preds_df.shape[0]
 
 
 def mpr(model, eval_set, out_file):
@@ -86,6 +55,19 @@ def mpr(model, eval_set, out_file):
     return mpr
 
 
+def predict(model, eval_set_lst, eval_set_df, out_file):
+    pbar = tqdm(eval_set_lst)
+
+    eval_set_df['pred_loc'] = np.nan
+    for i, (user_itemids, target_item) in enumerate(pbar):
+        items_ranked = model.inference(user_itemids).argsort()
+        all_items = items_ranked[:][::-1]
+        loc = np.where(all_items == target_item)[0][0] + 1
+        eval_set_df.loc[i, 'pred_loc'] = loc
+
+    pd.to_csv(out_file, index=False, hesder=False)
+
+
 def test_p_value(ai2v_file, i2v_file):
     '''
     :param ai2v_file: csv file containing u_id, item_id and the result of the tested metric, applied on ai2v model
@@ -101,11 +83,13 @@ def main():
     args = parse_args()
     model = t.load(os.path.join(args.output_dir, args.model))
     model = t.nn.DataParallel(model)
-    eval_set = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
-    print(f'hit ratio at {args.k}:', hr_k(model.module, eval_set, args.k, os.path.join(args.output_dir, args.hr_out),
-                                          os.path.join(args.output_dir, args.rank_out), args.rank))
-    print(f'mrr at {args.k}:', mrr_k(model.module, eval_set, args.k, os.path.join(args.output_dir, args.mrr_out)))
-    print(f'mpr:', mpr(model.module, eval_set, os.path.join(args.output_dir, args.mpr_out)))
+    eval_set_lst = pickle.load(open(os.path.join(args.data_dir, args.test), 'rb'))
+    eval_set_df = pd.read_csv(os.path.join(args.test_raw, args.test_ids), names=['usr', 'itm'])
+    predict(model, eval_set_lst, eval_set_df, os.path.join(args.output_dir, args.preds_out))
+    preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out), names=['usr', 'item', 'pred_loc'])
+    print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k))
+    print(f'mrr at {args.k}:', mrr_k(preds_df, args.k))
+    print(f'mpr:', mpr(model.module, eval_set_lst, os.path.join(args.output_dir, args.mpr_out)))
 
 
 if __name__ == '__main__':
