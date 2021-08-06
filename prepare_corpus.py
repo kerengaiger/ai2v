@@ -35,10 +35,10 @@ def parse_args():
     parser.add_argument('--data_dir', type=str, default='./corpus/netflix/', help="data_dir")
     parser.add_argument('--out_full_corpus', type=str, default='full_corpus.txt', help="output file")
     parser.add_argument('--out_full_train', type=str, default='full_train.txt', help="output file")
-    parser.add_argument('--out_test', type=str, default='test.txt', help="output file")
-    parser.add_argument('--out_test_ids', type=str, default='test_ids.txt', help="output file")
-    parser.add_argument('--out_train', type=str, default='train.txt', help="output file")
-    parser.add_argument('--out_valid', type=str, default='valid.txt', help="output file")
+    parser.add_argument('--out_test', type=str, default='test.txt', help="test lists")
+    parser.add_argument('--out_test_raw', type=str, default='test_raw.csv', help="file containing raw usr and item test ids")
+    parser.add_argument('--out_train', type=str, default='train.txt', help="train lists")
+    parser.add_argument('--out_valid', type=str, default='valid.txt', help="validation lists")
     return parser.parse_args()
 
 
@@ -147,7 +147,7 @@ def main():
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
     elif args.split_strategy == 'leave_out_out':
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
-        pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(args.out_test_ids,
+        pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(args.out_test_raw,
                                                                                          header=False,
                                                                                          index=False)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
