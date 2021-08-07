@@ -92,7 +92,7 @@ def main():
     preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out))
     print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
     print(f'mrr at {args.k}:', mrr_k(preds_df, args.k,os.path.join(args.output_dir, args.hr_out)))
-    print(f'mpr:', mpr(model.module, eval_set_lst, os.path.join(args.output_dir, args.mrr_out)))
+    print(f'mpr:', mpr(model, eval_set_lst, os.path.join(args.output_dir, args.mrr_out)))
 
 
 if __name__ == '__main__':
