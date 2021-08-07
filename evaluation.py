@@ -66,7 +66,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
     for i, (user_itemids, target_item) in enumerate(pbar):
         items_ranked = model.inference(user_itemids).argsort()
         all_items = items_ranked[:][::-1]
-        loc = np.where(all_items == target_item)[0][0]
+        loc = np.where(all_items == target_item)[0][0] + 1
         eval_set_df.loc[i, 'pred_loc'] = loc
 
     eval_set_df.to_csv(out_file, index=False)
