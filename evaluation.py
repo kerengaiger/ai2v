@@ -41,22 +41,8 @@ def hr_k(preds_df, k, out_file):
     return preds_df['hit'].mean()
 
 
-def mpr(model, eval_set, out_file):
-    rec_percent = 0
-    pbar = tqdm(eval_set)
-    with open(out_file, 'w') as file:
-        for i, (user_itemids, target_item) in enumerate(pbar):
-            items_ranked = model.inference(user_itemids).argsort()
-            all_items = items_ranked[:][::-1]
-            if target_item in all_items:
-                rec_percent += (float(np.where(all_items == target_item)[0][0]) / len(all_items))
-                file.write(f'{str(i)}, {target_item}, {rec_percent}')
-                file.write('\n')
-            else:
-                file.write(f'{str(i)}, {target_item}, 0')
-                file.write('\n')
-    mpr = 1 - (rec_percent / float(len(eval_set)))
-    return mpr
+def mpr(preds_df, num_all_items):
+    return 1 - (preds_df['pred_loc'] / num_all_items).mean()
 
 
 def predict(model, eval_set_lst, eval_set_df, out_file):
@@ -91,8 +77,7 @@ def main():
     predict(model, eval_set_lst, eval_set_df, os.path.join(args.output_dir, args.preds_out))
     preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out))
     print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
-    print(f'mrr at {args.k}:', mrr_k(preds_df, args.k,os.path.join(args.output_dir, args.hr_out)))
-    print(f'mpr:', mpr(model, eval_set_lst, os.path.join(args.output_dir, args.mrr_out)))
+    print(f'mrr at {args.k}:', mrr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
 
 
 if __name__ == '__main__':
