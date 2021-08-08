@@ -40,6 +40,15 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
 
+    def calc_attention(self, batch_titems, batch_citems):
+        v_l_j = self.forward_t(batch_titems)
+        u_l_m = self.forward_c(batch_citems)
+        c_vecs = self.Ac(u_l_m).unsqueeze(1)
+        t_vecs = self.At(v_l_j).unsqueeze(2)
+        cosine_sim = self.cos(t_vecs, c_vecs)
+        attention_weights = self.softmax(cosine_sim)
+        return attention_weights
+
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
