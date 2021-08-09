@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import argparse
 from tqdm import tqdm
+import torch
 
 from scipy.stats import ttest_ind
 
@@ -56,6 +57,19 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
         eval_set_df.loc[i, 'pred_loc'] = loc
 
     eval_set_df.to_csv(out_file, index=False)
+
+
+def calc_attention(model, eval_set_lst, out_file, device):
+    pbar = tqdm(eval_set_lst)
+    lst = []
+    for i, (user_itemids, target_item) in enumerate(pbar):
+        batch_titems = torch.tensor([target_item]).unsqueeze(0)
+        batch_titems = batch_titems.to(device)
+        batch_citems = torch.tensor([user_itemids])
+        batch_citems = batch_citems.to(device)
+        attention_weights = model.ai2v.calc_attention(batch_titems, batch_citems)
+        lst.append(attention_weights[0][0].cpu().numpy())
+    pickle.dump(lst, open(out_file, 'wb'))
 
 
 def test_p_value(ai2v_file, i2v_file):
