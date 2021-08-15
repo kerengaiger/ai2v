@@ -131,6 +131,7 @@ class SASRec(torch.nn.Module):
             self.forward_layers.append(new_fwd_layer)
 
     def log2feats(self, log_seqs):
+        print('log_seqs device:', log_seqs.device)
         seqs = self.item_emb(log_seqs)
         seqs *= self.item_emb.embedding_dim ** 0.5
         positions = np.tile(np.array(range(log_seqs.shape[1])), [log_seqs.shape[0], 1])
