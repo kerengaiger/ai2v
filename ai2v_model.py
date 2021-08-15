@@ -57,7 +57,7 @@ class AttentiveItemToVec(nn.Module):
 
         attention_weights = self.softmax(cosine_sim)
 
-        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
+        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(batch_sa_citems).unsqueeze(1))
 
         alpha_j_1 = weighted_u_l_m.sum(2)
         z_j_1 = self.R(alpha_j_1)
