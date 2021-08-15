@@ -133,6 +133,7 @@ class SASRec(torch.nn.Module):
     def log2feats(self, log_seqs):
         print('log_seqs device:', log_seqs.device)
         seqs = self.item_emb(log_seqs)
+        print(seqs[0])
         seqs *= self.item_emb.embedding_dim ** 0.5
         positions = np.tile(np.array(range(log_seqs.shape[1])), [log_seqs.shape[0], 1])
         seqs += self.pos_emb(torch.LongTensor(positions).to(self.dev))
