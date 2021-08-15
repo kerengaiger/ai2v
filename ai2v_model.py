@@ -142,9 +142,10 @@ class SASRec(torch.nn.Module):
         print('seqs_cuda', seqs.device)
 
         timeline_mask = log_seqs == self.padding_idx
+        print(timeline_mask[0])
         seqs *= ~timeline_mask.unsqueeze(-1) # broadcast in last dim
         print('seqs shape', seqs.shape)
-        print(seqs)
+        print(seqs[0])
 
         tl = seqs.shape[1] # time dim len for enforce causality
         attention_mask = ~torch.tril(torch.ones((tl, tl), dtype=torch.bool, device=self.dev))
