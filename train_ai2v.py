@@ -97,12 +97,6 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
                     num_heads=cnfg['num_heads'])
     sgns = SGNS(sasrec=sasrec, ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
 
-    print(model)
-    print(next(model.parameters()).is_cuda)
-    print(sasrec)
-    print(next(sasrec.parameters()).is_cuda)
-    print(sgns)
-    print(next(sgns.parameters()).is_cuda)
     sgns.to(device)
     print(next(model.parameters()).is_cuda)
     print(next(sasrec.parameters()).is_cuda)

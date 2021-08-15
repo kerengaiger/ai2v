@@ -136,6 +136,8 @@ class SASRec(torch.nn.Module):
         positions = np.tile(np.array(range(log_seqs.shape[1])), [log_seqs.shape[0], 1])
         seqs += self.pos_emb(torch.LongTensor(positions).to(self.dev))
         seqs = self.emb_dropout(seqs)
+        print('seqs shape: ', seqs.shape)
+        print('seqs_cuda', seqs.device)
 
         timeline_mask = torch.BoolTensor(log_seqs == 0).to(self.dev)
         seqs *= ~timeline_mask.unsqueeze(-1) # broadcast in last dim
