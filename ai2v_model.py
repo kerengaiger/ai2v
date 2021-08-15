@@ -103,7 +103,7 @@ class SASRec(torch.nn.Module):
 
         self.item_num = item_num
         self.dev = device
-
+        self.padding_idx = padding_idx
         self.item_emb = torch.nn.Embedding(self.item_num+1, embedding_size, padding_idx=padding_idx)
         self.pos_emb = torch.nn.Embedding(max_len, embedding_size) # TO IMPROVE
         self.emb_dropout = torch.nn.Dropout(p=dropout_rate)
@@ -140,7 +140,7 @@ class SASRec(torch.nn.Module):
         print('seqs shape: ', seqs.shape)
         print('seqs_cuda', seqs.device)
 
-        timeline_mask = torch.BoolTensor(log_seqs == 0).to(self.dev)
+        timeline_mask = log_seqs == self.padding_idx
         seqs *= ~timeline_mask.unsqueeze(-1) # broadcast in last dim
 
         tl = seqs.shape[1] # time dim len for enforce causality
@@ -164,8 +164,8 @@ class SASRec(torch.nn.Module):
 
         return log_feats
 
-    def forward(self, log_seqs): # for training
-        log_feats = self.log2feats(log_seqs) # user_ids hasn't been used yet
+    def forward(self, log_seqs):
+        log_feats = self.log2feats(log_seqs)
         return log_feats
 
 
