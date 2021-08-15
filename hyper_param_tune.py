@@ -107,7 +107,7 @@ def main():
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8]},
                 {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [30, 32]},
                 {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4]},
-                {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2, 3, 4]},
+                {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
