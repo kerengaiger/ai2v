@@ -17,17 +17,11 @@ class AttentiveItemToVec(nn.Module):
         self.d_alpha = d_alpha
         self.pad_idx = padding_idx
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
-        self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                       self.embedding_size).uniform_(-0.5 / self.embedding_size,
                                                                                     0.5 / self.embedding_size),
                                                    t.zeros(1, self.embedding_size)]))
-        self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
-                                                      self.embedding_size).uniform_(-0.5 / self.embedding_size,
-                                                                                    0.5 / self.embedding_size),
-                                                   t.zeros(1, self.embedding_size)]))
         self.tvectors.weight.requires_grad = True
-        self.cvectors.weight.requires_grad = True
         self.Ac = nn.Linear(self.embedding_size, self.d_alpha)
         self.At = nn.Linear(self.embedding_size, self.d_alpha)
         self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
@@ -50,10 +44,10 @@ class AttentiveItemToVec(nn.Module):
         attention_weights = self.softmax(cosine_sim)
         return attention_weights
 
-    def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
+    def forward(self, batch_titems, batch_sa_citems, mask_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
-        u_l_m = self.forward_c(batch_citems)
-        c_vecs = self.Ac(u_l_m).unsqueeze(1)
+        # u_l_m = self.forward_c(batch_citems)
+        c_vecs = self.Ac(batch_sa_citems).unsqueeze(1)
         t_vecs = self.At(v_l_j).unsqueeze(2)
 
         cosine_sim = self.cos(t_vecs, c_vecs)
@@ -74,9 +68,6 @@ class AttentiveItemToVec(nn.Module):
         v = data.long()
         return self.tvectors(v)
 
-    def forward_c(self, data):
-        v = data.long()
-        return self.cvectors(v)
 
 class PointWiseFeedForward(torch.nn.Module):
     def __init__(self, hidden_units, dropout_rate):
@@ -218,7 +209,7 @@ class SGNS(nn.Module):
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         # get embeddings of context items after self attention
         batch_sa_citems = self.sasrec(batch_citems)
-        print(batch_sa_citems.shape)
+        print('batch sa citems', batch_sa_citems.shape)
         batch_sub_users = self.ai2v(batch_titems, batch_sa_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
         if [param for param in self.ai2v.parameters()][0].is_cuda:
