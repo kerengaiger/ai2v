@@ -122,26 +122,26 @@ class SASRec(torch.nn.Module):
             self.forward_layers.append(new_fwd_layer)
 
     def log2feats(self, log_seqs):
-        print('log_seqs device:', log_seqs.device)
+        # print('log_seqs device:', log_seqs.device)
         seqs = self.item_emb(log_seqs)
-        print(seqs[0])
+        # print(seqs[0])
         seqs *= self.item_emb.embedding_dim ** 0.5
         positions = np.tile(np.array(range(log_seqs.shape[1])), [log_seqs.shape[0], 1])
         seqs += self.pos_emb(torch.LongTensor(positions).to(self.dev))
         seqs = self.emb_dropout(seqs)
-        print('seqs shape: ', seqs.shape)
-        print('seqs_cuda', seqs.device)
+        # print('seqs shape: ', seqs.shape)
+        # print('seqs_cuda', seqs.device)
 
         timeline_mask = log_seqs == self.padding_idx
-        print(timeline_mask[0])
+        # print(timeline_mask[0])
         seqs *= ~timeline_mask.unsqueeze(-1) # broadcast in last dim
-        print('seqs shape', seqs.shape)
-        print(seqs[0])
+        # print('seqs shape', seqs.shape)
+        # print(seqs[0])
 
         tl = seqs.shape[1] # time dim len for enforce causality
         attention_mask = ~torch.tril(torch.ones((tl, tl), dtype=torch.bool, device=self.dev))
-        print('attention mask shape', attention_mask.shape)
-        print(attention_mask)
+        # print('attention mask shape', attention_mask.shape)
+        # print(attention_mask)
 
         for i in range(len(self.attention_layers)):
             seqs = torch.transpose(seqs, 0, 1)
@@ -209,7 +209,7 @@ class SGNS(nn.Module):
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         # get embeddings of context items after self attention
         batch_sa_citems = self.sasrec(batch_citems)
-        print('batch sa citems', batch_sa_citems.shape)
+        # print('batch sa citems', batch_sa_citems.shape)
         batch_sub_users = self.ai2v(batch_titems, batch_sa_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
         if [param for param in self.ai2v.parameters()][0].is_cuda:
