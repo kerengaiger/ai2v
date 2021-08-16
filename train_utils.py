@@ -51,7 +51,7 @@ class UserBatchIncrementDataset(Dataset):
     def __getitem__(self, idx):
         len_samp = len(self.data[idx][0])
         pad_times = self.window_size - len_samp
-        citems = [self.pad_idx] * pad_times + self.data[idx][0]
+        citems = self.data[idx][0] + [self.pad_idx] * pad_times
         titem = self.data[idx][1]
         # citems = self.data[idx][0]
         return titem, np.array(citems)
@@ -77,6 +77,3 @@ def save_model(cnfg, model, sgns):
     pickle.dump(tvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2tvec.dat'), 'wb'))
     pickle.dump(cvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2cvec.dat'), 'wb'))
     t.save(sgns, pathlib.Path(cnfg['save_dir'], 'model.pt'))
-
-
-
