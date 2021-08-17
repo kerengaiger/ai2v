@@ -199,7 +199,8 @@ class SGNS(nn.Module):
         if next(self.parameters()).is_cuda:
             citems = citems.cuda()
             all_titems = all_titems.cuda()
-        sub_users = self.ai2v(all_titems, citems, mask_pad_ids=None, inference=True)
+        batch_sa_citems = self.sasrec(citems)
+        sub_users = self.ai2v(all_titems, batch_sa_citems, mask_pad_ids=None, inference=True)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
