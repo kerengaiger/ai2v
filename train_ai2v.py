@@ -52,12 +52,13 @@ def run_epoch(train_dl, epoch, sgns, optim, accumulation_steps, pad_idx):
             batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
         mask_pad_ids = (batch_citems == pad_idx)
         loss = sgns(batch_titems, batch_citems, mask_pad_ids)
+        loss = loss / accumulation_steps
         train_loss += loss.item()
+        loss.backward()
         if (i + 1) % accumulation_steps == 0:  # Wait for several backward steps
+            optim.step()
             optim.zero_grad()
-            loss.backward()
 
-        optim.step()
         pbar.set_postfix(train_loss=loss.item())
 
     train_loss = train_loss / len(pbar)
