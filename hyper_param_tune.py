@@ -105,7 +105,7 @@ def main():
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 24, 30, 36, 50, 100]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
-                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [32, 64, 50, 128]},
+                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
                 {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4, 5]},
                 {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2, 3]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
