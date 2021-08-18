@@ -30,6 +30,8 @@ def parse_args():
     parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
     parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
+    parser.add_argument('--accumulation_steps', type=int, default=2, help="number of batches to accumulate "
+                                                                          "gradients of before optim step")
     parser.add_argument('--hr_out', type=str, default='hr.csv', help="hit at K for each test row")
     parser.add_argument('--rr_out', type=str, default='mrr.csv', help="hit at K for each test row")
     parser.add_argument('--best_cnfg', type=str, default='best_cnfg.pkl', help="best cnfg of hyper params")
@@ -38,20 +40,23 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
+def run_epoch(train_dl, epoch, sgns, optim, accumulation_steps, pad_idx):
     pbar = tqdm(train_dl)
     pbar.set_description("[Epoch {}]".format(epoch))
     train_loss = 0
 
     srt = datetime.datetime.now().replace(microsecond=0)
-    for batch_titems, batch_citems in pbar:
+    sgns.zero_grad()
+    for i, (batch_titems, batch_citems) in enumerate(pbar):
         if next(sgns.parameters()).is_cuda:
             batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
         mask_pad_ids = (batch_citems == pad_idx)
         loss = sgns(batch_titems, batch_citems, mask_pad_ids)
         train_loss += loss.item()
-        optim.zero_grad()
-        loss.backward()
+        if (i + 1) % accumulation_steps == 0:  # Wait for several backward steps
+            optim.zero_grad()
+            loss.backward()
+
         optim.step()
         pbar.set_postfix(train_loss=loss.item())
 
@@ -114,7 +119,7 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, pad_idx)
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
         valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['mini_batch'], cnfg['window_size'])
@@ -170,7 +175,7 @@ def train(cnfg):
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], item2idx['pad'])
         scheduler.step()
 
     save_model(cnfg, model, sgns)
