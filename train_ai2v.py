@@ -116,9 +116,9 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     t.autograd.set_detect_anomaly(True)
 
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
-    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
@@ -167,7 +167,6 @@ def train(cnfg):
 
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                         cnfg['window_size'])
-    train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=16)
 
     sgns.to(device)
 
@@ -175,6 +174,7 @@ def train(cnfg):
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=16)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], item2idx['pad'])
         scheduler.step()
 
