@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=5, help="number of trials ")
     parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
+    parser.add_argument('--num_workers', type=int, default=8, help="num or workwrs to load dataloader")
     parser.add_argument('--accumulation_steps', type=int, default=2, help="number of batches to accumulate "
                                                                           "gradients of before optim step")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
@@ -86,6 +87,8 @@ def main():
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
+                {"name": "accumulation_steps", "type": "fixed", "value_type": "int", "value": args.accumulation_steps},
+                {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
                 {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
                 {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
             ],
@@ -128,6 +131,8 @@ def main():
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
+                {"name": "accumulation_steps", "type": "fixed", "value_type": "int", "value": args.accumulation_steps},
+                {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
                 {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
                 {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
             ],
