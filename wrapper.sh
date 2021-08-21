@@ -95,6 +95,16 @@ function prepare_database_corpus(){
       --min_items_cnt 5 --max_items_cnt 50000 --final_usr_len 3 --split_strategy users_split --data_dir ./corpus/amazonbeauty/
     fi
   fi
+
+  if [ "$1" = "amazonbooks" ]; then
+    if [ "$2" = "llo" ]; then
+      python prepare_corpus.py --input_file ./data/ratings_amazon_books.csv --line_sep , --min_usr_len 10 --max_usr_len 1000 \
+      --min_items_cnt 100 --max_items_cnt 10000 --final_usr_len 4 --split_strategy leave_one_out --data_dir ./corpus/amazonbooks_llo/
+    else
+      python prepare_corpus.py --input_file ./data/ratings_amazon_books.csv --line_sep , --min_usr_len 2 --max_usr_len 1000 \
+      --min_items_cnt 5 --max_items_cnt 50000 --final_usr_len 3 --split_strategy users_split --data_dir ./corpus/amazonbooks_llo/
+    fi
+  fi
 }
 
 function run_pipeline() {
