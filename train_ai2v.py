@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 import torch as t
-from torch.optim import Adagrad, lr_scheduler, AdamW, Adam
+from torch.optim import Adagrad, lr_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -14,7 +14,6 @@ from tqdm import tqdm
 from ai2v_model import AttentiveItemToVec, SGNS, SASRec
 
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset
-from evaluation import hr_k, mrr_k
 
 import argparse
 
@@ -86,7 +85,7 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
     return np.array(valid_losses).mean()
 
 
-def train_early_stop(cnfg, valid_users_path, pad_idx):
+def train(cnfg, valid_users_path=None):
     if cnfg['cuda']:
         device = t.device('cuda')
     else:
@@ -116,7 +115,6 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
     patience_count = 0
-    t.autograd.set_detect_anomaly(True)
 
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
 
@@ -151,80 +149,12 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     return best_epoch
 
 
-def train(cnfg):
-    print(cnfg)
-    if cnfg['cuda']:
-        device = t.device('cuda')
-    else:
-        device = t.device('cpu')
-
-    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
-
-    weights = configure_weights(cnfg, idx2item)
-    vocab_size = len(idx2item)
-
-    model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sasrec = SASRec(item_num=vocab_size, padding_idx=item2idx['pad'], device=device, embedding_size=cnfg['e_dim'],
-                    max_len=cnfg['window_size'], dropout_rate=cnfg['dropout_rate'], num_blocks=cnfg['num_blocks'],
-                    num_heads=cnfg['num_heads'])
-    sgns = SGNS(sasrec=sasrec, ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
-
-    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
-                                        cnfg['window_size'])
-
-    sgns.to(device)
-
-    optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
-
-    for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=8)
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], item2idx['pad'])
-        scheduler.step()
-
-    save_model(cnfg, model, sgns)
-# def train(cnfg):
-#     print(cnfg)
-#     if cnfg['cuda']:
-#         device = t.device('cuda')
-#     else:
-#         device = t.device('cpu')
-#
-#     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
-#     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
-#
-#     weights = configure_weights(cnfg, idx2item)
-#     vocab_size = len(idx2item)
-#
-#     model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-#     sasrec = SASRec(item_num=vocab_size, padding_idx=item2idx['pad'], device=device, embedding_size=cnfg['e_dim'],
-#                     max_len=cnfg['window_size'], dropout_rate=cnfg['dropout_rate'], num_blocks=cnfg['num_blocks'],
-#                     num_heads=cnfg['num_heads'])
-#     sgns = SGNS(sasrec=sasrec, ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
-#
-#     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
-#                                         cnfg['window_size'])
-#     train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=16)
-#
-#     sgns.to(device)
-#
-#     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-#     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
-#
-#     for epoch in range(1, cnfg['max_epoch'] + 1):
-#         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
-#         scheduler.step()
-#
-#     save_model(cnfg, model, sgns)
-
-
 def train_evaluate(cnfg):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
 
-    best_epoch = train_early_stop(cnfg, valid_users_path, item2idx['pad'])
+    best_epoch = train(cnfg, valid_users_path)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
