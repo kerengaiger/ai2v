@@ -175,7 +175,7 @@ def train(cnfg):
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=16)
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=8)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], item2idx['pad'])
         scheduler.step()
 
