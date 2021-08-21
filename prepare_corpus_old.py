@@ -5,7 +5,6 @@ Created on Wed Apr 17 08:44:14 2019
 """
 
 import numpy as np
-import pandas as pd
 import csv
 from collections import Counter
 from datetime import datetime
@@ -32,10 +31,8 @@ def parse_args():
     parser.add_argument('--split_strategy', choices=['leave_one_out', 'users_split'], default='users_split',
                         help="way of splitting to train and test")
     parser.add_argument('--data_dir', type=str, default='./corpus/netflix/', help="data_dir")
-    parser.add_argument('--out_full_corpus', type=str, default='full_corpus.txt', help="output file")
     parser.add_argument('--out_full_train', type=str, default='full_train.txt', help="output file")
     parser.add_argument('--out_test', type=str, default='test.txt', help="output file")
-    parser.add_argument('--out_test_ids', type=str, default='test_ids.txt', help="output file")
     parser.add_argument('--out_train', type=str, default='train.txt', help="output file")
     parser.add_argument('--out_valid', type=str, default='valid.txt', help="output file")
     return parser.parse_args()
@@ -137,32 +134,24 @@ def main():
             user2data[user_id].items = items
 
     valid_users = valid_users_filtered
-
     itms_lsts = [user2data[usr].items for usr in valid_users]
-    unique_items = list(set([item for sublist in itms_lsts for item in sublist]))
+    unique_items = set([item for sublist in itms_lsts for item in sublist])
 
     if args.split_strategy == 'users_split':
         full_train_users, full_train_item_lsts, test_item_lsts = split_usrs(valid_users, user2data)
         train_users, train_item_lsts, validation_item_lsts = split_usrs(full_train_users, user2data)
-    elif args.split_strategy == 'leave_out_out':
-        full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
-        pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(args.out_test_ids,
-                                                                                         header=False,
-                                                                                         index=False)
-        train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
     else:
-        print('Split strategy not valid')
-        return
+        full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
+        train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
 
-    print("Items#: ", len(unique_items))
+    num_itms = len(list(set(index.item2index).intersection(unique_items)))
+    print("Items#: ", num_itms)
     print("Full corpus users#:", len(valid_users))
 
     with open(os.path.join(args.stats_dir, args.input_file.split('/')[-1]), 'w', newline="") as x:
         csv.writer(x, delimiter=',').writerows([['# users', '# items', '# samples'],
-                                                [str(len(valid_users)), str(len(unique_items)),
+                                                [str(len(valid_users)), str(num_itms),
                                                  str(sum([len(usr) for usr in itms_lsts]))]])
-    with open(os.path.join(args.data_dir, args.out_full_corpus), 'w', newline="") as x:
-        csv.writer(x, delimiter=" ").writerows(itms_lsts)
     with open(os.path.join(args.data_dir, args.out_full_train), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(full_train_item_lsts)
     with open(os.path.join(args.data_dir, args.out_test), 'w', newline="") as x:
@@ -171,6 +160,7 @@ def main():
         csv.writer(x, delimiter=" ").writerows(train_item_lsts)
     with open(os.path.join(args.data_dir, args.out_valid), 'w', newline="") as x:
         csv.writer(x, delimiter=" ").writerows(validation_item_lsts)
+
 
 
 if __name__ == '__main__':
