@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
     parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
+    parser.add_argument('--num_workers', type=int, default=8, help="num or workwrs to load dataloader")
     parser.add_argument('--accumulation_steps', type=int, default=2, help="number of batches to accumulate "
                                                                           "gradients of before optim step")
     parser.add_argument('--hr_out', type=str, default='hr.csv', help="hit at K for each test row")
@@ -67,9 +68,9 @@ def run_epoch(train_dl, epoch, sgns, optim, accumulation_steps, pad_idx):
     return train_loss, sgns
 
 
-def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size):
+def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size, num_workers):
     dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, window_size)
-    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
+    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
 
     pbar = tqdm(valid_dl)
     valid_losses = []
@@ -119,13 +120,15 @@ def train(cnfg, valid_users_path=None):
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=16, pin_memory=True)
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=cnfg['num_workers'],
+                                  pin_memory=True)
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
         if valid_users_path is not None:
             # We are in early stop mode
-            valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['mini_batch'], cnfg['window_size'])
+            valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['mini_batch'], cnfg['window_size'],
+                                          cnfg['num_workers'])
             writer.add_scalar("Loss/validation", valid_loss, epoch)
             print(f'valid loss:{valid_loss}')
 
@@ -158,7 +161,8 @@ def train_evaluate(cnfg):
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
-    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'], cnfg['window_size'])
+    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'],
+                                  cnfg['window_size'], cnfg['num_workers'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
 
 
