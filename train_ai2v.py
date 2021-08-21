@@ -145,6 +145,9 @@ def train(cnfg, valid_users_path=None):
 
             valid_losses.append(valid_loss)
         scheduler.step()
+    else:
+        # we are in final train, save every iteration
+        save_model(cnfg, model, sgns)
 
     writer.flush()
     writer.close()
