@@ -92,6 +92,8 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
     else:
         device = t.device('cpu')
 
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
+    pad_idx = item2idx['pad']
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
@@ -123,22 +125,24 @@ def train_early_stop(cnfg, valid_users_path, pad_idx):
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
-        valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['mini_batch'], cnfg['window_size'])
-        writer.add_scalar("Loss/validation", valid_loss, epoch)
-        print(f'valid loss:{valid_loss}')
+        if valid_users_path is not None:
+            # We are in early stop mode
+            valid_loss = calc_loss_on_set(sgns, valid_users_path, pad_idx, cnfg['mini_batch'], cnfg['window_size'])
+            writer.add_scalar("Loss/validation", valid_loss, epoch)
+            print(f'valid loss:{valid_loss}')
 
-        if valid_loss < valid_losses[-1]:
-            patience_count = 0
-            best_epoch = epoch
-            save_model(cnfg, model, sgns)
+            if valid_loss < valid_losses[-1]:
+                patience_count = 0
+                best_epoch = epoch
+                save_model(cnfg, model, sgns)
 
-        else:
-            patience_count += 1
-            if patience_count == cnfg['patience']:
-                print(f"Early stopping")
-                break
+            else:
+                patience_count += 1
+                if patience_count == cnfg['patience']:
+                    print(f"Early stopping")
+                    break
 
-        valid_losses.append(valid_loss)
+            valid_losses.append(valid_loss)
         scheduler.step()
 
     writer.flush()
@@ -180,6 +184,39 @@ def train(cnfg):
         scheduler.step()
 
     save_model(cnfg, model, sgns)
+# def train(cnfg):
+#     print(cnfg)
+#     if cnfg['cuda']:
+#         device = t.device('cuda')
+#     else:
+#         device = t.device('cpu')
+#
+#     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
+#     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
+#
+#     weights = configure_weights(cnfg, idx2item)
+#     vocab_size = len(idx2item)
+#
+#     model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+#     sasrec = SASRec(item_num=vocab_size, padding_idx=item2idx['pad'], device=device, embedding_size=cnfg['e_dim'],
+#                     max_len=cnfg['window_size'], dropout_rate=cnfg['dropout_rate'], num_blocks=cnfg['num_blocks'],
+#                     num_heads=cnfg['num_heads'])
+#     sgns = SGNS(sasrec=sasrec, ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+#
+#     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
+#                                         cnfg['window_size'])
+#     train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, pin_memory=True, num_workers=16)
+#
+#     sgns.to(device)
+#
+#     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
+#     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 6, 8, 10, 12, 14, 16], gamma=0.5)
+#
+#     for epoch in range(1, cnfg['max_epoch'] + 1):
+#         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+#         scheduler.step()
+#
+#     save_model(cnfg, model, sgns)
 
 
 def train_evaluate(cnfg):
