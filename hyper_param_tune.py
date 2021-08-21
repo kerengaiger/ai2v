@@ -125,6 +125,7 @@ def main():
                 {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
                 {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
                 {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
+                {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
                 {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
                 {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
             ],
