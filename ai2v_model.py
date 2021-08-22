@@ -127,4 +127,3 @@ class SGNS(nn.Module):
 
         soft = sim.softmax(dim=1) + 1e-6
         return -soft[:, 0].log().sum()
-
