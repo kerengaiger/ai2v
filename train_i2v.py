@@ -82,7 +82,7 @@ def train(cnfg, valid_users_path=None):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = Item2Vec(padding_idx=item2idx['pad_idx'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    model = Item2Vec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
     sgns = SGNS(embedding=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
 
     if cnfg['cuda']:
@@ -96,7 +96,7 @@ def train(cnfg, valid_users_path=None):
     valid_losses = [np.inf]
     patience_count = 0
 
-    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad_idx'],
+    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                         cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
@@ -106,7 +106,7 @@ def train(cnfg, valid_users_path=None):
         writer.add_scalar("Loss/train", train_loss, epoch)
 
         if valid_users_path is not None:
-            valid_loss = calc_loss_on_set(sgns, valid_users_path, item2idx['pad_idx'], cnfg['mini_batch'],
+            valid_loss = calc_loss_on_set(sgns, valid_users_path, item2idx['pad'], cnfg['mini_batch'],
                                           cnfg['window_size'], cnfg['num_workers'])
             writer.add_scalar("Loss/validation", valid_loss, epoch)
             print(f'valid loss:{valid_loss}')
