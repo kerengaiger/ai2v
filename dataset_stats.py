@@ -23,7 +23,7 @@ def main():
     users_sizes = df.groupby('usr_id').itm_id.size().reset_index()
     users_sizes.groupby('itm_id').usr_id.size().to_csv(args.output_hist)
     plt.hist(df.groupby('usr_id').itm_id.size(), bins=1000)
-    plt.show()
+    plt.savefig(f'{args.output_hist.split(".")[0]}.png')
     # df.groupby('usr_id').itm_id.size().hist(bins=1000)
 
 
