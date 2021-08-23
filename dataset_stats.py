@@ -18,7 +18,7 @@ def main():
     items = list(df['itm'].sort_values().unique())
     items_dict = {k: v for k, v in zip(items, range(len(items)))}
     df['itm_id'] = df['itm'].map(items_dict)
-    print('mean sequence:', df['usr_id'].itm_id.size().mean())
+    print('mean sequence:', df.groupby('usr_id').itm_id.size().mean())
     users_sizes = df.groupby('usr_id').itm_id.size().reset_index()
     users_sizes.groupby('itm_id').user.size().to_csv(args.output_hist)
     df.groupby('usr_id').itm_id.size().hist(bins=1000)
