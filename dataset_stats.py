@@ -25,7 +25,7 @@ def main():
     users_sizes = df.groupby('usr_id').itm_id.size().reset_index()
     users_sizes.groupby('itm_id').usr_id.size().to_csv(args.output_hist)
     plt.hist(df.groupby('usr_id').itm_id.size(), bins=1000)
-    plt.savefig(os.path.join(args.data_dir, args.out_full_corpus))
+    plt.savefig(os.path.join(args.output_dir, args.output_hist))
     # df.groupby('usr_id').itm_id.size().hist(bins=1000)
 
 
