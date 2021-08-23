@@ -1,5 +1,6 @@
 import pandas as pd
 import argparse
+import matplotlib.pyplot as plt
 
 
 def parse_args():
@@ -21,7 +22,9 @@ def main():
     print('mean sequence:', df.groupby('usr_id').itm_id.size().mean())
     users_sizes = df.groupby('usr_id').itm_id.size().reset_index()
     users_sizes.groupby('itm_id').usr_id.size().to_csv(args.output_hist)
-    df.groupby('usr_id').itm_id.size().hist(bins=1000)
+    plt.hist(df.groupby('usr_id').itm_id.size(), bins=1000)
+    plt.show()
+    # df.groupby('usr_id').itm_id.size().hist(bins=1000)
 
 
 if __name__ == '__main__':
