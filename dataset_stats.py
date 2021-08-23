@@ -20,7 +20,7 @@ def main():
     df['itm_id'] = df['itm'].map(items_dict)
     print('mean sequence:', df.groupby('usr_id').itm_id.size().mean())
     users_sizes = df.groupby('usr_id').itm_id.size().reset_index()
-    users_sizes.groupby('itm_id').user.size().to_csv(args.output_hist)
+    users_sizes.groupby('itm_id').usr_id.size().to_csv(args.output_hist)
     df.groupby('usr_id').itm_id.size().hist(bins=1000)
 
 
