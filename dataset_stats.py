@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import argparse
 import matplotlib.pyplot as plt
 
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str)
+    parser.add_argument('--output_dir', type=str)
     parser.add_argument('--output_hist', type=str)
     return parser.parse_args()
 
@@ -23,7 +25,7 @@ def main():
     users_sizes = df.groupby('usr_id').itm_id.size().reset_index()
     users_sizes.groupby('itm_id').usr_id.size().to_csv(args.output_hist)
     plt.hist(df.groupby('usr_id').itm_id.size(), bins=1000)
-    plt.savefig(f'{args.output_hist.split(".")[0]}.png')
+    plt.savefig(os.path.join(args.data_dir, args.out_full_corpus))
     # df.groupby('usr_id').itm_id.size().hist(bins=1000)
 
 
