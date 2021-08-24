@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
-    parser.add_argument('--trials', type=int, default=5, help="number of trials ")
+    parser.add_argument('--trials', type=int, default=15, help="number of trials ")
     parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
     parser.add_argument('--num_workers', type=int, default=8, help="num or workwrs to load dataloader")
     parser.add_argument('--accumulation_steps', type=int, default=2, help="number of batches to accumulate "
@@ -105,14 +105,14 @@ def main():
     else:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [5e-2, 1e-1]},
-                {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.5]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-3, 1e-1]},
+                {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 24, 30, 36, 50, 100]},
+                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [16, 18, 20, 22, 24, 26, 32, 40, 46, 50, 56, 60]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
                 {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
                 {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4, 5]},
-                {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2, 3]},
+                {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
                 {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
                 {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
