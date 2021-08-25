@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--ic', type=str, default='ic.dat', help='items counts file')
     parser.add_argument('--item2idx', type=str, default='item2idx.dat', help='item2index mapping')
     parser.add_argument('--idx2item', default='idx2item.dat', help='index2item mapping')
-    parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
+    parser.add_argument('--max_epoch', type=int, default=100, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=15, help="number of trials ")
