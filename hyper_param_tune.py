@@ -104,7 +104,7 @@ def main():
             parameters=[
                 {"name": "lr", "type": "range", "value_type": "float", "bounds": [5e-2, 8e-2]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [13, 14, 15, 16, 20]},
+                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
                 {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 164, 200, 256]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
