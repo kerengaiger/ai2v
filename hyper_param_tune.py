@@ -105,7 +105,7 @@ def main():
     else:
         best_parameters, values, _experiment, _cur_model = optimize(
             parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-3, 1e-1]},
+                {"name": "lr", "type": "range", "value_type": "float", "bounds": [1e-3, 5e-2]},
                 {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
                 {"name": "e_dim", "type": "choice", "value_type": "int", "values": [16, 18, 20, 22, 24, 26, 32, 40, 46, 50, 56, 60]},
