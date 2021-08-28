@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument('--out_full_train', type=str, default='full_train.txt', help="output file")
     parser.add_argument('--out_test', type=str, default='test.txt', help="test lists")
     parser.add_argument('--out_test_raw', type=str, default='test_raw.csv', help="file containing raw usr and item test ids")
-    parser.add_argument('--out_corpus_raw', type=str, default='test_raw.csv', help="file containing raw usr and item corpus ids")
+    parser.add_argument('--out_corpus_raw', type=str, default='corpus_raw.csv', help="file containing raw usr and item corpus ids")
     parser.add_argument('--out_train', type=str, default='train.txt', help="train lists")
     parser.add_argument('--out_valid', type=str, default='valid.txt', help="validation lists")
     return parser.parse_args()
