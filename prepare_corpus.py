@@ -152,7 +152,7 @@ def main():
             os.path.join(args.data_dir, args.out_test_raw), header=False, index=False)
         users_train = [[usr] * len(itms_lst) for usr, itms_lst in zip(valid_users, itms_lsts)]
         users_train = [usr for sublist in users_train for usr in sublist]
-        items_train = [item for sublist in full_train_item_lsts for item in sublist]
+        items_train = [item for sublist in itms_lsts for item in sublist]
         pd.DataFrame({'usr': users_train, 'itm': items_train}).to_csv(
             os.path.join(args.data_dir, args.out_corpus_raw), header=False, index=False)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
