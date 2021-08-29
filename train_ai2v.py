@@ -36,7 +36,6 @@ def parse_args():
     parser.add_argument('--hr_out', type=str, default='hr.csv', help="hit at K for each test row")
     parser.add_argument('--rr_out', type=str, default='mrr.csv', help="hit at K for each test row")
     parser.add_argument('--best_cnfg', type=str, default='best_cnfg.pkl', help="best cnfg of hyper params")
-    parser.add_argument('--max_epochs', type=int, default=50, help='number of early stop epochs to train the model over')
 
     return parser.parse_args()
 
@@ -163,6 +162,7 @@ def main():
     args = parse_args()
     cnfg = pickle.load(open(args.best_cnfg, "rb"))
     args = vars(args)
+    cnfg['max_epoch'] = cnfg['best_epoch']
     train({**cnfg, **args})
 
 
