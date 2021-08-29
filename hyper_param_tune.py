@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
-    parser.add_argument('--trials', type=int, default=5, help="number of trials ")
+    parser.add_argument('--trials', type=int, default=15, help="number of trials ")
     parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
     parser.add_argument('--num_workers', type=int, default=8, help="num workers to load train_loader")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
@@ -104,7 +104,7 @@ def main():
             parameters=[
                 {"name": "lr", "type": "range", "value_type": "float", "bounds": [5e-2, 8e-2]},
                 {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [13, 14, 15, 16, 20]},
+                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
                 {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
                 {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 164, 200, 256]},
                 {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
