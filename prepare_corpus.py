@@ -150,6 +150,9 @@ def main():
         pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(
             os.path.join(args.data_dir, args.out_test_raw), header=False, index=False)
         train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
+        users_train = [[usr] * len(itms_lst) for usr, itms_lst in zip(valid_users, itms_lsts)]
+        users_train = [usr for sublist in users_train for usr in sublist]
+        items_train = [item for sublist in itms_lsts for item in sublist]
     else:
         print('Split strategy not valid')
         return
