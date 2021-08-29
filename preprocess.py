@@ -128,7 +128,7 @@ def main():
     preprocess.build(os.path.join(args.data_dir, args.vocab), args.ic_out, args.vocab_out, args.idx2item, args.item2idx,
                      max_vocab=args.max_vocab)
     print("Full train")
-    preprocess.convert(os.path.join(args.data_dir, args.full_corpus), os.path.join(args.data_dir, args.full_train_file),
+    preprocess.convert(os.path.join(args.data_dir, args.full_train), os.path.join(args.data_dir, args.full_train_file),
                        args.max_user)
     print("Test")
     preprocess.convert(os.path.join(args.data_dir, args.test_corpus), os.path.join(args.data_dir, args.test_file),
