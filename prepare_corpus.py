@@ -36,7 +36,10 @@ def parse_args():
     parser.add_argument('--out_full_corpus', type=str, default='full_corpus.txt', help="output file")
     parser.add_argument('--out_full_train', type=str, default='full_train.txt', help="output file")
     parser.add_argument('--out_test', type=str, default='test.txt', help="test lists")
-    parser.add_argument('--out_test_raw', type=str, default='test_raw.csv', help="file containing raw usr and item test ids")
+    parser.add_argument('--out_test_raw', type=str, default='test_raw.csv',
+                        help="file containing raw usr and item test ids")
+    parser.add_argument('--out_corpus_raw', type=str, default='corpus_raw.csv',
+                        help="file containing raw usr and item corpus ids")
     parser.add_argument('--out_train', type=str, default='train.txt', help="train lists")
     parser.add_argument('--out_valid', type=str, default='valid.txt', help="validation lists")
     return parser.parse_args()
@@ -149,10 +152,12 @@ def main():
         full_train_item_lsts, test_item_lsts = split_usr_itms(itms_lsts)
         pd.DataFrame({'usr': valid_users, 'itm': [usr[-1] for usr in itms_lsts]}).to_csv(
             os.path.join(args.data_dir, args.out_test_raw), header=False, index=False)
-        train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
-        users_train = [[usr] * len(itms_lst) for usr, itms_lst in zip(valid_users, itms_lsts)]
-        users_train = [usr for sublist in users_train for usr in sublist]
+        users_corpus = [[usr] * len(itms_lst) for usr, itms_lst in zip(valid_users, itms_lsts)]
+        users_corpus = [usr for sublist in users_corpus for usr in sublist]
         items_train = [item for sublist in itms_lsts for item in sublist]
+        pd.DataFrame({'usr': users_corpus, 'itm': items_train}).to_csv(
+            os.path.join(args.data_dir, args.out_corpus_raw), header=False, index=False)
+        train_item_lsts, validation_item_lsts = split_usr_itms(full_train_item_lsts)
     else:
         print('Split strategy not valid')
         return
