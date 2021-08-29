@@ -153,7 +153,7 @@ def main():
     args = parse_args()
     cnfg = pickle.load(open(args.best_cnfg, "rb"))
     args = vars(args)
-    cnfg['max_epoch'] = cnfg['best_epoch']
+    cnfg['max_epoch'] = int(cnfg['best_epoch'])
     train({**cnfg, **args})
 
 
