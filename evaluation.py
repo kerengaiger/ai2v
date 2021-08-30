@@ -51,6 +51,9 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
 
     eval_set_df['pred_loc'] = np.nan
     for i, (user_itemids, target_item) in enumerate(pbar):
+        max_len = model.sasrec.pos_emb.weight.shape[0]
+        if len(user_itemids) > max_len:
+            user_itemids = user_itemids[-max_len:]
         items_ranked = model.inference(user_itemids).argsort()
         all_items = items_ranked[:][::-1]
         loc = np.where(all_items == target_item)[0][0] + 1
