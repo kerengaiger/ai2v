@@ -80,7 +80,7 @@ class AttentiveItemToVec(nn.Module):
 
 class SGNS(nn.Module):
 
-    def __init__(self, ai2v, vocab_size=20000, n_negs=10, weights=None):
+    def __init__(self, ai2v, vocab_size=20000, n_negs=10, weights=None, loss_method='CCE'):
         super(SGNS, self).__init__()
         self.ai2v = ai2v
         self.vocab_size = vocab_size
@@ -90,6 +90,7 @@ class SGNS(nn.Module):
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
             self.weights = FT(wf)
+        self.loss_method = loss_method
 
     def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
         return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
@@ -125,5 +126,19 @@ class SGNS(nn.Module):
 
         sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
 
-        soft = sim.softmax(dim=1) + 1e-6
-        return -soft[:, 0].log().sum()
+        if self.loss_method == 'CCE':  # This option is the default option.
+            soft = sim.softmax(dim=1) + 1e-6
+            print(-soft[:, 0].log().sum())
+            return -soft[:, 0].log().sum()
+
+        if self.loss_method == 'BCE':
+            soft_pos = sim[:, 0].sigmoid() + 1e-6
+            soft_neg = sim[:, 1:].neg().sigmoid() + 1e-6
+            print((-soft_pos.log().sum()) + (-soft_neg.log().sum()))
+            return (-soft_pos.log().sum()) + (-soft_neg.log().sum())
+
+        if self.loss_method == 'Hinge':
+            soft_pos = t.maximum((t.ones_like(sim[:, 0]) - sim[:, 0]), t.zeros_like(sim[:, 0])) + 1e-6
+            soft_neg = t.maximum((t.ones_like(sim[:, 1:]) - (-sim[:, 1:])), t.zeros_like(sim[:, 1:])) + 1e-6
+            print(soft_pos.sum() + soft_neg.sum())
+            return soft_pos.sum() + soft_neg.sum()
