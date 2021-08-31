@@ -90,7 +90,7 @@ def train(cnfg, valid_users_path=None):
     vocab_size = len(idx2item)
 
     model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights)
+    sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights, loss_method=cnfg['loss_method'])
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
