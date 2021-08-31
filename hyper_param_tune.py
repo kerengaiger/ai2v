@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="out file name of hr for test set")
     parser.add_argument('--rr_out', type=str, default='rr_out.csv', help="out file name of rr for test set")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
-
+    parser.add_argument('--loss_method', type=str, default='CCE', help="the loss method")
     return parser.parse_args()
 
 
@@ -128,6 +128,7 @@ def main():
                 {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
                 {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
                 {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
+                {"name": "loss_method", "type": "fixed", "value_type": "str", "value": args.loss_method},
             ],
             evaluation_function=train_evaluate_ai2v,
             minimize=True,
