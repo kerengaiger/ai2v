@@ -8,13 +8,17 @@ from torch import FloatTensor as FT
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, embedding_size, d_alpha=60, N=1):
+    def __init__(self, padding_idx, vocab_size, embedding_size, attn_embedding_size, d_alpha=60, num_heads=1,
+                 num_blocks=1, dropout_rate=0):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
+        self.attn_embedding_size = attn_embedding_size
         self.d_alpha = d_alpha
         self.pad_idx = padding_idx
+        self.num_heads = num_heads
+        self.num_blocks = num_blocks
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
@@ -27,18 +31,23 @@ class AttentiveItemToVec(nn.Module):
                                                    t.zeros(1, self.embedding_size)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
-        self.Ac = nn.Linear(self.embedding_size, self.d_alpha)
-        self.At = nn.Linear(self.embedding_size, self.d_alpha)
-        self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
-        self.softmax = nn.Softmax(dim=-1)
-        self.Bc = nn.Linear(self.embedding_size, self.embedding_size)
         self.Bt = nn.Linear(self.embedding_size, self.embedding_size)
-        self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
         self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
         self.W1 = nn.Linear(self.embedding_size, 1)
         self.relu = nn.ReLU()
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
+        self.attention_layers = t.nn.ModuleList()
+        self.attention_layernorms = t.nn.ModuleList()  # to be Q for self-attention
+
+        for _ in range(num_blocks):
+            new_attn_layernorm = t.nn.LayerNorm(attn_embedding_size, eps=1e-8)
+            self.attention_layernorms.append(new_attn_layernorm)
+
+            new_attn_layer = t.nn.MultiheadAttention(attn_embedding_size,
+                                                     num_heads,
+                                                     dropout_rate)
+            self.attention_layers.append(new_attn_layer)
 
     def calc_attention(self, batch_titems, batch_citems):
         v_l_j = self.forward_t(batch_titems)
@@ -52,22 +61,11 @@ class AttentiveItemToVec(nn.Module):
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
-        c_vecs = self.Ac(u_l_m).unsqueeze(1)
-        t_vecs = self.At(v_l_j).unsqueeze(2)
-
-        cosine_sim = self.cos(t_vecs, c_vecs)
         if not inference:
-            cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
-                batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
+            
 
-        attention_weights = self.softmax(cosine_sim)
+        else:
 
-        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
-
-        alpha_j_1 = weighted_u_l_m.sum(2)
-        z_j_1 = self.R(alpha_j_1)
-
-        return z_j_1
 
     def forward_t(self, data):
         v = data.long()
