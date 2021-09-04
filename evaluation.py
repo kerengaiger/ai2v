@@ -67,7 +67,7 @@ def calc_attention(model, eval_set_lst, out_file, device):
         batch_titems = batch_titems.to(device)
         batch_citems = torch.tensor([user_itemids])
         batch_citems = batch_citems.to(device)
-        attention_weights = model.ai2v.calc_attention(batch_titems, batch_citems)
+        _, attention_weights = model.ai2v(batch_titems, batch_citems, inference=True)
         lst.append(attention_weights[0][0].cpu().detach().numpy())
     pickle.dump(lst, open(out_file, 'wb'))
 
