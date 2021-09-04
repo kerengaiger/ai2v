@@ -59,6 +59,7 @@ def train(cnfg, valid_users_path=None):
     cnfg['padding_idx'] = item2idx['pad']
     cnfg['vocab_size'] = vocab_size
     model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
+    print(model_init)
 
     if cnfg['cuda']:
         device = 'cuda:' + str(cnfg['device'])
