@@ -112,7 +112,7 @@ def train(cnfg, valid_users_path=None):
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=cnfg['num_workers'],
                                   pin_memory=True)
-        train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        train_loss, sgns = sgns.run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
         writer.add_scalar("Loss/train", train_loss, epoch)
 
         if valid_users_path is not None:
