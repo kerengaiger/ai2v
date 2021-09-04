@@ -3,6 +3,7 @@
 import numpy as np
 import torch as t
 import torch.nn as nn
+from tqdm import tqdm
 
 from torch import FloatTensor as FT
 from sklearn.metrics.pairwise import cosine_similarity
@@ -90,3 +91,23 @@ class SGNS(nn.Module):
         user2vec = np.expand_dims(self.represent_user(user_itemids), axis=0)
         user_sim = cosine_similarity(user2vec, self.embedding.tvectors.weight.data.cpu().numpy()).squeeze()
         return user_sim
+
+    def run_epoch(self, train_dl, epoch, sgns, optim):
+        pbar = tqdm(train_dl)
+        pbar.set_description("[Epoch {}]".format(epoch))
+        train_losses = []
+
+        for batch_titems, batch_citems in pbar:
+            if next(sgns.parameters()).is_cuda:
+                batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
+            loss = sgns(batch_titems, batch_citems)
+
+            train_losses.append(loss.item())
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+            pbar.set_postfix(train_loss=loss.item())
+
+        train_loss = np.array(train_losses).mean()
+        print(f'train_loss: {train_loss}')
+        return train_loss, sgns
