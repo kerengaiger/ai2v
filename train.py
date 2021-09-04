@@ -55,6 +55,8 @@ def train(cnfg, valid_users_path=None):
 
     model_base_c = getattr(models, cnfg['model'])
     sgns_c = getattr(models, 'sgns_' + cnfg['model'])
+    print('sgns_' + cnfg['model'])
+    print(sgns_c)
 
     if cnfg['cuda']:
         device = 'cuda:' + str(cnfg['device'])
