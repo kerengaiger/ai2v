@@ -4,10 +4,8 @@ import pathlib
 
 from ax.service.managed_loop import optimize
 
-from train_i2v import train_evaluate as train_evaluate_i2v
-from train_i2v import train as train_i2v
-from train_ai2v import train_evaluate as train_evaluate_ai2v
-from train_ai2v import train as train_ai2v
+from train import train_evaluate, train
+
 
 I2V = 'i2v'
 AI2V = 'ai2v'
@@ -34,23 +32,15 @@ def parse_args():
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=1000, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
-    parser.add_argument('--hr_out', type=str, default='hr_out.csv', help="out file name of hr for test set")
-    parser.add_argument('--rr_out', type=str, default='rr_out.csv', help="out file name of rr for test set")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
     parser.add_argument('--loss_method', type=str, default='CCE', help="the loss method")
     return parser.parse_args()
 
 
-def i2v_full_train(cnfg, epochs, args):
+def full_train(cnfg, epochs, args):
     cnfg['max_epoch'] = int(epochs)
     cnfg['train'] = args.full_train
-    train_i2v(cnfg)
-
-
-def ai2v_full_train(cnfg, epochs, args):
-    cnfg['max_epoch'] = int(epochs)
-    cnfg['train'] = args.full_train
-    train_ai2v(cnfg)
+    train(cnfg)
 
 
 def main():
