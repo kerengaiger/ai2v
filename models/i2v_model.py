@@ -58,6 +58,7 @@ class SGNS(nn.Module):
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
             self.weights = FT(wf)
+        self.loss_methos = loss_method
 
     def forward(self, titems, citems):
         batch_size = titems.size()[0]
@@ -73,9 +74,12 @@ class SGNS(nn.Module):
         nvectors = self.embedding.forward_t(nitems).neg()
 
         all_tvectors = t.cat([tvectors.unsqueeze(1), nvectors], dim=1)
-        loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
-
-        return -loss.sigmoid().log().sum(2).sum(1).mean()
+        if self.loss_method == 'CCE':
+            loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
+            loss = -loss.sigmoid().log().sum(2).sum(1).mean()
+            return loss
+        else:
+            raise NotImplementedError
 
     def represent_user(self, user_itemids):
         context_vecs = self.embedding.cvectors.weight.data.cpu().numpy()
