@@ -49,9 +49,12 @@ def main():
     best_parameters, values, _experiment, _cur_model = optimize(
         parameters=[
             {"name": "lr", "type": "range", "value_type": "float", "bounds": [4e-2, 1e-1]},
+            {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
             {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
             {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
             {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
+            {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2, 3]},
+            {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [1, 2]},
             {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 200, 256]},
             {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
             {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
