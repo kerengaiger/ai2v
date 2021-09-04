@@ -10,12 +10,12 @@ from torch import FloatTensor as FT
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, embedding_size, num_heads,
+    def __init__(self, padding_idx, vocab_size, e_dim, num_heads,
                  num_blocks, dropout_rate):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
-        self.embedding_size = embedding_size
+        self.embedding_size = e_dim
         self.pad_idx = padding_idx
         self.num_heads = num_heads
         self.num_blocks = num_blocks

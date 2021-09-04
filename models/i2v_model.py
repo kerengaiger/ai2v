@@ -23,11 +23,11 @@ class Bundler(nn.Module):
 
 class Item2Vec(Bundler):
 
-    def __init__(self, padding_idx, vocab_size=20000, embedding_size=300):
+    def __init__(self, padding_idx, vocab_size=20000, e_dim=300):
         super(Item2Vec, self).__init__()
         self.name = 'i2v'
         self.vocab_size = vocab_size
-        self.embedding_size = embedding_size
+        self.embedding_size = e_dim
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.embedding_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size), t.zeros(1, self.embedding_size)]))
