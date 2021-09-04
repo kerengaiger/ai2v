@@ -14,8 +14,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from i2v_model import Item2Vec
-from i2v_model import SGNS
+from models.i2v_model import Item2Vec
+from models.i2v_model import SGNS
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset
 
 import argparse

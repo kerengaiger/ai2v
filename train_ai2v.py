@@ -13,8 +13,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from ai2v_model import AttentiveItemToVec
-from ai2v_model import SGNS
+from models.ai2v_model import AttentiveItemToVec
+from models.ai2v_model import SGNS
 
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset
 
