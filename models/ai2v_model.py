@@ -128,7 +128,7 @@ class SGNS(nn.Module):
 
         if self.loss_method == 'CCE':  # This option is the default option.
             soft = sim.softmax(dim=1) + 1e-6
-            print(-soft[:, 0].log().sum())
+            # print(-soft[:, 0].log().sum())
             return -soft[:, 0].log().sum()
 
         if self.loss_method == 'BCE':
@@ -142,3 +142,6 @@ class SGNS(nn.Module):
             soft_neg = t.maximum((t.ones_like(sim[:, 1:]) - (-sim[:, 1:])), t.zeros_like(sim[:, 1:])) + 1e-6
             print(soft_pos.sum() + soft_neg.sum())
             return soft_pos.sum() + soft_neg.sum()
+
+        else:
+            raise NotImplementedError
