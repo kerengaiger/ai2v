@@ -13,11 +13,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from models.ai2v_model import AttentiveItemToVec
-from models.ai2v_model import SGNS
-
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset
-
+import models
 import argparse
 
 
@@ -38,30 +35,6 @@ def parse_args():
     parser.add_argument('--best_cnfg', type=str, default='best_cnfg.pkl', help="best cnfg of hyper params")
 
     return parser.parse_args()
-
-
-def run_epoch(train_dl, epoch, sgns, optim, pad_idx):
-    pbar = tqdm(train_dl)
-    pbar.set_description("[Epoch {}]".format(epoch))
-    train_loss = 0
-
-    srt = datetime.datetime.now().replace(microsecond=0)
-    for batch_titems, batch_citems in pbar:
-        if next(sgns.parameters()).is_cuda:
-            batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
-        mask_pad_ids = (batch_citems == pad_idx)
-        loss = sgns(batch_titems, batch_citems, mask_pad_ids)
-        train_loss += loss.item()
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
-        pbar.set_postfix(train_loss=loss.item())
-
-    train_loss = train_loss / len(pbar)
-    print(f'train_loss: {train_loss}')
-    end = datetime.datetime.now().replace(microsecond=0)
-    print('epoch time: ', end-srt)
-    return train_loss, sgns
 
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size, num_workers):
@@ -89,8 +62,11 @@ def train(cnfg, valid_users_path=None):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = AttentiveItemToVec(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = SGNS(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights, loss_method=cnfg['loss_method'])
+    model_base_c = getattr(models, cnfg['model'])
+    sgns_c = getattr(models, 'sgns_' + cnfg['model'])
+    model = model_base_c(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    sgns = sgns_c(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
+                  loss_method=cnfg['loss_method'])
 
     if cnfg['cuda']:
         sgns = sgns.cuda()
