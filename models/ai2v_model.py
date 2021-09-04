@@ -82,7 +82,7 @@ class AttentiveItemToVec(nn.Module):
 
 class SGNS(nn.Module):
 
-    def __init__(self, base_model, vocab_size=20000, n_negs=10, weights=None, loss_method='CCE'):
+    def __init__(self, base_model, vocab_size=20000, n_negs=10, weights=None, loss_method='CCE', device='cpu'):
         super(SGNS, self).__init__()
         self.ai2v = base_model
         self.vocab_size = vocab_size
@@ -93,6 +93,7 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
         self.loss_method = loss_method
+        self.device = device
 
     def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
         return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
@@ -104,9 +105,9 @@ class SGNS(nn.Module):
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
-        if next(self.parameters()).is_cuda:
-            citems = citems.cuda()
-            all_titems = all_titems.cuda()
+
+        citems, all_titems = citems.to(self.device), all_titems.to(self.device)
+
         sub_users = self.ai2v(all_titems, citems, mask_pad_ids=None, inference=True)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
@@ -117,8 +118,7 @@ class SGNS(nn.Module):
             batch_nitems = t.multinomial(self.weights, batch_titems.size()[0] * self.n_negs, replacement=True).view(batch_titems.size()[0], -1)
         else:
             batch_nitems = FT(batch_titems.size()[0], self.n_negs).uniform_(0, self.vocab_size - 1).long()
-        if next(self.parameters()).is_cuda:
-            batch_nitems = batch_nitems.cuda()
+        batch_nitems = batch_nitems.to(self.device)
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
@@ -155,8 +155,7 @@ class SGNS(nn.Module):
 
         srt = datetime.datetime.now().replace(microsecond=0)
         for batch_titems, batch_citems in pbar:
-            if next(sgns.parameters()).is_cuda:
-                batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
+            batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
             mask_pad_ids = (batch_citems == pad_idx)
             loss = sgns(batch_titems, batch_citems, mask_pad_ids)
             train_loss += loss.item()

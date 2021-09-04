@@ -49,7 +49,7 @@ class Item2Vec(Bundler):
 
 class SGNS(nn.Module):
 
-    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE'):
+    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE', device='cpu'):
         super(SGNS, self).__init__()
         self.embedding = base_model
         self.vocab_size = vocab_size
@@ -60,6 +60,7 @@ class SGNS(nn.Module):
             wf = wf / wf.sum()
             self.weights = FT(wf)
         self.loss_methos = loss_method
+        self.device = device
 
     def forward(self, titems, citems):
         batch_size = titems.size()[0]
@@ -68,8 +69,7 @@ class SGNS(nn.Module):
             nitems = t.multinomial(self.weights, batch_size * context_size * self.n_negs, replacement=True).view(batch_size, -1)
         else:
             nitems = FT(batch_size, self.n_negs).uniform_(0, self.vocab_size - 1).long()
-        if next(self.parameters()).is_cuda:
-            nitems = nitems.cuda()
+        nitems = nitems.to(self.device)
         tvectors = self.embedding.forward_t(titems)
         cvectors = self.embedding.forward_c(citems)
         nvectors = self.embedding.forward_t(nitems).neg()
@@ -98,8 +98,7 @@ class SGNS(nn.Module):
         train_losses = []
 
         for batch_titems, batch_citems in pbar:
-            if next(sgns.parameters()).is_cuda:
-                batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
+            batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
             loss = sgns(batch_titems, batch_citems)
 
             train_losses.append(loss.item())
