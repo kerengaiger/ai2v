@@ -1,6 +1,3 @@
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "2"
-
 import argparse
 import pickle
 import pathlib
@@ -33,7 +30,6 @@ def parse_args():
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=15, help="number of trials ")
-    parser.add_argument('--k', type=int, default=20, help="k to use when calculating hr_k and mrr_k")
     parser.add_argument('--num_workers', type=int, default=8, help="num workers to load train_loader")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--window_size', type=int, default=1000, help="window size")
@@ -59,86 +55,42 @@ def ai2v_full_train(cnfg, epochs, args):
 
 def main():
     args = parse_args()
-    if args.model == I2V:
-        best_parameters, values, _experiment, _cur_model = optimize(
-            parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [4e-2, 1e-1]},
-                {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
-                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
-                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 200, 256]},
-                {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
-                {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
-                {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
-                {"name": "unk", "type": "fixed", "value_type": "str", "value": args.unk},
-                {"name": "cuda", "type": "fixed", "value": args.cuda},
-                {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
-                {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
-                {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
-                {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-                {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
-                {"name": "ic", "type": "fixed", "value_type": "str", "value": args.ic},
-                {"name": "vocab", "type": "fixed", "value_type": "str", "value": args.vocab},
-                {"name": "item2idx", "type": "fixed", "value_type": "str", "value": args.item2idx},
-                {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
-                {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
-                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
-                {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
-                {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
-                {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
-                {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
-            ],
-            evaluation_function=train_evaluate_i2v,
-            minimize=True,
-            objective_name='valid_loss',
-            total_trials=args.trials
-        )
+    best_parameters, values, _experiment, _cur_model = optimize(
+        parameters=[
+            {"name": "lr", "type": "range", "value_type": "float", "bounds": [4e-2, 1e-1]},
+            {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
+            {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
+            {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
+            {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 200, 256]},
+            {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
+            {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
+            {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
+            {"name": "unk", "type": "fixed", "value_type": "str", "value": args.unk},
+            {"name": "cuda", "type": "fixed", "value": args.cuda},
+            {"name": "device", "type": "fixed", "value_type": "int", "value": args.device},
+            {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
+            {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
+            {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
+            {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
+            {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
+            {"name": "ic", "type": "fixed", "value_type": "str", "value": args.ic},
+            {"name": "vocab", "type": "fixed", "value_type": "str", "value": args.vocab},
+            {"name": "item2idx", "type": "fixed", "value_type": "str", "value": args.item2idx},
+            {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
+            {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
+            {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
+            {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
+            {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
+        ],
+        evaluation_function=train_evaluate(),
+        minimize=True,
+        objective_name='valid_loss',
+        total_trials=args.trials
+    )
 
-        best_parameters['best_epoch'] = values[0]['early_stop_epoch']
-        pickle.dump(best_parameters, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
-        i2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
-
-    else:
-        best_parameters, values, _experiment, _cur_model = optimize(
-            parameters=[
-                {"name": "lr", "type": "range", "value_type": "float", "bounds": [5e-2, 8e-2]},
-                {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-                {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
-                {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
-                {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 164, 200, 256]},
-                {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
-                {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
-                {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
-                {"name": "unk", "type": "fixed", "value_type": "str", "value": args.unk},
-                {"name": "cuda", "type": "fixed", "value": args.cuda},
-                {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
-                {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
-                {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
-                {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-                {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
-                {"name": "ic", "type": "fixed", "value_type": "str", "value": args.ic},
-                {"name": "vocab", "type": "fixed", "value_type": "str", "value": args.vocab},
-                {"name": "item2idx", "type": "fixed", "value_type": "str", "value": args.item2idx},
-                {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
-                {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
-                {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-                {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
-                {"name": "k", "type": "fixed", "value_type": "int", "value": args.k},
-                {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
-                {"name": "hr_out", "type": "fixed", "value_type": "str", "value": args.hr_out},
-                {"name": "rr_out", "type": "fixed", "value_type": "str", "value": args.rr_out},
-                {"name": "loss_method", "type": "fixed", "value_type": "str", "value": args.loss_method},
-            ],
-            evaluation_function=train_evaluate_ai2v,
-            minimize=True,
-            objective_name='valid_loss',
-            total_trials=args.trials
-        )
-
-        best_parameters['best_epoch'] = values[0]['early_stop_epoch']
-        pickle.dump(best_parameters, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
-        ai2v_full_train(best_parameters, values[0]['early_stop_epoch'], args)
+    best_parameters['best_epoch'] = values[0]['early_stop_epoch']
+    pickle.dump(best_parameters, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
+    full_train(best_parameters, values[0]['early_stop_epoch'], args)
 
 
 if __name__ == '__main__':
