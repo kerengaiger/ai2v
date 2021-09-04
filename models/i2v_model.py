@@ -48,9 +48,9 @@ class Item2Vec(Bundler):
 
 class SGNS(nn.Module):
 
-    def __init__(self, embedding, vocab_size=20000, n_negs=20, weights=None):
+    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE'):
         super(SGNS, self).__init__()
-        self.embedding = embedding
+        self.embedding = base_model
         self.vocab_size = vocab_size
         self.n_negs = n_negs
         self.weights = None
