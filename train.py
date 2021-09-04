@@ -55,8 +55,6 @@ def train(cnfg, valid_users_path=None):
 
     model_base_c = getattr(models, cnfg['model'])
     sgns_c = getattr(models, 'sgns_' + cnfg['model'])
-    print('sgns_' + cnfg['model'])
-    print(sgns_c)
 
     if cnfg['cuda']:
         device = 'cuda:' + str(cnfg['device'])
@@ -64,8 +62,7 @@ def train(cnfg, valid_users_path=None):
         device = 'cpu'
 
     model = model_base_c(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    print(model)
-    sgns = sgns_c(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
+    sgns = sgns_c(base_model=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
                   loss_method=cnfg['loss_method'], device=device)
     sgns.to(device)
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
