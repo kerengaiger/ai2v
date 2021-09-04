@@ -55,6 +55,9 @@ def train(cnfg, valid_users_path=None):
 
     model_base_c = getattr(models, cnfg['model'])
     sgns_c = getattr(models, 'sgns_' + cnfg['model'])
+
+    cnfg['padding_idx'] = item2idx['pad']
+    cnfg['vocab_size'] = vocab_size
     model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
 
     if cnfg['cuda']:
