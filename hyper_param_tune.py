@@ -30,6 +30,7 @@ def parse_args():
     parser.add_argument('--trials', type=int, default=15, help="number of trials ")
     parser.add_argument('--num_workers', type=int, default=8, help="num workers to load train_loader")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
+    parser.add_argument('--device', type=str, default=0, help="cude device to use")
     parser.add_argument('--window_size', type=int, default=1000, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
