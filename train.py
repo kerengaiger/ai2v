@@ -62,6 +62,7 @@ def train(cnfg, valid_users_path=None):
         device = 'cpu'
 
     model = model_base_c(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    print(model)
     sgns = sgns_c(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
                   loss_method=cnfg['loss_method'], device=device)
     sgns.to(device)
