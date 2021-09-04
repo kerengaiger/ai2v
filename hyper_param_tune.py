@@ -73,7 +73,7 @@ def main():
             {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
             {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
         ],
-        evaluation_function=train_evaluate(),
+        evaluation_function=train_evaluate,
         minimize=True,
         objective_name='valid_loss',
         total_trials=args.trials
