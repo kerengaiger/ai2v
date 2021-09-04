@@ -70,8 +70,10 @@ def main():
             {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
             {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
             {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
+            {"name": "loss_method", "type": "fixed", "value_type": "str", "value": args.loss_method},
             {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
             {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
+
         ],
         evaluation_function=train_evaluate,
         minimize=True,
