@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "2"
-
 import datetime
 import pathlib
 import pickle
@@ -24,14 +21,9 @@ def parse_args():
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='full_train.dat', help="train file name")
     parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
-    parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
-    parser.add_argument('--max_batch_size', type=int, default=200, help="max number of training obs in batch")
+    parser.add_argument('--device', type=str, default=0, help="cude device to use")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
-    parser.add_argument('--k', type=int, default=20, help="k to calc hrr_k and mrr_k evaluation metrics")
-    parser.add_argument('--num_workers', type=int, default=8, help="num workers to load train_loader")
-    parser.add_argument('--hr_out', type=str, default='hr.csv', help="hit at K for each test row")
-    parser.add_argument('--rr_out', type=str, default='mrr.csv', help="hit at K for each test row")
     parser.add_argument('--best_cnfg', type=str, default='best_cnfg.pkl', help="best cnfg of hyper params")
 
     return parser.parse_args()
@@ -45,8 +37,7 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size, n
     valid_losses = []
 
     for batch_titems, batch_citems in pbar:
-        if next(sgns.parameters()).is_cuda:
-            batch_titems, batch_citems = batch_titems.cuda(), batch_citems.cuda()
+        batch_titems, batch_citems = batch_titems.to(sgns.device), batch_citems.to(sgns.device)
 
         mask_pad_ids = (batch_citems == pad_idx)
         loss = sgns(batch_titems, batch_citems, mask_pad_ids)
@@ -64,13 +55,16 @@ def train(cnfg, valid_users_path=None):
 
     model_base_c = getattr(models, cnfg['model'])
     sgns_c = getattr(models, 'sgns_' + cnfg['model'])
-    model = model_base_c(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
-    sgns = sgns_c(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
-                  loss_method=cnfg['loss_method'])
 
     if cnfg['cuda']:
-        sgns = sgns.cuda()
+        device = 'cuda:' + str(cnfg['device'])
+    else:
+        device = 'cpu'
 
+    model = model_base_c(padding_idx=item2idx['pad'], vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    sgns = sgns_c(ai2v=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
+                  loss_method=cnfg['loss_method'], device=device)
+    sgns.to(device)
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
 
