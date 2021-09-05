@@ -131,7 +131,7 @@ def train_evaluate(cnfg):
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
     valid_loss = calc_loss_on_set(best_model, valid_dl, item2idx['pad'])
-    return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
+    return valid_loss, best_epoch
 
 
 def main():
