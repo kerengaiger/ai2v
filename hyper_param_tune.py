@@ -28,13 +28,14 @@ def parse_args():
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=15, help="number of trials ")
-    parser.add_argument('--num_workers', type=int, default=8, help="num workers to load train_loader")
+    parser.add_argument('--num_workers', type=int, default=0, help="num workers to load train_loader")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--device', type=int, default=0, help="cude device to use")
     parser.add_argument('--window_size', type=int, default=1000, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
     parser.add_argument('--loss_method', type=str, default='CCE', help="the loss method")
+    parser.add_argument('--seed', type=int, default=2021, help="seed number")
     return parser.parse_args()
 
 
@@ -51,7 +52,7 @@ def main():
             {"name": "lr", "type": "range", "value_type": "float", "bounds": [4e-2, 1e-1]},
             {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
             {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-            {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 15, 17, 19, 20, 22, 25, 30, 50, 100]},
+            {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 14, 18, 20, 22, 26, 30, 50, 100]},
             {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
             {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2]},
             {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [1, 2, 3]},
@@ -76,6 +77,7 @@ def main():
             {"name": "loss_method", "type": "fixed", "value_type": "str", "value": args.loss_method},
             {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
             {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
+            {"name": "seed", "type": "int", "value": args.seed}
 
         ],
         evaluation_function=train_evaluate,
