@@ -56,3 +56,13 @@ def save_model(cnfg, model, sgns):
     pickle.dump(tvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2tvec.dat'), 'wb'))
     pickle.dump(cvectors, open(pathlib.Path(cnfg['save_dir'], 'idx2cvec.dat'), 'wb'))
     t.save(sgns, pathlib.Path(cnfg['save_dir'], 'model.pt'))
+
+
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    t.random.manual_seed(seed)
+    if t.cuda.is_available():
+        t.cuda.manual_seed_all(seed)
+    t.backends.cudnn.deterministic = True
+    t.backends.cudnn.benchmark = False

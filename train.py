@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from train_utils import save_model, configure_weights, UserBatchIncrementDataset
+from train_utils import save_model, configure_weights, UserBatchIncrementDataset, set_random_seed
 import models
 import argparse
 
@@ -29,10 +29,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size, num_workers):
-    dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, window_size)
-    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
-
+def calc_loss_on_set(sgns, valid_dl, pad_idx):
     pbar = tqdm(valid_dl)
     valid_losses = []
 
@@ -46,7 +43,7 @@ def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size, n
     return np.array(valid_losses).mean()
 
 
-def train(cnfg, valid_users_path=None):
+def train(cnfg, valid_dl=None):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
 
@@ -81,18 +78,19 @@ def train(cnfg, valid_users_path=None):
     patience_count = 0
     t.autograd.set_detect_anomaly(True)
 
-    dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
+    pin_memory = cnfg['num_workers'] > 0
+
+    train_dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                         cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=cnfg['num_workers'],
-                                  pin_memory=True)
+        train_loader = DataLoader(train_dataset, batch_size=cnfg['mini_batch'], shuffle=True,
+                                  num_workers=cnfg['num_workers'], pin_memory=pin_memory)
         train_loss, sgns = sgns.run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
         writer.add_scalar("Loss/train", train_loss, epoch)
 
-        if valid_users_path is not None:
-            valid_loss = calc_loss_on_set(sgns, valid_users_path, item2idx['pad'], cnfg['mini_batch'],
-                                          cnfg['window_size'], cnfg['num_workers'])
+        if valid_dl:
+            valid_loss = calc_loss_on_set(sgns, valid_dl, item2idx['pad'])
             writer.add_scalar("Loss/validation", valid_loss, epoch)
             print(f'valid loss:{valid_loss}')
 
@@ -123,13 +121,16 @@ def train_evaluate(cnfg):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
-
-    best_epoch = train(cnfg, valid_users_path)
+    valid_dataset = UserBatchIncrementDataset(valid_users_path, item2idx['pad'], cnfg['window_size'])
+    pin_memory = cnfg['num_workers'] > 0
+    valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
+                          num_workers=cnfg['num_workers'], pin_memory=pin_memory)
+    set_random_seed(cnfg['seed'])
+    best_epoch = train(cnfg, valid_dl)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
-    valid_loss = calc_loss_on_set(best_model, valid_users_path, item2idx['pad'], cnfg['mini_batch'],
-                                  cnfg['window_size'], cnfg['num_workers'])
+    valid_loss = calc_loss_on_set(best_model, valid_dl, item2idx['pad'])
     return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
 
 
@@ -138,6 +139,7 @@ def main():
     cnfg = pickle.load(open(args.best_cnfg, "rb"))
     args = vars(args)
     cnfg['max_epoch'] = int(cnfg['best_epoch'])
+    set_random_seed(cnfg['seed'])
     train({**cnfg, **args})
 
 
