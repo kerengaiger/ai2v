@@ -42,6 +42,7 @@ def parse_args():
 def objective(trial):
     cnfg = {}
     args = parse_args()
+    args = vars(args)
     cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
     cnfg['dropout_rate'] = trial.suggest_float("dropout_rate", 0.1, 0.6)
     cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
