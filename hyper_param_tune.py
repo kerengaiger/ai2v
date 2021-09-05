@@ -77,7 +77,7 @@ def main():
             {"name": "loss_method", "type": "fixed", "value_type": "str", "value": args.loss_method},
             {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
             {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
-            {"name": "seed", "type": "int", "value": args.seed}
+            {"name": "seed", "type": "fixed", "value_type": "int", "value": args.seed}
 
         ],
         evaluation_function=train_evaluate,
