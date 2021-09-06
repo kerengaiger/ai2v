@@ -64,7 +64,7 @@ class AttentiveItemToVec(nn.Module):
         if [param for param in self.parameters()][0].is_cuda:
             self.pos_bias.cuda()
 
-        batch_pos_bias = self.pos_bias.repeat(batch_titems[0], batch_titems[1], 1)
+        batch_pos_bias = self.pos_bias.repeat(batch_titems.shape[0], batch_titems.shape[1], 1)
         cosine_sim = cosine_sim + batch_pos_bias
 
         if not inference:
