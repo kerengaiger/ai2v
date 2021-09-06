@@ -99,7 +99,8 @@ def train(cnfg, valid_users_path=None):
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
 
-    model = AttentiveItemToVec(padding_idx=pad_idx, vocab_size=vocab_size, embedding_size=cnfg['e_dim'])
+    model = AttentiveItemToVec(padding_idx=pad_idx, vocab_size=vocab_size, embedding_size=cnfg['e_dim'],
+                               window_size=cnfg['window_size'])
     sasrec = SASRec(item_num=vocab_size, padding_idx=pad_idx, device=device, embedding_size=cnfg['e_dim'],
                     max_len=cnfg['window_size'], dropout_rate=cnfg['dropout_rate'], num_blocks=cnfg['num_blocks'],
                     num_heads=cnfg['num_heads'])

@@ -9,11 +9,12 @@ from torch import FloatTensor as FT
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, embedding_size, d_alpha=60, N=1):
+    def __init__(self, padding_idx, vocab_size, embedding_size, window_size, d_alpha=60, N=1):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
+        self.window_size = window_size
         self.d_alpha = d_alpha
         self.pad_idx = padding_idx
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
@@ -38,8 +39,11 @@ class AttentiveItemToVec(nn.Module):
         self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
         self.W1 = nn.Linear(self.embedding_size, 1)
         self.relu = nn.ReLU()
-        self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
+        self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size,
+                                                               0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
+        self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
+                                                                   0.5 / self.window_size))
 
     def calc_attention(self, batch_titems, batch_citems):
         v_l_j = self.forward_t(batch_titems)
@@ -57,6 +61,12 @@ class AttentiveItemToVec(nn.Module):
         t_vecs = self.At(v_l_j).unsqueeze(2)
 
         cosine_sim = self.cos(t_vecs, c_vecs)
+        if [param for param in self.parameters()][0].is_cuda:
+            self.pos_bias.cuda()
+
+        batch_pos_bias = self.pos_bias.repeat(batch_titems[0], batch_titems[1], 1)
+        cosine_sim = cosine_sim + batch_pos_bias
+
         if not inference:
             cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
                 batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
