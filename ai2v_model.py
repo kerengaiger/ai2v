@@ -44,6 +44,7 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j.requires_grad = True
         self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
                                                                    0.5 / self.window_size))
+        self.pos_bias.requires_grad = True
 
     def calc_attention(self, batch_titems, batch_citems):
         v_l_j = self.forward_t(batch_titems)
