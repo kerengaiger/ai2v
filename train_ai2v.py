@@ -70,7 +70,7 @@ def run_epoch(train_dl, epoch, sgns, optim, accumulation_steps, pad_idx):
 
 def calc_loss_on_set(sgns, valid_users_path, pad_idx, batch_size, window_size, num_workers):
     dataset = UserBatchIncrementDataset(valid_users_path, pad_idx, window_size)
-    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    valid_dl = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     pbar = tqdm(valid_dl)
     valid_losses = []
@@ -121,8 +121,7 @@ def train(cnfg, valid_users_path=None):
     dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), pad_idx, cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
-        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=cnfg['num_workers'],
-                                  pin_memory=True)
+        train_loader = DataLoader(dataset, batch_size=cnfg['mini_batch'], shuffle=True, num_workers=cnfg['num_workers'])
         train_loss, sgns = run_epoch(train_loader, epoch, sgns, optim, cnfg['accumulation_steps'], pad_idx)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
