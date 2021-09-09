@@ -203,8 +203,9 @@ class SGNS(nn.Module):
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def inference(self, user_items):
-        pad_times = self.sasrec.pos_emb.shape[0] - len(user_items)
+        pad_times = self.sasrec.pos_emb.weight.shape[0] - len(user_items)
         user_items = [self.ai2v.padding_idx] * pad_times + user_items
+
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
         mask_pad_ids = (citems == self.ai2v.padding_idx)
