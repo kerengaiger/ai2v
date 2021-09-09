@@ -54,7 +54,7 @@ class AttentiveItemToVec(nn.Module):
         attention_weights = self.softmax(cosine_sim)
         return attention_weights
 
-    def forward(self, batch_titems, batch_sa_citems, mask_pad_ids=None, inference=False):
+    def forward(self, batch_titems, batch_sa_citems, mask_pad_ids=None):
         v_l_j = self.forward_t(batch_titems)
         # u_l_m = self.forward_c(batch_citems)
         c_vecs = self.Ac(batch_sa_citems).unsqueeze(1)
@@ -67,7 +67,7 @@ class AttentiveItemToVec(nn.Module):
         batch_pos_bias = self.pos_bias.repeat(batch_titems.shape[0], batch_titems.shape[1], 1)
         cosine_sim = cosine_sim + batch_pos_bias
 
-        if not inference:
+        if mask_pad_ids:
             cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
                 batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
 
