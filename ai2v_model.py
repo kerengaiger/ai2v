@@ -203,14 +203,17 @@ class SGNS(nn.Module):
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def inference(self, user_items):
+        pad_times = self.sasrec.pos_emb.shape[0] - len(user_items)
+        user_items = [self.ai2v.padding_idx] * pad_times + user_items
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
+        mask_pad_ids = (citems == self.ai2v.padding_idx)
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         if next(self.parameters()).is_cuda:
             citems = citems.cuda()
             all_titems = all_titems.cuda()
         batch_sa_citems = self.sasrec(citems)
-        sub_users = self.ai2v(all_titems, batch_sa_citems, mask_pad_ids=None, inference=True)
+        sub_users = self.ai2v(all_titems, batch_sa_citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
