@@ -67,7 +67,7 @@ class AttentiveItemToVec(nn.Module):
         batch_pos_bias = self.pos_bias.repeat(batch_titems.shape[0], batch_titems.shape[1], 1)
         cosine_sim = cosine_sim + batch_pos_bias
 
-        if mask_pad_ids:
+        if mask_pad_ids is not None:
             cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
                 batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
 
