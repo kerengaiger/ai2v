@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
-    parser.add_argument('--trials', type=int, default=15, help="number of trials ")
+    parser.add_argument('--trials', type=int, default=50, help="number of trials ")
     parser.add_argument('--num_workers', type=int, default=0, help="num workers to load train_loader")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--device', type=int, default=0, help="cude device to use")
@@ -60,7 +60,7 @@ def objective(trial):
 def main():
     args = parse_args()
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=args.trials)
 
     pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
     complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
