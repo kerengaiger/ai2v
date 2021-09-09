@@ -204,11 +204,11 @@ class SGNS(nn.Module):
 
     def inference(self, user_items):
         pad_times = self.sasrec.pos_emb.weight.shape[0] - len(user_items)
-        user_items = [self.ai2v.padding_idx] * pad_times + user_items
+        user_items = [self.ai2v.pad_idx] * pad_times + user_items
 
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
-        mask_pad_ids = (citems == self.ai2v.padding_idx)
+        mask_pad_ids = (citems == self.ai2v.pad_idx)
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         if next(self.parameters()).is_cuda:
             citems = citems.cuda()
