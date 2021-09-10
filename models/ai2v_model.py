@@ -122,7 +122,7 @@ class SGNS(nn.Module):
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
         batch_last_items = self.ai2v.last_item_vectors(batch_citems[:, -1])
-        batch_last_items = batch_last_items.unsqueeze(1).repeat(1, batch_last_items.shape[1], 1)
+        batch_last_items = batch_last_items.unsqueeze(1).repeat(1, batch_titems.shape[1], 1)
         batch_sub_users, _ = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_sub_users = batch_sub_users + batch_last_items
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
