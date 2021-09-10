@@ -21,16 +21,22 @@ class AttentiveItemToVec(nn.Module):
         self.num_blocks = num_blocks
         self.tvectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
+        self.last_item_vectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                       self.e_dim).uniform_(-0.5 / self.e_dim,
-                                                                                    0.5 / self.e_dim),
+                                                                           0.5 / self.e_dim),
                                                    t.zeros(1, self.e_dim)]))
         self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                       self.e_dim).uniform_(-0.5 / self.e_dim,
-                                                                                    0.5 / self.e_dim),
+                                                                           0.5 / self.e_dim),
                                                    t.zeros(1, self.e_dim)]))
+        self.last_item_vectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
+                                                               self.e_dim).uniform_(-0.5 / self.e_dim,
+                                                                                    0.5 / self.e_dim),
+                                                     t.zeros(1, self.e_dim)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
+        self.last_item_vectors.weight.requires_grad = True
         self.Bt = nn.Linear(self.e_dim, self.e_dim)
         self.W0 = nn.Linear(4 * self.e_dim, self.e_dim)
         self.W1 = nn.Linear(self.e_dim, 1)
@@ -100,9 +106,11 @@ class SGNS(nn.Module):
 
         citems, all_titems = citems.to(self.device), all_titems.to(self.device)
 
-        sub_users, _ = self.ai2v(all_titems, citems, mask_pad_ids=None, inference=True)
+        sub_user, _ = self.ai2v(all_titems, citems, mask_pad_ids=None, inference=True)
+        last_item_emb = self.ai2v.last_item_vectors(citems[:, -1].long())
+        sub_user = sub_user + last_item_emb
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
-        sim = self.similarity(sub_users, all_tvecs, all_titems)
+        sim = self.similarity(sub_user, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids):
@@ -113,7 +121,10 @@ class SGNS(nn.Module):
         batch_nitems = batch_nitems.to(self.device)
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
+        batch_last_items = self.ai2v.last_item_vectors(batch_citems[:, -1])
+        batch_last_items = batch_last_items.unsqueeze(1).repeat(1, batch_last_items.shape[1], 1)
         batch_sub_users, _ = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
+        batch_sub_users = batch_sub_users + batch_last_items
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
         if [param for param in self.ai2v.parameters()][0].is_cuda:
             self.ai2v.b_l_j.cuda()
