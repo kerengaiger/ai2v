@@ -43,7 +43,7 @@ def calc_loss_on_set(sgns, valid_dl, pad_idx):
     return np.array(valid_losses).mean()
 
 
-def train(cnfg, valid_dl=None):
+def train(cnfg, valid_dl=None, trial=None):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
 
@@ -81,7 +81,7 @@ def train(cnfg, valid_dl=None):
     pin_memory = cnfg['num_workers'] > 0
 
     train_dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
-                                        cnfg['window_size'])
+                                              cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = DataLoader(train_dataset, batch_size=cnfg['mini_batch'], shuffle=True,
@@ -117,7 +117,7 @@ def train(cnfg, valid_dl=None):
     return best_epoch
 
 
-def train_evaluate(cnfg):
+def train_evaluate(cnfg, trial):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
@@ -126,7 +126,7 @@ def train_evaluate(cnfg):
     valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
                           num_workers=cnfg['num_workers'], pin_memory=pin_memory)
     set_random_seed(cnfg['seed'])
-    best_epoch = train(cnfg, valid_dl)
+    best_epoch = train(cnfg, valid_dl, trial)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
