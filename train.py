@@ -13,6 +13,7 @@ from tqdm import tqdm
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset, set_random_seed
 import models
 import argparse
+import optuna
 
 
 def parse_args():
@@ -75,7 +76,6 @@ def train(cnfg, valid_dl=None, trial=None):
 
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
-    patience_count = 0
     t.autograd.set_detect_anomaly(True)
 
     pin_memory = cnfg['num_workers'] > 0
@@ -95,18 +95,16 @@ def train(cnfg, valid_dl=None, trial=None):
             print(f'valid loss:{valid_loss}')
 
             if valid_loss < valid_losses[-1]:
-                patience_count = 0
                 best_epoch = epoch
                 save_model(cnfg, model, sgns)
-
-            else:
-                patience_count += 1
-                if patience_count == cnfg['patience']:
-                    print(f"Early stopping")
-                    break
-
             valid_losses.append(valid_loss)
             scheduler.step()
+            # valid loss is reported to decide on pruning the epoch
+            trial.report(valid_loss, epoch)
+
+            # Handle pruning based on the intermediate value.
+            if trial.should_prune():
+                raise optuna.exceptions.TrialPruned()
         else:
             # Save model in each iteration in case we are not in early_stop mode
             save_model(cnfg, model, sgns)
