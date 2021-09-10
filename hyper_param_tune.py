@@ -2,7 +2,7 @@ import argparse
 import pickle
 import pathlib
 
-from ax.service.managed_loop import optimize
+import optuna
 
 from train import train_evaluate, train
 
@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--patience', type=float, default=3, help="epochs to wait until early stopping")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
-    parser.add_argument('--trials', type=int, default=15, help="number of trials ")
+    parser.add_argument('--trials', type=int, default=50, help="number of trials ")
     parser.add_argument('--num_workers', type=int, default=0, help="num workers to load train_loader")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--device', type=int, default=0, help="cude device to use")
@@ -39,56 +39,46 @@ def parse_args():
     return parser.parse_args()
 
 
-def full_train(cnfg, epochs, args):
-    cnfg['max_epoch'] = int(epochs)
-    cnfg['train'] = args.full_train
-    train(cnfg)
+def objective(trial):
+    cnfg = {}
+    args = parse_args()
+    args = vars(args)
+    cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
+    cnfg['dropout_rate'] = trial.suggest_float("dropout_rate", 0.1, 0.6)
+    cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
+    cnfg['e_dim'] = trial.suggest_int("e_dim", 10, 80, step=2)
+    cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
+    cnfg['num_heads'] = trial.suggest_int("num_heads", 1, 1, step=1)
+    cnfg['num_blocks'] = trial.suggest_int("num_blocks", 1, 1, step=1)
+    cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
+    cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
+    valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
+    trial.params['best_epoch'] = best_epoch
+    return valid_loss
 
 
 def main():
     args = parse_args()
-    best_parameters, values, _experiment, _cur_model = optimize(
-        parameters=[
-            {"name": "lr", "type": "range", "value_type": "float", "bounds": [4e-2, 1e-1]},
-            {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
-            {"name": "ss_t", "type": "range", "value_type": "float", "bounds": [1e-5, 3e-3]},
-            {"name": "e_dim", "type": "choice", "value_type": "int", "values": [12, 14, 18, 20, 22, 26, 30, 50, 100]},
-            {"name": "n_negs", "type": "choice", "value_type": "int", "values": [7, 8, 9, 10]},
-            {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2]},
-            {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [1, 2, 3]},
-            {"name": "mini_batch", "type": "choice", "value_type": "int", "values": [64, 128, 200, 256]},
-            {"name": "weights", "type": "choice", "value_type": "bool", "values": [False, False]},
-            {"name": "max_epoch", "type": "fixed", "value_type": "int", "value": args.max_epoch},
-            {"name": "patience", "type": "fixed", "value_type": "int", "value": args.patience},
-            {"name": "unk", "type": "fixed", "value_type": "str", "value": args.unk},
-            {"name": "cuda", "type": "fixed", "value": args.cuda},
-            {"name": "device", "type": "fixed", "value_type": "int", "value": args.device},
-            {"name": "data_dir", "type": "fixed", "value_type": "str", "value": args.data_dir},
-            {"name": "save_dir", "type": "fixed", "value_type": "str", "value": args.save_dir},
-            {"name": "train", "type": "fixed", "value_type": "str", "value": args.train},
-            {"name": "valid", "type": "fixed", "value_type": "str", "value": args.valid},
-            {"name": "test", "type": "fixed", "value_type": "str", "value": args.test},
-            {"name": "ic", "type": "fixed", "value_type": "str", "value": args.ic},
-            {"name": "vocab", "type": "fixed", "value_type": "str", "value": args.vocab},
-            {"name": "item2idx", "type": "fixed", "value_type": "str", "value": args.item2idx},
-            {"name": "idx2item", "type": "fixed", "value_type": "str", "value": args.idx2item},
-            {"name": "window_size", "type": "fixed", "value_type": "int", "value": args.window_size},
-            {"name": "model", "type": "fixed", "value_type": "str", "value": args.model},
-            {"name": "loss_method", "type": "fixed", "value_type": "str", "value": args.loss_method},
-            {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
-            {"name": "num_workers", "type": "fixed", "value_type": "int", "value": args.num_workers},
-            {"name": "seed", "type": "fixed", "value_type": "int", "value": args.seed}
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=args.trials)
 
-        ],
-        evaluation_function=train_evaluate,
-        minimize=True,
-        objective_name='valid_loss',
-        total_trials=args.trials
-    )
+    pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
+    complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
 
-    best_parameters['best_epoch'] = values[0]['early_stop_epoch']
+    print("Study statistics: ")
+    print("  Number of finished trials: ", len(study.trials))
+    print("  Number of pruned trials: ", len(pruned_trials))
+    print("  Number of complete trials: ", len(complete_trials))
+
+    print("Best trial:")
+    best_trial = study.best_trial
+    print("  Value: ", best_trial.value)
+
+    best_parameters = best_trial.params
     pickle.dump(best_parameters, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
-    full_train(best_parameters, values[0]['early_stop_epoch'], args)
+    best_parameters['max_epoch'] = best_parameters['best_epoch']
+    best_parameters['train'] = args.full_train
+    train(best_parameters)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ from tqdm import tqdm
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset, set_random_seed
 import models
 import argparse
+import optuna
 
 
 def parse_args():
@@ -43,7 +44,7 @@ def calc_loss_on_set(sgns, valid_dl, pad_idx):
     return np.array(valid_losses).mean()
 
 
-def train(cnfg, valid_dl=None):
+def train(cnfg, valid_dl=None, trial=None):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
 
@@ -75,13 +76,12 @@ def train(cnfg, valid_dl=None):
 
     best_epoch = cnfg['max_epoch'] + 1
     valid_losses = [np.inf]
-    patience_count = 0
     t.autograd.set_detect_anomaly(True)
 
     pin_memory = cnfg['num_workers'] > 0
 
     train_dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
-                                        cnfg['window_size'])
+                                              cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = DataLoader(train_dataset, batch_size=cnfg['mini_batch'], shuffle=True,
@@ -95,18 +95,16 @@ def train(cnfg, valid_dl=None):
             print(f'valid loss:{valid_loss}')
 
             if valid_loss < valid_losses[-1]:
-                patience_count = 0
                 best_epoch = epoch
                 save_model(cnfg, model, sgns)
-
-            else:
-                patience_count += 1
-                if patience_count == cnfg['patience']:
-                    print(f"Early stopping")
-                    break
-
             valid_losses.append(valid_loss)
             scheduler.step()
+            # valid loss is reported to decide on pruning the epoch
+            trial.report(valid_loss, epoch)
+
+            # Handle pruning based on the intermediate value.
+            if trial.should_prune():
+                raise optuna.exceptions.TrialPruned()
         else:
             # Save model in each iteration in case we are not in early_stop mode
             save_model(cnfg, model, sgns)
@@ -117,7 +115,7 @@ def train(cnfg, valid_dl=None):
     return best_epoch
 
 
-def train_evaluate(cnfg):
+def train_evaluate(cnfg, trial):
     print(cnfg)
     valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
@@ -126,12 +124,12 @@ def train_evaluate(cnfg):
     valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
                           num_workers=cnfg['num_workers'], pin_memory=pin_memory)
     set_random_seed(cnfg['seed'])
-    best_epoch = train(cnfg, valid_dl)
+    best_epoch = train(cnfg, valid_dl, trial)
 
     best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
 
     valid_loss = calc_loss_on_set(best_model, valid_dl, item2idx['pad'])
-    return {'valid_loss': (valid_loss, 0.0), 'early_stop_epoch': (best_epoch, 0.0)}
+    return valid_loss, best_epoch
 
 
 def main():
