@@ -74,8 +74,8 @@ def train(cnfg, valid_dl=None, trial=None):
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
 
+    best_val_loss = np.inf
     best_epoch = cnfg['max_epoch'] + 1
-    valid_losses = [np.inf]
     t.autograd.set_detect_anomaly(True)
 
     pin_memory = cnfg['num_workers'] > 0
@@ -94,10 +94,9 @@ def train(cnfg, valid_dl=None, trial=None):
             writer.add_scalar("Loss/validation", valid_loss, epoch)
             print(f'valid loss:{valid_loss}')
 
-            if valid_loss < valid_losses[-1]:
+            if valid_loss < best_val_loss:
+                best_val_loss = valid_loss
                 best_epoch = epoch
-                save_model(cnfg, model, sgns)
-            valid_losses.append(valid_loss)
             scheduler.step()
             # valid loss is reported to decide on pruning the epoch
             trial.report(valid_loss, epoch)
@@ -112,7 +111,7 @@ def train(cnfg, valid_dl=None, trial=None):
     writer.flush()
     writer.close()
 
-    return best_epoch
+    return best_val_loss, best_epoch
 
 
 def train_evaluate(cnfg, trial):
@@ -124,12 +123,8 @@ def train_evaluate(cnfg, trial):
     valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
                           num_workers=cnfg['num_workers'], pin_memory=pin_memory)
     set_random_seed(cnfg['seed'])
-    best_epoch = train(cnfg, valid_dl, trial)
-
-    best_model = t.load(pathlib.Path(cnfg['save_dir'], 'model.pt'))
-
-    valid_loss = calc_loss_on_set(best_model, valid_dl, item2idx['pad'])
-    return valid_loss, best_epoch
+    best_val_loss, best_epoch = train(cnfg, valid_dl, trial)
+    return best_val_loss, best_epoch
 
 
 def main():
