@@ -39,6 +39,36 @@ def parse_args():
     return parser.parse_args()
 
 
+class Objective:
+
+    def __init__(self):
+        self.best_epoch = None
+
+    def __call__(self, trial):
+        cnfg = {}
+        args = parse_args()
+        args = vars(args)
+        cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
+        cnfg['dropout_rate'] = trial.suggest_float("dropout_rate", 0.1, 0.6)
+        cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
+        cnfg['e_dim'] = trial.suggest_int("e_dim", 10, 80, step=2)
+        cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
+        cnfg['num_heads'] = trial.suggest_int("num_heads", 1, 1, step=1)
+        cnfg['num_blocks'] = trial.suggest_int("num_blocks", 1, 1, step=1)
+        cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
+        cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
+        valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
+        self.best_epoch = best_epoch
+        return valid_loss
+
+    def callback(self, study, trial):
+        args = parse_args()
+        if study.best_trial == trial:
+            best_cnfg = trial.params
+            best_cnfg['best_epoch'] = self.best_epoch
+            pickle.dump(best_cnfg, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
+
+
 def objective(trial):
     cnfg = {}
     args = parse_args()
@@ -53,7 +83,6 @@ def objective(trial):
     cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
     cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
     valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
-    trial.params['best_epoch'] = best_epoch
     return valid_loss
 
 
@@ -74,8 +103,7 @@ def main():
     best_trial = study.best_trial
     print("  Value: ", best_trial.value)
 
-    best_parameters = best_trial.params
-    pickle.dump(best_parameters, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
+    best_parameters = pickle.load(open(pathlib.Path(args.save_dir, args.cnfg_out), "rb"))
     best_parameters['max_epoch'] = best_parameters['best_epoch']
     best_parameters['train'] = args.full_train
     train(best_parameters)
