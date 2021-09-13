@@ -10,7 +10,7 @@ conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
 pip install scipy botorch jinja2 pandas plotly
 
 # install ax platform
-pip3 install ax-platform
+conda install -c conda-forge optuna
 
 # for tensorboard
 pip install tensorboard
