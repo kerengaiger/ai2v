@@ -68,27 +68,14 @@ class Objective:
             pickle.dump(best_cnfg, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
 
 
-def objective(trial):
-    cnfg = {}
-    args = parse_args()
-    args = vars(args)
-    cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
-    cnfg['dropout_rate'] = trial.suggest_float("dropout_rate", 0.1, 0.6)
-    cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
-    cnfg['e_dim'] = trial.suggest_int("e_dim", 10, 80, step=2)
-    cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
-    cnfg['num_heads'] = trial.suggest_int("num_heads", 1, 1, step=1)
-    cnfg['num_blocks'] = trial.suggest_int("num_blocks", 1, 1, step=1)
-    cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
-    cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
-    valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
-    return valid_loss
-
-
 def main():
     args = parse_args()
-    study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=args.trials)
+    objective = Objective()
+
+    study = optuna.create_study(
+        pruner=optuna.pruners.MedianPruner(n_warmup_steps=10), direction="minimize"
+    )
+    study.optimize(objective, n_trials=args.trials, callbacks=[objective.callback])
 
     pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
     complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
