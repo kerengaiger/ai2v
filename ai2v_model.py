@@ -59,6 +59,9 @@ class AttentiveItemToVec(nn.Module):
         t_vecs = self.At(v_l_j).unsqueeze(2)
 
         cosine_sim = self.cos(t_vecs, c_vecs)
+        batch_pos_bias = self.pos_bias.repeat(batch_titems.shape[0], batch_titems.shape[1], 1)
+        cosine_sim = cosine_sim + batch_pos_bias
+
         if not inference:
             cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
                 batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
