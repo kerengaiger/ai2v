@@ -8,13 +8,14 @@ from torch import FloatTensor as FT
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, embedding_size, d_alpha=60, N=1):
+    def __init__(self, padding_idx, vocab_size, embedding_size, window_size, d_alpha=60, N=1):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
         self.d_alpha = d_alpha
         self.pad_idx = padding_idx
+        self.window_size = window_size
         self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
@@ -108,13 +109,17 @@ class SGNS(nn.Module):
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def inference(self, user_items):
+        if len(user_items) > self.ai2v.window_size:
+            pad_times = self.ai2v.window_size - len(user_items)
+            user_items = [self.ai2v.pad_idx] * pad_times + user_items
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
+        mask_pad_ids = citems == self.ai2v.pad_idx
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         if next(self.parameters()).is_cuda:
             citems = citems.cuda()
             all_titems = all_titems.cuda()
-        sub_users = self.ai2v(all_titems, citems, mask_pad_ids=None, inference=True)
+        sub_users = self.ai2v(all_titems, citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
