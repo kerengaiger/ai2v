@@ -7,7 +7,7 @@ import time
 
 def create_amazonbeauty_corpus(part):  # https://www.kaggle.com/skillsmuggler/amazon-ratings
     # Because the user id and item id aren't int, we make sure to pass every id to an int id.
-    file_out = './data/amazonbeauty_corpus_small_' + part + '.csv'  # The file of the output, the ready corpus
+    file_out = './data/amazonbeauty_corpus_small_' + part + '_more.csv'  # The file of the output, the ready corpus
     data_dir = './archive/amazonbeauty'  # The directory of the files.
     count = 0
     user_to_num = {}
@@ -47,13 +47,14 @@ def create_amazonbeauty_corpus(part):  # https://www.kaggle.com/skillsmuggler/am
     keep_items = set()
     if part == 'light':
         for item in items_amount.keys():
-            if items_amount[item] >= 10:
+            if items_amount[item] >= 20:
                 keep_items.add(item)
     elif part == 'heavy':
         for item in items_amount.keys():
             if items_amount[item] <= 100:
                 keep_items.add(item)
     count = 0
+    lines_amount = 0
     with open(file_out, 'w', newline='') as w_file:
         writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
         for file in sorted(os.listdir(data_dir)):
@@ -68,9 +69,13 @@ def create_amazonbeauty_corpus(part):  # https://www.kaggle.com/skillsmuggler/am
                         rating = line[2]
                         date = line[3][:-1]
                         if cus_id in keep_items:
+                            lines_amount += 1
                             writer.writerow([user, cus_id, rating, date])
+    print(lines_amount)
+    print()
+    print(len(keep_items))
 
-create_amazonbeauty_corpus('heavy')
+# create_amazonbeauty_corpus('heavy')
 create_amazonbeauty_corpus('light')
 """
 All dataset:
