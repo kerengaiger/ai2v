@@ -66,7 +66,8 @@ class Objective:
             best_cnfg = trial.params
             best_cnfg['best_epoch'] = self.best_epoch
             best_cnfg['max_epoch'] = best_cnfg['best_epoch']
-            pickle.dump({**best_cnfg, **args}, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
+            best_cnfg = {**best_cnfg, **vars(args)}
+            pickle.dump(best_cnfg, open(pathlib.Path(args.save_dir, args.cnfg_out), "wb"))
 
 
 def main():
