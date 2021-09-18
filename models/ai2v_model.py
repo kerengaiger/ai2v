@@ -91,12 +91,13 @@ class AttentiveItemToVec(nn.Module):
 
 
 class SGNS(nn.Module):
-    def __init__(self, base_model, vocab_size, n_negs, weights, loss_method):
+    def __init__(self, base_model, vocab_size, n_negs, weights, loss_method, device):
         super(SGNS, self).__init__()
         self.ai2v = base_model
         self.vocab_size = vocab_size
         self.n_negs = n_negs
         self.weights = None
+        self.device = device
         if weights is not None:
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
