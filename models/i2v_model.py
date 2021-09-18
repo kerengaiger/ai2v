@@ -49,7 +49,7 @@ class Item2Vec(Bundler):
 
 class SGNS(nn.Module):
 
-    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE', device='cpu'):
+    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE', device='cpu', margin=1):
         super(SGNS, self).__init__()
         self.embedding = base_model
         self.vocab_size = vocab_size
@@ -59,8 +59,9 @@ class SGNS(nn.Module):
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
             self.weights = FT(wf)
-        self.loss_methos = loss_method
+        self.loss_method = loss_method
         self.device = device
+        self.margin = margin
 
     def forward(self, titems, citems):
         batch_size = titems.size()[0]
@@ -75,10 +76,23 @@ class SGNS(nn.Module):
         nvectors = self.embedding.forward_t(nitems).neg()
 
         all_tvectors = t.cat([tvectors.unsqueeze(1), nvectors], dim=1)
-        if self.loss_method == 'CCE':
+
+        if self.loss_method == 'CCE':  # This option is the default option - Should be called BCE.
             loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
             loss = -loss.sigmoid().log().sum(2).sum(1).mean()
             return loss
+
+        if self.loss_method == 'BCE':  # This is the CCE.
+            loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
+            loss = -loss.softmax(dim=1).log().sum(2).sum(1).mean()  # + 1e-6 ?
+            return loss
+
+        if self.loss_method == 'Hinge':
+            loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
+            loss = t.maximum(((self.margin * t.ones_like(loss)) - loss), t.zeros_like(loss)) + 1e-6
+            loss = -loss.sum(2).sum(1).mean()
+            return loss
+
         else:
             raise NotImplementedError
 
