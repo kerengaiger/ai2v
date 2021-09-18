@@ -89,10 +89,9 @@ class AttentiveItemToVec(nn.Module):
 
 
 class SGNS(nn.Module):
-
-    def __init__(self, ai2v, vocab_size=20000, n_negs=10, weights=None, loss_method='CCE'):
+    def __init__(self, base_model, vocab_size, n_negs, weights, loss_method):
         super(SGNS, self).__init__()
-        self.ai2v = ai2v
+        self.ai2v = base_model
         self.vocab_size = vocab_size
         self.n_negs = n_negs
         self.weights = None
