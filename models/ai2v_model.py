@@ -3,6 +3,8 @@
 import numpy as np
 import torch as t
 import torch.nn as nn
+from tqdm import tqdm
+import datetime
 
 from torch import FloatTensor as FT
 
@@ -155,3 +157,25 @@ class SGNS(nn.Module):
             soft_neg = t.maximum((t.ones_like(sim[:, 1:]) - (-sim[:, 1:])), t.zeros_like(sim[:, 1:])) + 1e-6
             print(soft_pos.sum() + soft_neg.sum())
             return soft_pos.sum() + soft_neg.sum()
+
+    def run_epoch(self, train_dl, epoch, sgns, optim, pad_idx):
+        pbar = tqdm(train_dl)
+        pbar.set_description("[Epoch {}]".format(epoch))
+        train_loss = 0
+
+        srt = datetime.datetime.now().replace(microsecond=0)
+        for batch_titems, batch_citems in pbar:
+            batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
+            mask_pad_ids = (batch_citems == pad_idx)
+            loss = sgns(batch_titems, batch_citems, mask_pad_ids)
+            train_loss += loss.item()
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+            pbar.set_postfix(train_loss=loss.item())
+
+        train_loss = train_loss / len(pbar)
+        print(f'train_loss: {train_loss}')
+        end = datetime.datetime.now().replace(microsecond=0)
+        print('epoch time: ', end - srt)
+        return train_loss, sgns
