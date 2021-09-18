@@ -63,7 +63,7 @@ class SGNS(nn.Module):
         self.device = device
         self.margin = margin
 
-    def forward(self, titems, citems):
+    def forward(self, titems, citems, mask_pad_ids):
         batch_size = titems.size()[0]
         context_size = citems.size()[1]
         if self.weights is not None:
@@ -106,14 +106,14 @@ class SGNS(nn.Module):
         user_sim = cosine_similarity(user2vec, self.embedding.tvectors.weight.data.cpu().numpy()).squeeze()
         return user_sim
 
-    def run_epoch(self, train_dl, epoch, sgns, optim):
+    def run_epoch(self, train_dl, epoch, sgns, optim, pad_idx):
         pbar = tqdm(train_dl)
         pbar.set_description("[Epoch {}]".format(epoch))
         train_losses = []
 
         for batch_titems, batch_citems in pbar:
             batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
-            loss = sgns(batch_titems, batch_citems)
+            loss = sgns(batch_titems, batch_citems, pad_idx)
 
             train_losses.append(loss.item())
             optim.zero_grad()
