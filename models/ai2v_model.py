@@ -80,7 +80,7 @@ class AttentiveItemToVec(nn.Module):
 
 class SGNS(nn.Module):
 
-    def __init__(self, base_model, vocab_size=20000, n_negs=10, weights=None, loss_method='CCE', device='cpu'):
+    def __init__(self, base_model, vocab_size=20000, n_negs=10, weights=None, loss_method='CCE', device='cpu', margin=1):
         super(SGNS, self).__init__()
         self.ai2v = base_model
         self.vocab_size = vocab_size
@@ -92,6 +92,7 @@ class SGNS(nn.Module):
             self.weights = FT(wf)
         self.loss_method = loss_method
         self.device = device
+        self.margin = margin
 
     def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
         return self.ai2v.W1(self.ai2v.relu(self.ai2v.W0(t.cat([batch_sub_users, batch_tvecs,
@@ -141,8 +142,8 @@ class SGNS(nn.Module):
             return (-soft_pos.log().sum()) + (-soft_neg.log().sum())
 
         if self.loss_method == 'Hinge':
-            soft_pos = t.maximum((t.ones_like(sim[:, 0]) - sim[:, 0]), t.zeros_like(sim[:, 0])) + 1e-6
-            soft_neg = t.maximum((t.ones_like(sim[:, 1:]) - (-sim[:, 1:])), t.zeros_like(sim[:, 1:])) + 1e-6
+            soft_pos = t.maximum(((self.margin * t.ones_like(sim[:, 0])) - sim[:, 0]), t.zeros_like(sim[:, 0])) + 1e-6
+            soft_neg = t.maximum(((self.margin * t.ones_like(sim[:, 1:])) - (-sim[:, 1:])), t.zeros_like(sim[:, 1:])) + 1e-6
             return soft_pos.sum() + soft_neg.sum()
 
         else:

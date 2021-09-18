@@ -56,6 +56,7 @@ class Objective:
         cnfg['num_blocks'] = trial.suggest_int("num_blocks", 1, 1, step=1)
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
+        cnfg['margin'] = trial.suggest_float("margin", 0.5, 1.0)
         valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
         self.best_epoch = best_epoch
         return valid_loss
