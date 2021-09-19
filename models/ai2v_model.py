@@ -111,9 +111,11 @@ class SGNS(nn.Module):
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def inference(self, user_items):
-        if len(user_items) > self.ai2v.window_size:
+        if len(user_items) < self.ai2v.window_size:
             pad_times = self.ai2v.window_size - len(user_items)
             user_items = [self.ai2v.pad_idx] * pad_times + user_items
+        else:
+            user_items = user_items[-self.ai2v.window_size:]
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
         mask_pad_ids = citems == self.ai2v.pad_idx
