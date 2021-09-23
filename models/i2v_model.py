@@ -49,7 +49,7 @@ class Item2Vec(Bundler):
 
 class SGNS(nn.Module):
 
-    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE', device='cpu'):
+    def __init__(self, base_model, vocab_size=20000, n_negs=20, weights=None, loss_method='CCE', device='cpu', margin=1):
         super(SGNS, self).__init__()
         self.embedding = base_model
         self.vocab_size = vocab_size
@@ -59,10 +59,11 @@ class SGNS(nn.Module):
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
             self.weights = FT(wf)
-        self.loss_methos = loss_method
+        self.loss_method = loss_method
         self.device = device
+        self.margin = margin
 
-    def forward(self, titems, citems):
+    def forward(self, titems, citems, mask_pad_ids):
         batch_size = titems.size()[0]
         context_size = citems.size()[1]
         if self.weights is not None:
@@ -75,10 +76,23 @@ class SGNS(nn.Module):
         nvectors = self.embedding.forward_t(nitems).neg()
 
         all_tvectors = t.cat([tvectors.unsqueeze(1), nvectors], dim=1)
-        if self.loss_method == 'CCE':
+
+        if self.loss_method == 'CCE':  # This option is the default option - Should be called BCE.
             loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
             loss = -loss.sigmoid().log().sum(2).sum(1).mean()
             return loss
+
+        if self.loss_method == 'BCE':  # This is the CCE.
+            loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
+            loss = -loss.softmax(dim=1).log().sum(2).sum(1).mean()  # + 1e-6 ?
+            return loss
+
+        if self.loss_method == 'Hinge':
+            loss = t.bmm(cvectors, all_tvectors.transpose(1, 2))
+            loss = t.maximum(((self.margin * t.ones_like(loss)) - loss), t.zeros_like(loss)) + 1e-6
+            loss = -loss.sum(2).sum(1).mean()
+            return loss
+
         else:
             raise NotImplementedError
 
@@ -92,14 +106,14 @@ class SGNS(nn.Module):
         user_sim = cosine_similarity(user2vec, self.embedding.tvectors.weight.data.cpu().numpy()).squeeze()
         return user_sim
 
-    def run_epoch(self, train_dl, epoch, sgns, optim):
+    def run_epoch(self, train_dl, epoch, sgns, optim, pad_idx):
         pbar = tqdm(train_dl)
         pbar.set_description("[Epoch {}]".format(epoch))
         train_losses = []
 
         for batch_titems, batch_citems in pbar:
             batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
-            loss = sgns(batch_titems, batch_citems)
+            loss = sgns(batch_titems, batch_citems, pad_idx)
 
             train_losses.append(loss.item())
             optim.zero_grad()
