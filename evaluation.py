@@ -46,6 +46,13 @@ def mpr(preds_df, num_all_items):
     return 1 - (preds_df['pred_loc'] / num_all_items).mean()
 
 
+def ndcg_k(preds_df, k):
+    preds_df['ndcg'] = 1 / np.log2(1 + preds_df['pred_loc'])
+    preds_df.loc[preds_df['pred_loc'] > k, 'rr_k'] = 0
+    preds_df.loc[preds_df['ndcg'] <= k] = 1 / np.log2(1 + preds_df['p'])
+    return preds_df.loc[preds_df['pred_loc'] > 0, 'ndcg'].mean()
+
+
 def predict(model, eval_set_lst, eval_set_df, out_file):
     pbar = tqdm(eval_set_lst)
 
@@ -92,6 +99,8 @@ def main():
     preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out))
     print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
     print(f'mrr at {args.k}:', mrr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
+    print(f'ndcg at {args.k}:', ndcg_k(preds_df, args.k))
+    print(f'mpr:', mpr(preds_df, model.vocab_size))
 
 
 if __name__ == '__main__':
