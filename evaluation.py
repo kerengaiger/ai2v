@@ -99,7 +99,8 @@ def main():
     preds_df = pd.read_csv(os.path.join(args.output_dir, args.preds_out))
     print(f'hit ratio at {args.k}:', hr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
     print(f'mrr at {args.k}:', mrr_k(preds_df, args.k, os.path.join(args.output_dir, args.hr_out)))
-
+    print(f'ndcg at {args.k}:', ndcg_k(preds_df, args.k))
+    print(f'mpr:', mpr(preds_df, model.vocab_size))
 
 if __name__ == '__main__':
     main()
