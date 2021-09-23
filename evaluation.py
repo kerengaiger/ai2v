@@ -59,6 +59,13 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
     eval_set_df.to_csv(out_file, index=False)
 
 
+def ndcg_k(preds_df, k):
+    preds_df['ndcg'] = 1 / np.log2(1 + preds_df['pred_loc'])
+    preds_df.loc[preds_df['pred_loc'] > k, 'rr_k'] = 0
+    preds_df.loc[preds_df['ndcg'] <= k] = 1 / np.log2(1 + preds_df['p'])
+    return preds_df.loc[preds_df['pred_loc'] > 0, 'ndcg'].mean()
+
+
 def calc_attention(model, eval_set_lst, out_file, device):
     pbar = tqdm(eval_set_lst)
     lst = []
