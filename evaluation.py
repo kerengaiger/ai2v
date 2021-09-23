@@ -102,5 +102,6 @@ def main():
     print(f'ndcg at {args.k}:', ndcg_k(preds_df, args.k))
     print(f'mpr:', mpr(preds_df, model.vocab_size))
 
+
 if __name__ == '__main__':
     main()
