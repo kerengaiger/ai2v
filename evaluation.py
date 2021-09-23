@@ -49,7 +49,7 @@ def mpr(preds_df, num_all_items):
 def ndcg_k(preds_df, k):
     preds_df['ndcg'] = 1 / np.log2(1 + preds_df['pred_loc'])
     preds_df.loc[preds_df['pred_loc'] > k, 'rr_k'] = 0
-    preds_df.loc[preds_df['ndcg'] <= k] = 1 / np.log2(1 + preds_df['p'])
+    preds_df.loc[preds_df['ndcg'] <= k] = 1 / np.log2(1 + preds_df['pred_loc'])
     return preds_df.loc[preds_df['pred_loc'] > 0, 'ndcg'].mean()
 
 
