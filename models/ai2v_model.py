@@ -65,7 +65,7 @@ class AttentiveItemToVec(nn.Module):
                 Q = self.attention_layernorms[i](Q)
                 outputs, attention_weights = self.attention_layers[i](Q, u_l_m, u_l_m, key_padding_mask=mask_pad_ids)
             else:
-                Q = self.attention_layernorms[i](v_l_j)
+                Q = self.attention_layernorms[i](Q)
                 outputs, attention_weights = self.attention_layers[i](Q, u_l_m, u_l_m)
         return outputs, attention_weights
 
