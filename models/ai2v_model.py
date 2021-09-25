@@ -9,77 +9,95 @@ import datetime
 from torch import FloatTensor as FT
 
 
+class MultiHeadAttention(nn.Module):
+    def __init__(self, embedding_size, window_size, d_k, d_v, num_h):
+        super(MultiHeadAttention, self).__init__()
+        self.emb_size = embedding_size
+        self.window_size = window_size
+        self.d_k = d_k
+        self.d_v = d_v
+        self.num_h = num_h
+        self.Ac = nn.Linear(self.emb_size, self.num_h * self.d_k)
+        self.At = nn.Linear(self.emb_size, self.num_h * self.d_k)
+        self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
+        self.Bc = nn.Linear(self.emb_size, self.num_h * self.d_v)
+        self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
+                                                                   0.5 / self.window_size))
+        self.pos_bias.requires_grad = True
+        self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
+
+    def forward(self, queries, keys, values, attention_mask=None):
+        '''
+        :param queries: Queries (b_s, n_t_items, emb_size)
+        :param keys: Keys (b_s, n_c_items, emb_size)
+        :param values: Values (b_s, n_c_items, d_model)
+        :param attention_mask: Mask over attention values (b_s, num_h, n_t_items, n_c_items). True indicates masking.
+        :return: batch_sub_user (b_s, n_t_items, emb_size)
+        '''
+        b_s, n_t_items = queries.shape[:2]
+        n_c_items = keys.shape[1]
+        q = self.At(queries).view(b_s, n_t_items, self.num_h, self.d_k).permute(0, 2, 1, 3)  # (b_s, num_h, n_t_items, d_k)
+        k = self.Ac(keys).view(b_s, n_c_items, self.num_h, self.d_k).permute(0, 2, 3, 1)  # (b_s, num_h, d_k, n_c_items)
+        v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
+
+        att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
+        if [param for param in self.parameters()][0].is_cuda:
+            self.pos_bias.cuda()
+        batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
+        att = att + batch_pos_bias
+
+        if attention_mask is not None:
+            attention_mask = attention_mask.repeat()
+            att = att.masked_fill(attention_mask, -np.inf)
+
+        att = t.softmax(att, -1)
+        out = t.matmul(att, v).permute(0, 2, 1, 3).contiguous().view(b_s, n_t_items, self.h * self.d_v)  # (b_s, n_t_items, num_h*d_num_h)
+        out = self.R(out)  # (b_s, n_t_items, emb_size)
+        return out, att
+
+
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, embedding_size, window_size, d_alpha=60, N=1):
+    def __init__(self, padding_idx, vocab_size, embedding_size, window_size, n_b=1):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
-        self.embedding_size = embedding_size
-        self.d_alpha = d_alpha
+        self.emb_size = embedding_size
         self.pad_idx = padding_idx
         self.window_size = window_size
-        self.tvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
-        self.cvectors = nn.Embedding(self.vocab_size, self.embedding_size, padding_idx=padding_idx)
+        self.n_b = n_b
+        self.tvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
+        self.cvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
-                                                      self.embedding_size).uniform_(-0.5 / self.embedding_size,
-                                                                                    0.5 / self.embedding_size),
-                                                   t.zeros(1, self.embedding_size)]))
+                                                      self.emb_size).uniform_(-0.5 / self.emb_size,
+                                                                              0.5 / self.emb_size),
+                                                   t.zeros(1, self.emb_size)]))
         self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
-                                                      self.embedding_size).uniform_(-0.5 / self.embedding_size,
-                                                                                    0.5 / self.embedding_size),
+                                                      self.emb_size).uniform_(-0.5 / self.emb_size,
+                                                                              0.5 / self.emb_size),
                                                    t.zeros(1, self.embedding_size)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
-        self.Ac = nn.Linear(self.embedding_size, self.d_alpha)
-        self.At = nn.Linear(self.embedding_size, self.d_alpha)
-        self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
-        self.softmax = nn.Softmax(dim=-1)
-        self.Bc = nn.Linear(self.embedding_size, self.embedding_size)
-        self.Bt = nn.Linear(self.embedding_size, self.embedding_size)
-        self.R = nn.Linear(self.embedding_size, N * self.embedding_size)
         self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
         self.W1 = nn.Linear(self.embedding_size, 1)
         self.relu = nn.ReLU()
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
         self.b_l_j.requires_grad = True
-        self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
-                                                                   0.5 / self.window_size))
-        self.pos_bias.requires_grad = True
+        self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=embedding_size,
+                                                            window_size=window_size,
+                                                            d_k=60, d_v=60, num_h=1)
+                                        for _ in range(self.n_b)])
 
-    def calc_attention(self, batch_titems, batch_citems):
-        v_l_j = self.forward_t(batch_titems)
-        u_l_m = self.forward_c(batch_citems)
-        c_vecs = self.Ac(u_l_m).unsqueeze(1)
-        t_vecs = self.At(v_l_j).unsqueeze(2)
-        cosine_sim = self.cos(t_vecs, c_vecs)
-        attention_weights = self.softmax(cosine_sim)
-        return attention_weights
-
-    def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
+    def forward(self, batch_titems, batch_citems, mask_pad_ids=None):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
         c_vecs = self.Ac(u_l_m).unsqueeze(1)
         t_vecs = self.At(v_l_j).unsqueeze(2)
 
-        cosine_sim = self.cos(t_vecs, c_vecs)
-        if [param for param in self.parameters()][0].is_cuda:
-            self.pos_bias.cuda()
+        sub_users_l = t_vecs
+        for l in self.mha_layers:
+            sub_users_l, _ = l(sub_users_l, c_vecs, c_vecs, attention_mask=mask_pad_ids)
 
-        batch_pos_bias = self.pos_bias.repeat(batch_titems.shape[0], batch_titems.shape[1], 1)
-        cosine_sim = cosine_sim + batch_pos_bias
-
-        if not inference:
-            cosine_sim[t.cat([mask_pad_ids] * batch_titems.shape[1], 1).view(
-                batch_titems.shape[0], batch_titems.shape[1], -1)] = -np.inf
-
-        attention_weights = self.softmax(cosine_sim)
-
-        weighted_u_l_m = t.mul(attention_weights.unsqueeze(-1), self.Bc(u_l_m).unsqueeze(1))
-
-        alpha_j_1 = weighted_u_l_m.sum(2)
-        z_j_1 = self.R(alpha_j_1)
-
-        return z_j_1
+        return sub_users_l
 
     def forward_t(self, data):
         v = data.long()
@@ -137,6 +155,7 @@ class SGNS(nn.Module):
             batch_nitems = batch_nitems.cuda()
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
+
         batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
         if [param for param in self.ai2v.parameters()][0].is_cuda:
