@@ -57,7 +57,6 @@ def train(cnfg, valid_dl=None, trial=None):
     cnfg['padding_idx'] = item2idx['pad']
     cnfg['vocab_size'] = vocab_size
     model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
-    print(model_init)
 
     if cnfg['cuda']:
         device = 'cuda:' + str(cnfg['device'])
@@ -86,24 +85,27 @@ def train(cnfg, valid_dl=None, trial=None):
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = DataLoader(train_dataset, batch_size=cnfg['mini_batch'], shuffle=True,
                                   num_workers=cnfg['num_workers'], pin_memory=pin_memory)
+        sgns.train()
         train_loss, sgns = sgns.run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
         writer.add_scalar("Loss/train", train_loss, epoch)
 
         if valid_dl:
-            valid_loss = calc_loss_on_set(sgns, valid_dl, item2idx['pad'])
-            writer.add_scalar("Loss/validation", valid_loss, epoch)
-            print(f'valid loss:{valid_loss}')
+            with t.no_grad():
+                sgns.eval()
+                valid_loss = calc_loss_on_set(sgns, valid_dl, item2idx['pad'])
+                writer.add_scalar("Loss/validation", valid_loss, epoch)
+                print(f'valid loss:{valid_loss}')
 
-            if valid_loss < best_val_loss:
-                best_val_loss = valid_loss
-                best_epoch = epoch
-            scheduler.step()
-            # valid loss is reported to decide on pruning the epoch
-            trial.report(valid_loss, epoch)
+                if valid_loss < best_val_loss:
+                    best_val_loss = valid_loss
+                    best_epoch = epoch
+                scheduler.step()
+                # valid loss is reported to decide on pruning the epoch
+                trial.report(valid_loss, epoch)
 
-            # Handle pruning based on the intermediate value.
-            if trial.should_prune():
-                raise optuna.exceptions.TrialPruned()
+                # Handle pruning based on the intermediate value.
+                if trial.should_prune():
+                    raise optuna.exceptions.TrialPruned()
         else:
             # Save model in each iteration in case we are not in early_stop mode
             save_model(cnfg, model, sgns)
