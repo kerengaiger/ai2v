@@ -53,10 +53,10 @@ class Objective:
         cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
-        cnfg['n_h'] = trial.suggest_int("n_negs", 1, 1, step=1)
-        cnfg['n_b'] = trial.suggest_int("n_negs", 1, 1, step=1)
-        cnfg['n_k'] = trial.suggest_int("n_negs", 60, 60, step=1)
-        cnfg['n_v'] = trial.suggest_int("n_negs", 60, 60, step=1)
+        cnfg['n_h'] = trial.suggest_int("n_h", 1, 1, step=1)
+        cnfg['n_b'] = trial.suggest_int("n_b", 1, 1, step=1)
+        cnfg['d_k'] = trial.suggest_int("d_k", 60, 60, step=1)
+        cnfg['d_v'] = trial.suggest_int("d_v", 60, 60, step=1)
         valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
         self.best_epoch = best_epoch
         return valid_loss
