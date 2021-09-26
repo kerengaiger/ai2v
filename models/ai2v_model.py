@@ -91,12 +91,10 @@ class AttentiveItemToVec(nn.Module):
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None):
         v_l_j = self.forward_t(batch_titems)
         u_l_m = self.forward_c(batch_citems)
-        c_vecs = self.Ac(u_l_m).unsqueeze(1)
-        t_vecs = self.At(v_l_j).unsqueeze(2)
 
-        sub_users_l = t_vecs
+        sub_users_l = v_l_j
         for l in self.mha_layers:
-            sub_users_l, _ = l(sub_users_l, c_vecs, c_vecs, attention_mask=mask_pad_ids)
+            sub_users_l, _ = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids)
 
         return sub_users_l
 
