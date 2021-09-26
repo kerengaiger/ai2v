@@ -10,10 +10,11 @@ from torch import FloatTensor as FT
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embedding_size, window_size, d_k, d_v, num_h):
+    def __init__(self, embedding_size, window_size, device, d_k, d_v, num_h):
         super(MultiHeadAttention, self).__init__()
         self.emb_size = embedding_size
         self.window_size = window_size
+        self.device = device
         self.d_k = d_k
         self.d_v = d_v
         self.num_h = num_h
@@ -42,7 +43,7 @@ class MultiHeadAttention(nn.Module):
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
         if [param for param in self.parameters()][0].is_cuda:
-            self.pos_bias.cuda()
+            self.pos_bias.to(self.device)
         batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
         att = att + batch_pos_bias
 
@@ -58,7 +59,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, emb_size, window_size, n_b=1, n_h=1, d_k=60, d_v=60):
+    def __init__(self, padding_idx, vocab_size, emb_size, window_size, device, n_b=1, n_h=1, d_k=60, d_v=60):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
@@ -66,6 +67,7 @@ class AttentiveItemToVec(nn.Module):
         self.pad_idx = padding_idx
         self.window_size = window_size
         self.n_b = n_b
+        self.device = device
         self.tvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
@@ -85,6 +87,7 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j.requires_grad = True
         self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=self.emb_size,
                                                             window_size=window_size,
+                                                            device=device,
                                                             d_k=d_k, d_v=d_v, num_h=n_h)
                                         for _ in range(self.n_b)])
         self.Bt = nn.Linear(self.emb_size, self.emb_size)
@@ -139,8 +142,8 @@ class SGNS(nn.Module):
         mask_pad_ids = citems == self.ai2v.pad_idx
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         if next(self.parameters()).is_cuda:
-            citems = citems.cuda()
-            all_titems = all_titems.cuda()
+            citems = citems.to(self.device)
+            all_titems = all_titems.to(self.device)
         sub_users = self.ai2v(all_titems, citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
@@ -152,14 +155,14 @@ class SGNS(nn.Module):
         else:
             batch_nitems = FT(batch_titems.size()[0], self.n_negs).uniform_(0, self.vocab_size - 1).long()
         if next(self.parameters()).is_cuda:
-            batch_nitems = batch_nitems.cuda()
+            batch_nitems = batch_nitems.to(self.device)
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
 
         batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
         if [param for param in self.ai2v.parameters()][0].is_cuda:
-            self.ai2v.b_l_j.cuda()
+            self.ai2v.b_l_j.to(self.device)
 
         sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
 
