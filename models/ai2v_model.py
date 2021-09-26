@@ -48,7 +48,8 @@ class MultiHeadAttention(nn.Module):
         att = att + batch_pos_bias
 
         if attention_mask is not None:
-            attention_mask = attention_mask.repeat_interleave(t.tensor([n_t_items * self.num_h], device=self.device).repeat(b_s),
+            attention_mask = attention_mask.repeat_interleave(t.tensor([n_t_items * self.num_h],
+                                                                       device=self.device).repeat(b_s),
                                                               dim=0).view(b_s, self.num_h, n_t_items, n_c_items)
             att = att.masked_fill(attention_mask, -np.inf)
 
