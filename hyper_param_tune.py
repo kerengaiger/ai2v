@@ -49,7 +49,7 @@ class Objective:
         args = vars(args)
         cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
         cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
-        cnfg['embedding_size'] = trial.suggest_int("embedding_size", 10, 80, step=2)
+        cnfg['emb_size'] = trial.suggest_int("emb_size", 10, 80, step=2)
         cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
