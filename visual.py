@@ -170,7 +170,7 @@ mpl.rcParams['axes.prop_cycle'] = cycler(color=['b', 'g', 'y', 'c', 'r', 'm', 'k
 for data in range(len(datasets_bins_precent)):
     plt.plot([i for i in list(range(number_of_bins))], datasets_bins_precent[data], label=labels[data], marker=markers[data], linestyle=linestyles[data])
 plt.xlabel('Popularity Bins (1% of the items)')
-plt.ylabel('Items Count in percentage')
+plt.ylabel('Item Prevalence in Dataset %')
 plt.yscale('log')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 plt.savefig('figures/Skew_levels.jpg', bbox_inches='tight')
