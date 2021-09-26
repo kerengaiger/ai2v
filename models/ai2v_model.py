@@ -37,7 +37,7 @@ class MultiHeadAttention(nn.Module):
         b_s, n_t_items = queries.shape[:2]
         n_c_items = keys.shape[1]
         q = self.At(queries).view(b_s, n_t_items, self.num_h, self.d_k).permute(0, 2, 1, 3)  # (b_s, num_h, n_t_items, d_k)
-        k = self.Ac(keys).view(b_s, n_c_items, self.num_h, self.d_k).permute(0, 2, 3, 1)  # (b_s, num_h, d_k, n_c_items)
+        k = self.Ac(keys).view(b_s, n_c_items, self.num_h, self.d_k).permute(0, 2, 1, 3)  # (b_s, num_h, d_k, n_c_items)
         v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
@@ -52,7 +52,7 @@ class MultiHeadAttention(nn.Module):
             att = att.masked_fill(attention_mask, -np.inf)
 
         att = t.softmax(att, -1)
-        out = t.matmul(att, v).permute(0, 2, 1, 3).contiguous().view(b_s, n_t_items, self.h * self.d_v)  # (b_s, n_t_items, num_h*d_num_h)
+        out = t.matmul(att, v).permute(0, 2, 1, 3).contiguous().view(b_s, n_t_items, self.num_h * self.d_v)  # (b_s, n_t_items, num_h*d_num_h)
         out = self.R(out)  # (b_s, n_t_items, emb_size)
         return out, att
 
