@@ -87,6 +87,7 @@ class AttentiveItemToVec(nn.Module):
                                                             window_size=window_size,
                                                             d_k=d_k, d_v=d_v, num_h=n_h)
                                         for _ in range(self.n_b)])
+        self.Bt = nn.Linear(self.emb_size, self.emb_size)
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None):
         v_l_j = self.forward_t(batch_titems)
