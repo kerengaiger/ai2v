@@ -63,11 +63,11 @@ class AttentiveItemToVec(nn.Module):
         for i in range(len(self.attention_layers)):
             if not inference:
                 Q = self.attention_layernorms[i](Q)
-                outputs, attention_weights = self.attention_layers[i](Q, u_l_m, u_l_m, key_padding_mask=mask_pad_ids)
+                Q, attention_weights = self.attention_layers[i](Q, u_l_m, u_l_m, key_padding_mask=mask_pad_ids)
             else:
                 Q = self.attention_layernorms[i](Q)
-                outputs, attention_weights = self.attention_layers[i](Q, u_l_m, u_l_m)
-        return outputs, attention_weights
+                Q, attention_weights = self.attention_layers[i](Q, u_l_m, u_l_m)
+        return Q, attention_weights
 
     def forward_t(self, data):
         v = data.long()
