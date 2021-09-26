@@ -58,11 +58,11 @@ class MultiHeadAttention(nn.Module):
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, embedding_size, window_size, n_b=1):
+    def __init__(self, padding_idx, vocab_size, emb_size, window_size, n_b=1, n_h=1, d_k=60, d_v=60):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
-        self.emb_size = embedding_size
+        self.emb_size = emb_size
         self.pad_idx = padding_idx
         self.window_size = window_size
         self.n_b = n_b
@@ -75,17 +75,17 @@ class AttentiveItemToVec(nn.Module):
         self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                       self.emb_size).uniform_(-0.5 / self.emb_size,
                                                                               0.5 / self.emb_size),
-                                                   t.zeros(1, self.embedding_size)]))
+                                                   t.zeros(1, self.emb_size)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
-        self.W0 = nn.Linear(4 * self.embedding_size, self.embedding_size)
-        self.W1 = nn.Linear(self.embedding_size, 1)
+        self.W0 = nn.Linear(4 * self.emb_size, self.emb_size)
+        self.W1 = nn.Linear(self.emb_size, 1)
         self.relu = nn.ReLU()
-        self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.embedding_size, 0.5 / self.embedding_size))
+        self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.emb_size, 0.5 / self.emb_size))
         self.b_l_j.requires_grad = True
-        self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=embedding_size,
+        self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=self.emb_size,
                                                             window_size=window_size,
-                                                            d_k=60, d_v=60, num_h=1)
+                                                            d_k=d_k, d_v=d_v, num_h=n_h)
                                         for _ in range(self.n_b)])
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None):
