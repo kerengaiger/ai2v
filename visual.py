@@ -172,6 +172,6 @@ for data in range(len(datasets_bins_precent)):
 plt.xlabel('Popularity Bins (1% of the items)')
 plt.ylabel('Item Prevalence in Dataset %')
 plt.yscale('log')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+plt.legend(bbox_to_anchor=(0.99, 0.99), borderaxespad=0.)  # loc='upper left'
 plt.savefig('figures/Skew_levels.jpg', bbox_inches='tight')
 plt.show()
