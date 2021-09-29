@@ -140,11 +140,11 @@ class SGNS(nn.Module):
             user_items = user_items[-self.ai2v.window_size:]
         num_items = self.ai2v.tvectors.weight.size()[0]
         citems = t.tensor([user_items])
-        mask_pad_ids = citems == self.ai2v.pad_idx
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         if next(self.parameters()).is_cuda:
             citems = citems.to(self.device)
             all_titems = all_titems.to(self.device)
+        mask_pad_ids = citems == self.ai2v.pad_idx
         sub_users = self.ai2v(all_titems, citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
