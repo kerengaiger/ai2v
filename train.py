@@ -64,7 +64,9 @@ def train(cnfg, valid_dl=None, trial=None):
     else:
         device = 'cpu'
 
+    print(device)
     model = model_base_c(**model_init)
+    print(model.device)
     sgns = sgns_c(base_model=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
                   loss_method=cnfg['loss_method'], device=device)
     sgns.to(device)
