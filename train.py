@@ -56,17 +56,14 @@ def train(cnfg, valid_dl=None, trial=None):
 
     cnfg['padding_idx'] = item2idx['pad']
     cnfg['vocab_size'] = vocab_size
-    model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
-    print(model_init)
-
     if cnfg['cuda']:
         device = 'cuda:' + str(cnfg['device'])
     else:
         device = 'cpu'
+    cnfg['device'] = device
 
-    print(device)
+    model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
     model = model_base_c(**model_init)
-    print(model.device)
     sgns = sgns_c(base_model=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
                   loss_method=cnfg['loss_method'], device=device)
     sgns.to(device)
