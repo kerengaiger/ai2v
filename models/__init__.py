@@ -5,4 +5,4 @@ from models.i2v_model import SGNS as sgns_i2v
 
 i2v_cnfg_keys = ['padding_idx', 'vocab_size', 'e_dim']
 ai2v_cnfg_keys = ['padding_idx', 'vocab_size', 'e_dim', 'num_heads',
-                 'num_blocks', 'dropout_rate']
+                  'num_blocks', 'dropout_rate']
