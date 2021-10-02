@@ -10,7 +10,7 @@ from torch import FloatTensor as FT
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, e_dim, k_dim, v_dim, num_heads,
+    def __init__(self, padding_idx, vocab_size, e_dim, num_heads,
                  num_blocks, dropout_rate):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
@@ -51,7 +51,7 @@ class AttentiveItemToVec(nn.Module):
             self.attention_layernorms.append(new_attn_layernorm)
 
             new_attn_layer = t.nn.MultiheadAttention(embed_dim=e_dim, num_heads=num_heads, dropout=dropout_rate,
-                                                     kdim=k_dim, vdim=v_dim, batch_first=True)
+                                                     batch_first=True)
             self.attention_layers.append(new_attn_layer)
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None, inference=False):
