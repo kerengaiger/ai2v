@@ -51,6 +51,8 @@ class Objective:
         cnfg['dropout_rate'] = trial.suggest_float("dropout_rate", 0.1, 0.6)
         cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
         cnfg['e_dim'] = trial.suggest_int("e_dim", 10, 80, step=2)
+        cnfg['k_dim'] = trial.suggest_int("k_dim", 10, 80, step=2)
+        cnfg['v_dim'] = trial.suggest_int("v_dim", 10, 80, step=2)
         cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
         cnfg['num_heads'] = trial.suggest_int("num_heads", 1, 1, step=1)
         cnfg['num_blocks'] = trial.suggest_int("num_blocks", 1, 1, step=1)
