@@ -78,6 +78,7 @@ def train(cnfg, valid_dl=None, trial=None):
     t.autograd.set_detect_anomaly(True)
 
     pin_memory = cnfg['num_workers'] > 0
+    print('pin memory', pin_memory)
 
     train_dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
                                               cnfg['window_size'])
