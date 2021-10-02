@@ -43,6 +43,7 @@ def hr_k(preds_df, k, out_file):
 
 
 def mpr(preds_df, num_all_items):
+    num_all_items = num_all_items - 2
     return 1 - (preds_df['pred_loc'] / num_all_items).mean()
 
 
