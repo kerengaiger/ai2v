@@ -84,6 +84,11 @@ class AttentiveItemToVec(nn.Module):
         self.W0 = nn.Linear(4 * self.emb_size, self.emb_size)
         self.W1 = nn.Linear(self.emb_size, 1)
         self.relu = nn.ReLU()
+        self.last_item_vectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
+                                                               self.e_dim).uniform_(-0.5 / self.e_dim,
+                                                                                    0.5 / self.e_dim),
+                                                            t.zeros(1, self.e_dim)]))
+        self.last_item.requires_grad = True
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.emb_size, 0.5 / self.emb_size))
         self.b_l_j.requires_grad = True
         self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=self.emb_size,
