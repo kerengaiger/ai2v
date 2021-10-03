@@ -172,19 +172,16 @@ class SGNS(nn.Module):
 
         if self.loss_method == 'CCE':  # This option is the default option.
             soft = sim.softmax(dim=1) + 1e-6
-            # print(-soft[:, 0].log().sum())
             return -soft[:, 0].log().sum()
 
         if self.loss_method == 'BCE':
             soft_pos = sim[:, 0].sigmoid() + 1e-6
             soft_neg = sim[:, 1:].neg().sigmoid() + 1e-6
-            # print((-soft_pos.log().sum()) + (-soft_neg.log().sum()))
             return (-soft_pos.log().sum()) + (-soft_neg.log().sum())
 
         if self.loss_method == 'Hinge':
             soft_pos = t.maximum((t.ones_like(sim[:, 0]) - sim[:, 0]), t.zeros_like(sim[:, 0])) + 1e-6
             soft_neg = t.maximum((t.ones_like(sim[:, 1:]) - (-sim[:, 1:])), t.zeros_like(sim[:, 1:])) + 1e-6
-            # print(soft_pos.sum() + soft_neg.sum())
             return soft_pos.sum() + soft_neg.sum()
 
     def run_epoch(self, train_dl, epoch, sgns, optim, pad_idx):
