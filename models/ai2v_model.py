@@ -106,6 +106,9 @@ class AttentiveItemToVec(nn.Module):
         for l in self.mha_layers:
             sub_users_l, _ = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids)
 
+        batch_last_items = self.last_item_vectors(batch_citems[:, -1])
+        batch_last_items = batch_last_items.unsqueeze(1).repeat(1, batch_titems.shape[1], 1)
+        sub_users_l = sub_users_l + batch_last_items
         return sub_users_l
 
     def forward_t(self, data):
