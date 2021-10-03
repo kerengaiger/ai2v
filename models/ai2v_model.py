@@ -118,7 +118,6 @@ class SGNS(nn.Module):
         self.ai2v = base_model
         self.vocab_size = vocab_size
         self.n_negs = n_negs
-        self.weights = None
         self.device = device
         if weights is not None:
             wf = np.power(weights, 0.75)
