@@ -22,9 +22,9 @@ class MultiHeadAttention(nn.Module):
         self.At = nn.Linear(self.emb_size, self.num_h * self.d_k)
         self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
         self.Bc = nn.Linear(self.emb_size, self.num_h * self.d_v)
-        self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
-                                                                   0.5 / self.window_size))
-        self.pos_bias.requires_grad = True
+        # self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
+        #                                                            0.5 / self.window_size))
+        # self.pos_bias.requires_grad = True
         self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
 
     def forward(self, queries, keys, values, attention_mask=None):
@@ -42,10 +42,10 @@ class MultiHeadAttention(nn.Module):
         v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
-        if [param for param in self.parameters()][0].is_cuda:
-            self.pos_bias.to(self.device)
-        batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
-        att = att + batch_pos_bias
+        # if [param for param in self.parameters()][0].is_cuda:
+        #     self.pos_bias.to(self.device)
+        # batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
+        # att = att + batch_pos_bias
 
         if attention_mask is not None:
             attention_mask = attention_mask.repeat_interleave(t.tensor([n_t_items * self.num_h],
