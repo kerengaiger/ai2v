@@ -71,7 +71,7 @@ class AttentiveItemToVec(nn.Module):
         self.device = device
         self.tvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
-        self.last_item_vectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
+        self.last_item_vectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                       self.emb_size).uniform_(-0.5 / self.emb_size,
                                                                               0.5 / self.emb_size),
@@ -86,7 +86,7 @@ class AttentiveItemToVec(nn.Module):
                                                             t.zeros(1, self.emb_size)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
-        self.last_item.requires_grad = True
+        self.last_item_vectors.requires_grad = True
         self.W0 = nn.Linear(4 * self.emb_size, self.emb_size)
         self.W1 = nn.Linear(self.emb_size, 1)
         self.relu = nn.ReLU()
