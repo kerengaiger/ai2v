@@ -71,6 +71,7 @@ class AttentiveItemToVec(nn.Module):
         self.device = device
         self.tvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
         self.cvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
+        self.last_item_vectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
         self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                       self.emb_size).uniform_(-0.5 / self.emb_size,
                                                                               0.5 / self.emb_size),
@@ -79,16 +80,16 @@ class AttentiveItemToVec(nn.Module):
                                                       self.emb_size).uniform_(-0.5 / self.emb_size,
                                                                               0.5 / self.emb_size),
                                                    t.zeros(1, self.emb_size)]))
-        self.tvectors.weight.requires_grad = True
-        self.cvectors.weight.requires_grad = True
-        self.W0 = nn.Linear(4 * self.emb_size, self.emb_size)
-        self.W1 = nn.Linear(self.emb_size, 1)
-        self.relu = nn.ReLU()
         self.last_item_vectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1,
                                                                self.emb_size).uniform_(-0.5 / self.emb_size,
                                                                                        0.5 / self.emb_size),
                                                             t.zeros(1, self.emb_size)]))
+        self.tvectors.weight.requires_grad = True
+        self.cvectors.weight.requires_grad = True
         self.last_item.requires_grad = True
+        self.W0 = nn.Linear(4 * self.emb_size, self.emb_size)
+        self.W1 = nn.Linear(self.emb_size, 1)
+        self.relu = nn.ReLU()
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.emb_size, 0.5 / self.emb_size))
         self.b_l_j.requires_grad = True
         self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=self.emb_size,
