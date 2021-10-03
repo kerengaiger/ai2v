@@ -42,8 +42,6 @@ class MultiHeadAttention(nn.Module):
         v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
-        # if [param for param in self.parameters()][0].is_cuda:
-        #     self.pos_bias.to(self.device)
         # batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
         # att = att + batch_pos_bias
 
@@ -169,8 +167,6 @@ class SGNS(nn.Module):
 
         batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
-        if [param for param in self.ai2v.parameters()][0].is_cuda:
-            self.ai2v.b_l_j.to(self.device)
 
         sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
 
