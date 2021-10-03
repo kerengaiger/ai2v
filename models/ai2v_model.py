@@ -119,6 +119,7 @@ class SGNS(nn.Module):
         self.vocab_size = vocab_size
         self.n_negs = n_negs
         self.device = device
+        self.weights=None
         if weights is not None:
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
