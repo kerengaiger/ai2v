@@ -42,8 +42,6 @@ class MultiHeadAttention(nn.Module):
         v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
-        if [param for param in self.parameters()][0].is_cuda:
-            self.pos_bias.to(self.device)
         batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
         att = att + batch_pos_bias
 
