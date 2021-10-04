@@ -159,8 +159,6 @@ class SGNS(nn.Module):
 
         batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
-        if [param for param in self.ai2v.parameters()][0].is_cuda:
-            self.ai2v.b_l_j.to(self.device)
 
         sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
 
