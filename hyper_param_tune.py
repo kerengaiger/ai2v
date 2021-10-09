@@ -56,8 +56,6 @@ class Objective:
         cnfg['n_negs'] = 7
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
-        cnfg['d_k'] = 45
-        cnfg['d_v'] = 45
         valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
         self.best_epoch = best_epoch
         return valid_loss
