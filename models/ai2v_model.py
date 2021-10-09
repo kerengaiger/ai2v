@@ -27,14 +27,7 @@ class MultiHeadAttention(nn.Module):
         self.pos_bias.requires_grad = True
         self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
 
-    def forward(self, queries, keys, values, attention_mask=None):
-        '''
-        :param queries: Queries (b_s, n_t_items, emb_size)
-        :param keys: Keys (b_s, n_c_items, emb_size)
-        :param values: Values (b_s, n_c_items, d_model)
-        :param attention_mask: Mask over attention values (b_s, num_h, n_t_items, n_c_items). True indicates masking.
-        :return: batch_sub_user (b_s, n_t_items, emb_size)
-        '''
+    def forward(self, queries, keys, values, attention_mask=None, add_pos_bias=False):
         b_s, n_t_items = queries.shape[:2]
         n_c_items = keys.shape[1]
         q = self.At(queries).view(b_s, n_t_items, self.num_h, self.d_k).permute(0, 2, 1, 3)  # (b_s, num_h, n_t_items, d_k)
@@ -42,8 +35,9 @@ class MultiHeadAttention(nn.Module):
         v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
-        batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
-        att = att + batch_pos_bias
+        if add_pos_bias:
+            batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
+            att = att + batch_pos_bias
 
         if attention_mask is not None:
             attention_mask = attention_mask.repeat_interleave(t.tensor([n_t_items * self.num_h],
@@ -58,7 +52,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, emb_size, window_size, device, n_b, n_h):
+    def __init__(self, padding_idx, vocab_size, emb_size, window_size, device, n_b, n_h, add_pos_bias):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
@@ -88,6 +82,7 @@ class AttentiveItemToVec(nn.Module):
                                                             device=device, num_h=n_h)
                                         for _ in range(self.n_b)])
         self.Bt = nn.Linear(self.emb_size, self.emb_size)
+        self.add_pos_bias = add_pos_bias
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None):
         v_l_j = self.forward_t(batch_titems)
@@ -95,7 +90,7 @@ class AttentiveItemToVec(nn.Module):
 
         sub_users_l = v_l_j
         for l in self.mha_layers:
-            sub_users_l, _ = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids)
+            sub_users_l, _ = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids, add_pos_bias=self.add_pos_bias)
 
         return sub_users_l
 

@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=2021, help="seed number")
     parser.add_argument('--n_h', type=int, default=1, help="number of heads in attention")
     parser.add_argument('--n_b', type=int, default=1, help="number of attention blocks")
+    parser.add_argument('--add_pos_bias', action='store_true', help="add positional bias to user representation")
     return parser.parse_args()
 
 
@@ -55,8 +56,6 @@ class Objective:
         cnfg['n_negs'] = 7
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
-        cnfg['n_h'] = args['n_h']
-        cnfg['n_b'] = args['n_b']
         cnfg['d_k'] = 45
         cnfg['d_v'] = 45
         valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
