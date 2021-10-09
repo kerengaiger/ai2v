@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument('--device', type=int, default=0, help="cude device to use")
     parser.add_argument('--window_size', type=int, default=1000, help="window size")
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
+    parser.add_argument('--cnfg_init', type=str, default=None, help="initial configuration to start study from")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
     parser.add_argument('--loss_method', type=str, default='CCE', help="the loss method")
     parser.add_argument('--seed', type=int, default=2021, help="seed number")
@@ -78,6 +79,10 @@ def main():
     study = optuna.create_study(
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10), direction="minimize"
     )
+    if args.cnfg_init is not None:
+        cnfg_init = pickle.load(open(args.cnfg_init, 'rb'))
+        study.enqueue_trial({'lr': cnfg_init['lr'], 'mini_batch': cnfg_init['mini_batch']})
+
     study.optimize(objective, n_trials=args.trials, callbacks=[objective.callback])
 
     pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
