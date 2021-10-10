@@ -52,7 +52,7 @@ class Objective:
         args = parse_args()
         args = vars(args)
         cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
-        cnfg['sst'] = trial.suggest_loguniform("sst", 1e-5, 1e-1)
+        cnfg['ss_t'] = 1e-4
         cnfg['emb_size'] = 50
         cnfg['n_negs'] = 7
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
