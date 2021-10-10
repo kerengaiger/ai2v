@@ -78,6 +78,10 @@ def main():
     study = optuna.create_study(
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10), direction="minimize"
     )
+    if args.cnfg_init is not None:
+        cnfg_init = pickle.load(open(args.cnfg_init, 'rb'))
+        study.enqueue_trial({'lr': cnfg_init['lr'], 'mini_batch': cnfg_init['mini_batch']})
+
     study.optimize(objective, n_trials=args.trials, callbacks=[objective.callback])
 
     pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
