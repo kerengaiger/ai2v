@@ -10,7 +10,7 @@ from torch import FloatTensor as FT
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embedding_size, window_size, device, d_k, d_v, num_h):
+    def __init__(self, embedding_size, window_size, device, num_h, d_k=55, d_v=55):
         super(MultiHeadAttention, self).__init__()
         self.emb_size = embedding_size
         self.window_size = window_size
@@ -22,9 +22,6 @@ class MultiHeadAttention(nn.Module):
         self.At = nn.Linear(self.emb_size, self.num_h * self.d_k)
         self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
         self.Bc = nn.Linear(self.emb_size, self.num_h * self.d_v)
-        # self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
-        #                                                            0.5 / self.window_size))
-        # self.pos_bias.requires_grad = True
         self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
 
     def forward(self, queries, keys, values, attention_mask=None):
@@ -42,8 +39,6 @@ class MultiHeadAttention(nn.Module):
         v = self.Bc(values).view(b_s, n_c_items, self.num_h, self.d_v).permute(0, 2, 1, 3)  # (b_s, num_h, n_c_items, d_v)
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
-        # batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
-        # att = att + batch_pos_bias
 
         if attention_mask is not None:
             attention_mask = attention_mask.repeat_interleave(t.tensor([n_t_items * self.num_h],
@@ -58,7 +53,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, emb_size, window_size, device, n_b=1, n_h=1, d_k=60, d_v=60):
+    def __init__(self, padding_idx, vocab_size, emb_size, window_size, device, n_b, n_h, add_last_item_emb):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
@@ -92,10 +87,10 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j.requires_grad = True
         self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=self.emb_size,
                                                             window_size=window_size,
-                                                            device=device,
-                                                            d_k=d_k, d_v=d_v, num_h=n_h)
+                                                            device=device, num_h=n_h)
                                         for _ in range(self.n_b)])
         self.Bt = nn.Linear(self.emb_size, self.emb_size)
+        self.add_last_item_emb = add_last_item_emb
 
     def forward(self, batch_titems, batch_citems, mask_pad_ids=None):
         v_l_j = self.forward_t(batch_titems)
@@ -105,9 +100,10 @@ class AttentiveItemToVec(nn.Module):
         for l in self.mha_layers:
             sub_users_l, _ = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids)
 
-        batch_last_items = self.last_item_vectors(batch_citems[:, -1])
-        batch_last_items = batch_last_items.unsqueeze(1).repeat(1, batch_titems.shape[1], 1)
-        sub_users_l = sub_users_l + batch_last_items
+        if self.add_last_item_emb:
+            batch_last_items = self.last_item_vectors(batch_citems[:, -1])
+            batch_last_items = batch_last_items.unsqueeze(1).repeat(1, batch_titems.shape[1], 1)
+            sub_users_l = sub_users_l + batch_last_items
         return sub_users_l
 
     def forward_t(self, data):
