@@ -52,15 +52,11 @@ class Objective:
         args = parse_args()
         args = vars(args)
         cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
-        cnfg['ss_t'] = trial.suggest_float("ss_t", 1e-5, 3e-3)
-        cnfg['emb_size'] = trial.suggest_int("emb_size", 14, 60, step=2)
-        cnfg['n_negs'] = trial.suggest_int("n_negs", 7, 10, step=1)
+        cnfg['ss_t'] = 1e-4
+        cnfg['emb_size'] = 50
+        cnfg['n_negs'] = 7
         cnfg['mini_batch'] = trial.suggest_categorical("mini_batch", [32, 64, 128, 200, 256])
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
-        cnfg['n_h'] = trial.suggest_int("n_h", 1, 1, step=1)
-        cnfg['n_b'] = trial.suggest_int("n_b", 1, 1, step=1)
-        cnfg['d_k'] = trial.suggest_int("d_k", 40, 60, step=2)
-        cnfg['d_v'] = trial.suggest_int("d_v", 40, 60, step=2)
         valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
         self.best_epoch = best_epoch
         return valid_loss
