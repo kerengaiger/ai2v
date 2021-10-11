@@ -46,6 +46,7 @@ class Objective:
 
     def __init__(self):
         self.best_epoch = None
+        self.cur_cnfg = None
 
     def __call__(self, trial):
         cnfg = {}
@@ -59,12 +60,13 @@ class Objective:
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
         valid_loss, best_epoch = train_evaluate({**cnfg, **args}, trial)
         self.best_epoch = best_epoch
+        self.cur_cnfg = cnfg
         return valid_loss
 
     def callback(self, study, trial):
         args = parse_args()
         if study.best_trial == trial:
-            best_cnfg = trial.params
+            best_cnfg = self.cur_cnfg
             best_cnfg['best_epoch'] = self.best_epoch
             best_cnfg['max_epoch'] = best_cnfg['best_epoch']
             best_cnfg = {**best_cnfg, **vars(args)}
