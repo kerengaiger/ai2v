@@ -65,7 +65,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
     eval_set_df.to_csv(out_file, index=False)
 
 
-def calc_attention(model, eval_set_lst, out_file, device):
+def calc_attention(model, eval_set_lst, out_file):
     pbar = tqdm(eval_set_lst)
     lst = []
     for i, (user_items, target_item) in enumerate(pbar):
