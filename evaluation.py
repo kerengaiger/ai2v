@@ -68,12 +68,19 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
 def calc_attention(model, eval_set_lst, out_file, device):
     pbar = tqdm(eval_set_lst)
     lst = []
-    for i, (user_itemids, target_item) in enumerate(pbar):
+    for i, (user_items, target_item) in enumerate(pbar):
+        if len(user_items) < model.ai2v.window_size:
+            pad_times = model.ai2v.window_size - len(user_items)
+            user_items = [model.ai2v.pad_idx] * pad_times + user_items
+        else:
+            user_items = user_items[-model.ai2v.window_size:]
+
         batch_titems = torch.tensor([target_item]).unsqueeze(0)
-        batch_titems = batch_titems.to(device)
-        batch_citems = torch.tensor([user_itemids])
-        batch_citems = batch_citems.to(device)
-        _, attention_weights = model.ai2v(batch_titems, batch_citems, inference=True)
+        batch_titems = batch_titems.to(model.device)
+        batch_citems = torch.tensor([user_items])
+        batch_citems = batch_citems.to(model.device)
+        mask_pad_ids = batch_citems == model.ai2v.pad_idx
+        _, attention_weights = model.ai2v(batch_titems, batch_citems, mask_pad_ids=mask_pad_ids)
         lst.append(attention_weights[0][0].cpu().detach().numpy())
     pickle.dump(lst, open(out_file, 'wb'))
 
