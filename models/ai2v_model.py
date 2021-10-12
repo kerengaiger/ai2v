@@ -90,9 +90,9 @@ class AttentiveItemToVec(nn.Module):
 
         sub_users_l = v_l_j
         for l in self.mha_layers:
-            sub_users_l, _ = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids, add_pos_bias=self.add_pos_bias)
+            sub_users_l, att_scores_l = l(sub_users_l, u_l_m, u_l_m, attention_mask=mask_pad_ids, add_pos_bias=self.add_pos_bias)
 
-        return sub_users_l
+        return sub_users_l, att_scores_l
 
     def forward_t(self, data):
         v = data.long()
@@ -135,7 +135,7 @@ class SGNS(nn.Module):
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         all_titems = all_titems.to(self.device)
         mask_pad_ids = citems == self.ai2v.pad_idx
-        sub_users = self.ai2v(all_titems, citems, mask_pad_ids=mask_pad_ids)
+        sub_users, _ = self.ai2v(all_titems, citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
@@ -150,7 +150,7 @@ class SGNS(nn.Module):
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
 
-        batch_sub_users = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
+        batch_sub_users, _ = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
 
         sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
