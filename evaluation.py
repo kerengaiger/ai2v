@@ -32,7 +32,7 @@ def mrr_k(preds_df, k, out_file):
     preds_df['rr_k'] = 1 / preds_df['pred_loc']
     preds_df.loc[preds_df['pred_loc'] > k, 'rr_k'] = 0
     preds_df.to_csv(out_file, index=False)
-    return preds_df.loc[preds_df['pred_loc'] > 0, 'rr_k'].mean()
+    return preds_df['rr_k'].mean()
 
 
 def hr_k(preds_df, k, out_file):
@@ -47,9 +47,9 @@ def mpr(preds_df, num_all_items):
 
 
 def ndcg_k(preds_df, k):
-    preds_df['ndcg'] = 1 / np.log2(1 + preds_df['pred_loc'])
-    preds_df.loc[preds_df['pred_loc'] > k, 'rr_k'] = 0
-    return preds_df.loc[preds_df['pred_loc'] > 0, 'ndcg'].mean()
+    preds_df['ndcg_k'] = 1 / np.log2(1 + preds_df['pred_loc'])
+    preds_df.loc[preds_df['pred_loc'] > k, 'ndcg_k'] = 0
+    return preds_df['ndcg_k'].mean()
 
 
 def predict(model, eval_set_lst, eval_set_df, out_file):
