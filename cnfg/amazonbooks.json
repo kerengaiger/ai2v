@@ -1,5 +1,5 @@
 {
-  "raw_data_file":"./data/",
+  "raw_data_file":"./data/ratings_amazon_books.csv",
   "save_data_dir":"./corpus/amazonbooks_llo/",
   "line_sep":",",
   "pos_thresh":4,

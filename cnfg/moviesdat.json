@@ -1,5 +1,5 @@
 {
-  "raw_data_file":"./data/",
+  "raw_data_file":"./data/moviesdat_corpus.csv",
   "save_data_dir":"./corpus/moviesdat_llo/",
   "line_sep":",",
   "pos_thresh":4,

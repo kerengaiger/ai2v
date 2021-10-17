@@ -1,5 +1,5 @@
 {
-  "raw_data_file":"./data/",
+  "raw_data_file":"./data/netflix_corpus.csv",
   "save_data_dir":"./corpus/netflix_llo/",
   "line_sep":",",
   "pos_thresh":4,
