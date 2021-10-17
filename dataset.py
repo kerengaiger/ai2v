@@ -151,8 +151,6 @@ class Preprocess(object):
 
         elif self.split_strategy == 'leave_one_out':
             full_train, test = {user: users[user][:-1] for user in users}, users
-            pd.DataFrame({'user': list(users.keys()), 'item': [usr[-1] for usr in list(users.keys())]}).to_csv(
-                os.path.join(self.save_data_dir, 'test_raw.csv'), header=False, index=False)
             train, valid = {user: full_train[user][:-1] for user in full_train}, full_train
         else:
             print('Split strategy not valid')
@@ -182,7 +180,9 @@ def generate_train_files(data_cnfg):
     # arrange users data by date
     user2data = {usr: [item_index[0] for item_index in sorted(user2data[usr], key=lambda x: x[1])] for usr in user2data.keys()}
     # generate processed raw files
-    full_corpus = [user2data[user].items for user in user2data.keys()]
+    full_corpus = [user2data[user] for user in user2data.keys()]
+    pd.DataFrame({'user': list(user2data.keys()), 'item': [user2data[usr][-1] for usr in user2data.keys()]}).to_csv(
+        os.path.join(preprocess.save_data_dir, 'test_raw.csv'), header=False, index=False)
     full_train, train, valid, test = preprocess.split(user2data)
     preprocess.save_file('full_corpus.txt', full_corpus)
     preprocess.save_file('full_train.txt', full_train)
