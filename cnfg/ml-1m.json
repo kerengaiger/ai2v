@@ -1,7 +1,7 @@
 {
   "raw_data_file":"./data/ratings.dat",
   "save_data_dir":"./corpus/ml-1m_llo/",
-  "line_sep":":",
+  "line_sep":"::",
   "pos_thresh":4,
   "user_pos":0,
   "item_pos":1,
