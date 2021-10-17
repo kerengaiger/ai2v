@@ -8,21 +8,6 @@ import json
 import csv
 
 
-class User:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.items = []
-
-    def arrange_item_list(self):
-        self.items = [item_index[0] for item_index in sorted(self.items, key=lambda x: x[1])]
-
-
-class Item:
-    def __init__(self, item_id):
-        self.item_id = item_id
-        self.users = []
-
-
 def random_split(lst, frac=0.2):
     np.random.seed(0)
     return np.random.choice(lst, int(frac * len(lst)))
@@ -141,19 +126,17 @@ class Preprocess(object):
                     line = [i for i in line if i != '']
                     user_id = line[self.user_pos]
                     if user_id not in user2data:
-                        user2data[user_id] = User(user_id)
-                    user = user2data[user_id]
+                        user2data[user_id] = []
                     item_id = line[self.item_pos]
                     if item_id not in item2data:
-                        item2data[item_id] = Item(item_id)
-                    item = item2data[item_id]
+                        item2data[item_id] = []
                     try:
                         date = int(line[self.date_pos])
                     except:
                         date = int(datetime.strptime(line[self.date_pos], '%Y-%m-%d').timestamp())
                     if float(line[self.rate_pos]) > self.pos_thresh:
-                        user.items.append((line[self.item_pos], date))
-                        item.users.append(line[self.user_pos])
+                        user2data[user_id].append((line[self.item_pos], date))
+                        item2data[item_id].append(line[self.user_pos])
 
         return user2data, item2data
 
@@ -161,7 +144,7 @@ class Preprocess(object):
         if self.split_strategy == 'users_split':
             train_users = random_split(list(users.keys()))
             full_train, test = {user: users[user] for user in train_users}, \
-                          {user: users[user] for user in list(users.keys()) if user not in train_users}
+                               {user: users[user] for user in list(users.keys()) if user not in train_users}
             train_users = random_split(list(full_train.keys()))
             train, valid = {user: full_train[user] for user in train_users}, \
                            {user: full_train[user] for user in list(users.keys()) if user not in train_users}
@@ -192,10 +175,12 @@ def generate_train_files(data_cnfg):
     user2data, item2data = preprocess.read_data(preprocess.raw_data_file)
     # filter user and items
     user2data = filter(user2data, preprocess.min_usr_len, preprocess.max_usr_len)
-    item2data = {item: [user for user in item2data[item].users if user in user2data.keys()] for item in item2data.keys()}
+    item2data = {item: [user for user in item2data[item] if user in user2data.keys()] for item in item2data.keys()}
     item2data = filter(item2data, preprocess.min_items_cnt, preprocess.max_items_cnt)
-    user2data = {user: [item for item in user2data[user].items if item in item2data.keys()] for user in user2data.keys()}
+    user2data = {user: [item for item in user2data[user] if item[0] in item2data.keys()] for user in user2data.keys()}
     user2data = filter(user2data, preprocess.final_usr_len, preprocess.max_usr_len)
+    # arrange users data by date
+    user2data = {usr: [item_index[0] for item_index in sorted(user2data[usr], key=lambda x: x[1])] for usr in user2data.keys()}
     # generate processed raw files
     full_corpus = [user2data[user].items for user in user2data.keys()]
     full_train, train, valid, test = preprocess.split(user2data)
