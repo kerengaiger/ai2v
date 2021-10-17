@@ -4,7 +4,7 @@
   "line_sep":",",
   "pos_thresh":4,
   "user_pos":0,
-  "tem_pos":1,
+  "item_pos":1,
   "rate_pos":2,
   "date_pos":3,
   "min_usr_len":100,
