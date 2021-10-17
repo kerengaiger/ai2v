@@ -2,6 +2,7 @@
 import datetime
 import pathlib
 import pickle
+import os
 
 import numpy as np
 import torch as t
@@ -11,6 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from train_utils import save_model, configure_weights, UserBatchIncrementDataset, set_random_seed
+from dataset import generate_train_files
 import models
 import argparse
 import optuna
@@ -19,6 +21,8 @@ import optuna
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
+    parser.add_argument('--data_cnfg', type=str, default='./config/ml-1m.json',
+                        help="data config to generate train files")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
     parser.add_argument('--train', type=str, default='full_train.dat', help="train file name")
     parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
@@ -128,6 +132,10 @@ def train_evaluate(cnfg, trial):
 
 def main():
     args = parse_args()
+    if not len(os.listdir(args.data_dir)):
+        print("Generating train files...")
+        generate_train_files(args.data_cnfg)
+
     cnfg = pickle.load(open(args.best_cnfg, "rb"))
     args = vars(args)
     cnfg['max_epoch'] = int(cnfg['best_epoch'])

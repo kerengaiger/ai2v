@@ -1,10 +1,12 @@
 import argparse
 import pickle
 import pathlib
+import os
 
 import optuna
 
 from train import train_evaluate, train
+from dataset import generate_train_files
 
 
 I2V = 'i2v'
@@ -15,15 +17,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='ai2v', help="model to train: i2v or ai2v")
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
+    parser.add_argument('--data_cnfg', type=str, default='./config/ml-1m.json', help="data config to generate train files")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
-    parser.add_argument('--train', type=str, default='train.dat', help="train file name")
-    parser.add_argument('--valid', type=str, default='valid.dat', help="validation users file name")
-    parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
-    parser.add_argument('--full_train', type=str, default='full_train.dat', help="full train file name")
-    parser.add_argument('--vocab', type=str, default='vocab.dat', help="vocab file")
-    parser.add_argument('--ic', type=str, default='ic.dat', help='items counts file')
-    parser.add_argument('--item2idx', type=str, default='item2idx.dat', help='item2index mapping')
-    parser.add_argument('--idx2item', default='idx2item.dat', help='index2item mapping')
     parser.add_argument('--max_epoch', type=int, default=50, help="max number of epochs")
     parser.add_argument('--unk', type=str, default='<UNK>', help="UNK token")
     parser.add_argument('--trials', type=int, default=50, help="number of trials ")
@@ -76,6 +71,10 @@ class Objective:
 def main():
     args = parse_args()
     objective = Objective()
+    # generate train files in case data_dir is empty
+    if not len(os.listdir(args.data_dir)):
+        print("Generating train files...")
+        generate_train_files(args.data_cnfg)
 
     study = optuna.create_study(
         pruner=optuna.pruners.MedianPruner(n_warmup_steps=10), direction="minimize"
