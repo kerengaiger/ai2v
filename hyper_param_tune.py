@@ -100,8 +100,7 @@ def main():
 
     best_parameters = pickle.load(open(pathlib.Path(args.save_dir, args.cnfg_out), "rb"))
     best_parameters['max_epoch'] = best_parameters['best_epoch']
-    best_parameters['train'] = args.full_train
-    train(best_parameters)
+    train(best_parameters, 'full_train.dat')
 
 
 if __name__ == '__main__':

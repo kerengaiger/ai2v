@@ -44,9 +44,9 @@ def calc_loss_on_set(sgns, valid_dl, pad_idx):
     return np.array(valid_losses).mean()
 
 
-def train(cnfg, valid_dl=None, trial=None):
-    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['idx2item']).open('rb'))
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
+def train(cnfg, train_file, valid_dl=None, trial=None):
+    idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -79,7 +79,7 @@ def train(cnfg, valid_dl=None, trial=None):
 
     pin_memory = cnfg['num_workers'] > 0
 
-    train_dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], cnfg['train']), item2idx['pad'],
+    train_dataset = UserBatchIncrementDataset(pathlib.Path(cnfg['data_dir'], train_file), item2idx['pad'],
                                               cnfg['window_size'])
 
     for epoch in range(1, cnfg['max_epoch'] + 1):
@@ -115,14 +115,14 @@ def train(cnfg, valid_dl=None, trial=None):
 
 def train_evaluate(cnfg, trial):
     print(cnfg)
-    valid_users_path = pathlib.Path(cnfg['data_dir'], cnfg['valid'])
-    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], cnfg['item2idx']).open('rb'))
+    valid_users_path = pathlib.Path(cnfg['data_dir'], 'valid.dat')
+    item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
     valid_dataset = UserBatchIncrementDataset(valid_users_path, item2idx['pad'], cnfg['window_size'])
     pin_memory = cnfg['num_workers'] > 0
     valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
                           num_workers=cnfg['num_workers'], pin_memory=pin_memory)
     set_random_seed(cnfg['seed'])
-    best_val_loss, best_epoch = train(cnfg, valid_dl, trial)
+    best_val_loss, best_epoch = train(cnfg, 'train.dat', valid_dl, trial)
     return best_val_loss, best_epoch
 
 
@@ -132,7 +132,7 @@ def main():
     args = vars(args)
     cnfg['max_epoch'] = int(cnfg['best_epoch'])
     set_random_seed(cnfg['seed'])
-    train({**cnfg, **args})
+    train({**cnfg, **args}, 'full_train.dat')
 
 
 if __name__ == '__main__':
