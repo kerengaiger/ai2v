@@ -15,7 +15,7 @@ AI2V = 'ai2v'
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='ai2v', help="model to train: i2v or ai2v")
+    parser.add_argument('--model', choices=['ai2v', 'i2v'], default='ai2v', help="type of model to train")
     parser.add_argument('--data_dir', type=str, default='./data/', help="data directory path")
     parser.add_argument('--data_cnfg', type=str, default='./config/ml-1m.json', help="data config to generate train files")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--log_dir', type=str, default='my_logdir', help="directory for tensorboard logs")
     parser.add_argument('--cnfg_init', type=str, default=None, help="initial configuration to start study from")
     parser.add_argument('--cnfg_out', type=str, default='best_cnfg.pkl', help="best configuration file name")
-    parser.add_argument('--loss_method', type=str, default='CCE', help="the loss method")
+    parser.add_argument('--loss_method', choices=['CCE', 'BCE', 'Hinge'], default='CCE', help="the loss method")
     parser.add_argument('--seed', type=int, default=2021, help="seed number")
     parser.add_argument('--n_h', type=int, default=1, help="number of heads in attention")
     parser.add_argument('--n_b', type=int, default=1, help="number of attention blocks")
