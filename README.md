@@ -17,70 +17,36 @@ a final attentive user vector. This vector constitutes the
 dynamic representation 
 
 ### Usage
-#### preprocess.py
-Gets train, valid and test txt files containing users as list of items. One should also provide the file 
-to create the vocabulary from. Returns .dat files of training samples for full train(train + validation, 
-used to train the final model), train, validation and test.
-
-##### Running example
-```bash
-python preprocess.py --vocab ./data/full_train.txt --full_corpus ./data/full_train.txt --test_corpus ./data/test.txt 
---build_train_valid --train_corpus ./data/train.txt --valid_corpus ./data/valid.txt --full_train_file ./data/full_train.dat 
---train_file ./data/train.dat --valid_file ./data/valid_.dat --test_file ./data/test.dat
-```
-#### hyper_param_tune.py
-Performs a hyper parameters search when training the chosen model(I2V/AI2V). After the best configuration has chosen,
-the model is being trained with it, its final weights are being saved into output files and the 
-[mean recipocal rank](https://en.wikipedia.org/wiki/Mean_reciprocal_rank) and [hit ratio](https://en.wikipedia.org/wiki/Hit_rate)
-are evaluated on the given test set. Training procedure is being tracked with Tensorboard  
-
-##### User Arguments
-* model - ai2v / i2v
-* data_dir - the directory of all data files
-* save_dir - the directory of all output files
-* train - the train file path
-* valid - validation file path
-* test - test file path
-* full_train - full train(train+valid) file path
-* max_epoch - maximum number of epochs to run
-* patience - number of epochs the user tolerates a validation loss increase before early stopping
-* trials - number of trials to test in the optimization search
-* log_dir - the name of directory for tensorboard logs
-* k - the k used in hr_k and mrp_k on test set
-* hr_out - .csv file containing the hit/ miss for each test samples
-* rr_out - .csv file containing the recipocal rank for each test sample
-* cnfg_out - .pkl file containing the best configuration 
-
-##### Running example
-```bash
-python hyper_param_tune.py --model ai2v --data_dir ./data/ --save_dir ./output/ --train train.dat --valid valid.dat 
---test test.dat --full_train full_train.dat --max_epoch 50 --patience 3 --trials 5 --cuda 
---log_dir my_log_dir --k 20 --hr_out ./output/hr_out.csv --rr_out ./output/rr_out.csv --cnfg_out ./output/best_cnfg.pkl
-```
-
-#### train_i2v.py, train_ai2v.py
-Train ai2v or i2v models with a chosen configuration over a certain number of epochs.
-
-##### Running example
-```bash
-python train_ai2v.py --data_dir ./data/ --save_dir ./output/ --train train.dat 
---test test.dat --patience 3  --cuda --log_dir my_log_dir --k 20 --hr_out ./output/hr_out.csv 
---rr_out ./output/rr_out.csv --cnfg_out ./output/best_cnfg.pkl --max_epoch 50
-```
-
-#### evaluation.py
-Evaluates model performance using hit ratio and mean recipocal rank metrics.
-##### Running example
-```bash
-python evaluation.py --k 20 --model ai2v --test ./data/test.dat
-```
-
-This module also contain a function for calculating the p_value when assessing 
-the difference between the two model results(in terms of mean recipocal rank and 
-the hit ratio). Inputs files must be in a .csv formal, no header, 
-in the format of user_id,item_id, metric_values
-
+Raw input files must include user_id, item_id, date and rate_score. We trained the models on Movielens 1M,
+Netflix, Yahoo, Goodbooks, Moviesdat, Amazon Books and Amazon Beuty datasets. Preprocess parameters we used are
+configured at the json files in ```cnfg/```. If one would like to test modles on new dataset, he needs to create
+a proper json file.
+#### Train files generation
 ```python
-from evaluation import test_p_value
-test_p_value('./output/ht_ai2v.csv', './output/ht_i2v.csv')
+from dataset import generate_train_files
+generate_train_files('path/to/json/cnfg/file')
+```
+#### Train
+Train one of the models based on a configuration file of hyper parameters values.
+```bash
+python train.py --data_dir path/to/data/dir --data_cnfg path/to/json/cnfg --save_dir /path/to/model/saves/ \
+--cuda --device 0 --best_cnfg path/to/params/cnfg
+
+```
+#### Tune
+Tune one of the models hyper parameters on a specific dataset. This module finds the best configuration,
+trains the model on the full training set and saves the model file.
+One can change the number of heads and attention blocks using the n_h and n_b args respectively. In order
+to learn an items' positional bias, configure --add_pos_bias. 
+```bash
+python hyper_param_tune.py --model ai2v --data_dir path/to/data/dir --data_cnfg path/to/json/cnfg \
+--save_dir /path/to/model/saves/ --trials 50 --num_workers 4 --cuda --device 0  \
+--log_dir path/to/tensorboard/logs/dir --cnfg_init /path/to/initial/cnfg --cnfg_out path/to/best/cnfg/save \
+--loss_method BCE --n_h 1 --n_b 1 --add_pos_bias
+```
+#### Evaluate
+Calculate the HR@K, MRR@K, NDCG@K and MPR@K metrics given a model,a test set and a certain K value.
+```bash
+python evaluation.py --k 20 --data_dir path/to/data/dir --output_dir /path/to/model/saves/ \
+--hr_out path/to/hr/out/file --mrr_out path/to/mrr/out/file
 ```
