@@ -61,7 +61,7 @@ class SGNS(nn.Module):
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
             self.weights = FT(wf)
-        self.loss_methos = loss_method
+        self.loss_method = loss_method
         self.device = device
 
     def forward(self, titems, citems):
