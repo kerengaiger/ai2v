@@ -41,8 +41,7 @@ def calc_loss_on_set(sgns, valid_dl, pad_idx):
     for batch_titems, batch_citems in pbar:
         batch_titems, batch_citems = batch_titems.to(sgns.device), batch_citems.to(sgns.device)
 
-        mask_pad_ids = (batch_citems == pad_idx)
-        loss = sgns(batch_titems, batch_citems, mask_pad_ids)
+        loss = sgns(batch_titems, batch_citems)
         valid_losses.append(loss.item())
 
     return np.array(valid_losses).mean()

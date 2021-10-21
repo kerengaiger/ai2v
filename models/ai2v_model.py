@@ -140,7 +140,7 @@ class SGNS(nn.Module):
         sim = self.similarity(sub_users, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
-    def forward(self, batch_titems, batch_citems, mask_pad_ids):
+    def forward(self, batch_titems, batch_citems):
         if self.weights is not None:
             batch_nitems = t.multinomial(self.weights, batch_titems.size()[0] * self.n_negs, replacement=True).view(batch_titems.size()[0], -1)
         else:
@@ -149,7 +149,7 @@ class SGNS(nn.Module):
             batch_nitems = batch_nitems.to(self.device)
 
         batch_titems = t.cat([batch_titems.reshape(-1, 1), batch_nitems], 1)
-
+        mask_pad_ids = (batch_citems == self.ai2v.pad_idx)
         batch_sub_users, _ = self.ai2v(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.ai2v.Bt(self.ai2v.forward_t(batch_titems))
 
@@ -177,8 +177,7 @@ class SGNS(nn.Module):
         srt = datetime.datetime.now().replace(microsecond=0)
         for batch_titems, batch_citems in pbar:
             batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
-            mask_pad_ids = (batch_citems == self.ai2v.pad_idx)
-            loss = sgns(batch_titems, batch_citems, mask_pad_ids)
+            loss = sgns(batch_titems, batch_citems)
             train_loss += loss.item()
             optim.zero_grad()
             loss.backward()
