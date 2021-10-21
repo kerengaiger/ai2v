@@ -23,15 +23,17 @@ class Bundler(nn.Module):
 
 class Item2Vec(Bundler):
 
-    def __init__(self, padding_idx, vocab_size=20000, e_dim=300):
+    def __init__(self, padding_idx, vocab_size=20000, emb_size=300):
         super(Item2Vec, self).__init__()
         self.name = 'i2v'
         self.vocab_size = vocab_size
-        self.e_dim = e_dim
-        self.tvectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
-        self.cvectors = nn.Embedding(self.vocab_size, self.e_dim, padding_idx=padding_idx)
-        self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.e_dim).uniform_(-0.5 / self.e_dim, 0.5 / self.e_dim), t.zeros(1, self.e_dim)]))
-        self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.e_dim).uniform_(-0.5 / self.e_dim, 0.5 / self.e_dim), t.zeros(1, self.e_dim)]))
+        self.emb_size = emb_size
+        self.tvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
+        self.cvectors = nn.Embedding(self.vocab_size, self.emb_size, padding_idx=padding_idx)
+        self.tvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.emb_size).uniform_(
+            -0.5 / self.emb_size, 0.5 / self.emb_size), t.zeros(1, self.emb_size)]))
+        self.cvectors.weight = nn.Parameter(t.cat([FT(self.vocab_size - 1, self.emb_size).uniform_(
+            -0.5 / self.emb_size, 0.5 / self.emb_size), t.zeros(1, self.emb_size)]))
         self.tvectors.weight.requires_grad = True
         self.cvectors.weight.requires_grad = True
 
