@@ -79,7 +79,7 @@ datasets_bins_precent = []
 labels = []
 
 DATASET = 'movielens'
-DATA_FOLD = f'corpus/{DATASET}_llo'
+DATA_FOLD = f'../corpus/{DATASET}_llo'
 AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
 ic_file = f'{DATA_FOLD}/full_ic.dat'
 full_corpus = f'{DATA_FOLD}/full_corpus.txt'
@@ -91,7 +91,7 @@ datasets_bins_precent.append(movielens_100bins_precent)
 labels.append(DATASET)
 
 DATASET = 'moviesdat'
-DATA_FOLD = f'corpus/{DATASET}_llo'
+DATA_FOLD = f'../corpus/{DATASET}_llo'
 AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
 ic_file = f'{DATA_FOLD}/full_ic.dat'
 full_corpus = f'{DATA_FOLD}/full_corpus.txt'
@@ -103,7 +103,7 @@ datasets_bins_precent.append(moviesdat_100bins_precent)
 labels.append(DATASET)
 
 DATASET = 'netflix'
-DATA_FOLD = f'corpus/{DATASET}_llo'
+DATA_FOLD = f'../corpus/{DATASET}_llo'
 AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
 ic_file = f'{DATA_FOLD}/full_ic.dat'
 full_corpus = f'{DATA_FOLD}/full_corpus.txt'
@@ -115,7 +115,7 @@ datasets_bins_precent.append(netflix_100bins_precent)
 labels.append(DATASET)
 
 DATASET = 'yahoo'
-DATA_FOLD = f'corpus/{DATASET}_llo'
+DATA_FOLD = f'../corpus/{DATASET}_llo'
 AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
 ic_file = f'{DATA_FOLD}/full_ic.dat'
 full_corpus = f'{DATA_FOLD}/full_corpus.txt'
@@ -126,32 +126,8 @@ datasets_bins.append(yahoo_100bins)
 datasets_bins_precent.append(yahoo_100bins_precent)
 labels.append(DATASET)
 
-DATASET = 'amazonbeauty'
-DATA_FOLD = f'corpus/{DATASET}_llo'
-AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
-ic_file = f'{DATA_FOLD}/full_ic.dat'
-full_corpus = f'{DATA_FOLD}/full_corpus.txt'
-
-amazonbeauty_100bins = bin_maker_100(DATASET, DATA_FOLD, AI2V_OUT_FOLD, ic_file, full_corpus, amazon=True)
-amazonbeauty_100bins_precent = bin_maker_100(DATASET, DATA_FOLD, AI2V_OUT_FOLD, ic_file, full_corpus, amazon=True, precent=True)
-datasets_bins.append(amazonbeauty_100bins)
-datasets_bins_precent.append(amazonbeauty_100bins_precent)
-labels.append(DATASET)
-
-DATASET = 'goodbooks'
-DATA_FOLD = f'corpus/{DATASET}_llo'
-AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
-ic_file = f'{DATA_FOLD}/full_ic.dat'
-full_corpus = f'{DATA_FOLD}/full_corpus.txt'
-
-goodbooks_100bins = bin_maker_100(DATASET, DATA_FOLD, AI2V_OUT_FOLD, ic_file, full_corpus)
-goodbooks_100bins_precent = bin_maker_100(DATASET, DATA_FOLD, AI2V_OUT_FOLD, ic_file, full_corpus, precent=True)
-datasets_bins.append(goodbooks_100bins)
-datasets_bins_precent.append(goodbooks_100bins_precent)
-labels.append(DATASET)
-
 DATASET = 'amazonbooks'
-DATA_FOLD = f'corpus/{DATASET}_llo'
+DATA_FOLD = f'../corpus/{DATASET}_llo'
 AI2V_OUT_FOLD = f'output/{DATASET}_ai2v_llo'
 ic_file = f'{DATA_FOLD}/full_ic.dat'
 full_corpus = f'{DATA_FOLD}/full_corpus.txt'
@@ -162,16 +138,17 @@ datasets_bins.append(amazonbooks_100bins)
 datasets_bins_precent.append(amazonbooks_100bins_precent)
 labels.append(DATASET)
 
+# The final plot:
 number_of_bins = 100
-linestyles = ["dashdot", "dashed", "solid", "dotted", "solid", "dashed", "dotted"]
-markers = [",", ",", ",", "*", "^", "o", ","]
+linestyles = ["dashdot", "solid", "dashed", "dotted", "solid", "dashed", "dotted"]
+markers = [",", ",", ",", "*", ",", "o", "^"]
 # 'b' as blue, 'g' as green, 'r' as red, 'c' as cyan, 'm' as magenta, 'y' as yellow, 'k' as black, 'w' as white
-mpl.rcParams['axes.prop_cycle'] = cycler(color=['b', 'g', 'y', 'c', 'r', 'm', 'k'])
+mpl.rcParams['axes.prop_cycle'] = cycler(color=['b', 'g', 'r', 'c', 'y', 'm', 'k'])
 for data in range(len(datasets_bins_precent)):
     plt.plot([i for i in list(range(number_of_bins))], datasets_bins_precent[data], label=labels[data], marker=markers[data], linestyle=linestyles[data])
 plt.xlabel('Popularity Bins (1% of the items)')
 plt.ylabel('Items Count')
 plt.yscale('log')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-plt.savefig('figures/Skew_levels.jpg', bbox_inches='tight')
+plt.savefig('../figures/Skew_levels.jpg', bbox_inches='tight')
 plt.show()
