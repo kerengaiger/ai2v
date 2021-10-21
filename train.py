@@ -89,7 +89,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
     for epoch in range(1, cnfg['max_epoch'] + 1):
         train_loader = DataLoader(train_dataset, batch_size=cnfg['mini_batch'], shuffle=True,
                                   num_workers=cnfg['num_workers'], pin_memory=pin_memory)
-        train_loss, sgns = sgns.run_epoch(train_loader, epoch, sgns, optim, item2idx['pad'])
+        train_loss, sgns = sgns.run_epoch(train_loader, epoch, sgns, optim)
         writer.add_scalar("Loss/train", train_loss, epoch)
 
         if valid_dl:
