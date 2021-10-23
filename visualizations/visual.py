@@ -1,5 +1,7 @@
 import pandas as pd
 import pickle
+import numpy as np
+import csv
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from cycler import cycler
@@ -152,3 +154,82 @@ plt.yscale('log')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
 plt.savefig('../figures/Skew_levels.jpg', bbox_inches='tight')
 plt.show()
+
+DATASET = 'movielens'
+
+DATA_FOLD = f'../corpus/{DATASET}_llo' #######################
+
+AI2V_OUT_FOLD = f'../output/{DATASET}_ai2v_llo_bce_pos' ########################
+
+# AI2V_MODEL_FILE = f'{H_FOLD}/{AI2V_OUT_FOLD}/model.pt'
+
+k = 20 #############################
+ic_file = f'{DATA_FOLD}/full_ic.dat'
+item2idx_file = f'{DATA_FOLD}/full_item2idx.dat'
+
+hits_ai2v = pd.read_csv(f'{AI2V_OUT_FOLD}/hr_{k}.csv', usecols=[0,1,2,3], skiprows=1, names=['user','item','pred_loc','hit'])
+hits_ai2v[hits_ai2v['hit'] == 1].head(100)
+
+# from dat to csv:
+file_out = '../corpus/movielens_llo/movies.csv'
+with open(file_out, 'w', newline='', encoding="utf-8") as w_file:
+    writer = csv.writer(w_file, delimiter=',', quotechar='"', escapechar='\n', quoting=csv.QUOTE_NONE)
+    writer.writerow(['id', 'name', 'genres'])
+    with open(f'{DATA_FOLD}/movies.dat', encoding='ISO-8859-1') as data:
+        for line in data:
+            line = line.split('::')
+            item_idx = line[0]
+            item_name = line[1]
+            item_genres = line[2]
+            writer.writerow([str(item_idx), str(item_name), str(item_genres)])
+
+test_data = pickle.load(open(f'{DATA_FOLD}/test.dat','rb'))
+item2idx = pickle.load(open(f'{DATA_FOLD}/item2idx.dat','rb'))
+idx2item = {v:k for k,v in item2idx.items()}
+test_orig = []
+for tup in test_data:
+    target = int(idx2item[tup[1]])
+    context = [int(idx2item[idx]) for idx in tup[0]]
+    test_orig.append((context, target))
+movies = pd.read_csv(f'{DATA_FOLD}/movies.csv')
+movies_test = []
+for tup in test_orig:
+    target = movies.loc[movies['id']==tup[1],'name'].values[0]
+    context = [movies.loc[movies['id']==idx,'name'].values[0]
+              for idx in tup[0]]
+    movies_test.append((context, target))
+
+scores = pickle.load(open(f'{AI2V_OUT_FOLD}/attention_scores.pkl','rb'))
+
+attention_score = []
+for sample in scores:
+    new = sample[sample>0]
+    attention_score.append(new)
+
+samples = [0, 5, 6, 27, 31, 36, 37, 74]
+for sample in samples:
+    data = np.expand_dims(attention_score[sample], axis=0)
+    labels = movies_test[sample][0]
+    target = movies_test[sample][1]
+
+    cmap = plt.cm.cool
+    norm = plt.Normalize(data.min(), data.max())
+    rgba = cmap(norm(data))
+
+    fig, ax = plt.subplots(figsize=(18, 2))
+    ax.imshow(rgba, interpolation='nearest')
+
+    im = ax.imshow(data, visible=False, cmap=cmap)
+
+    ax.set_xticks(list(range(data.shape[1])))
+
+    ax.set_xticklabels(labels, rotation = 90)
+
+    for i in range(data.shape[1]):
+        text = ax.text(i, 0, round(data[0, i],3),
+                           ha="center", va="center")
+
+    fig.colorbar(im)
+    plt.title(f'Attention scores for {target}')
+    plt.savefig('../figures/att_score_' + str(sample) + '.jpg', bbox_inches='tight')
+    plt.show()
