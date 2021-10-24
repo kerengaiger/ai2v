@@ -25,14 +25,9 @@ class PositionWiseFeedForward(nn.Module):
         self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, input):
-        if self.identity_map_reordering:
-            out = self.layer_norm(input)
-            out = self.fc2(self.dropout_2(F.relu(self.fc1(out))))
-            out = input + self.dropout(t.relu(out))
-        else:
-            out = self.fc2(self.dropout_2(F.relu(self.fc1(input))))
-            out = self.dropout(out)
-            out = self.layer_norm(input + out)
+        out = self.fc2(self.dropout_2(F.relu(self.fc1(input))))
+        out = self.dropout(out)
+        out = self.layer_norm(input + out)
         return out
 
 
