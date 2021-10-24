@@ -2,11 +2,38 @@
 
 import numpy as np
 import torch as t
+from torch.nn import functional as F
 import torch.nn as nn
 from tqdm import tqdm
 import datetime
 
 from torch import FloatTensor as FT
+import torch.nn.modules.transformer
+
+
+class PositionWiseFeedForward(nn.Module):
+    '''
+    Position-wise feed forward layer
+    '''
+
+    def __init__(self, d_model, d_ff, dropout=.1):
+        super(PositionWiseFeedForward, self).__init__()
+        self.fc1 = nn.Linear(d_model, d_ff)
+        self.fc2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(p=dropout)
+        self.dropout_2 = nn.Dropout(p=dropout)
+        self.layer_norm = nn.LayerNorm(d_model)
+
+    def forward(self, input):
+        if self.identity_map_reordering:
+            out = self.layer_norm(input)
+            out = self.fc2(self.dropout_2(F.relu(self.fc1(out))))
+            out = input + self.dropout(t.relu(out))
+        else:
+            out = self.fc2(self.dropout_2(F.relu(self.fc1(input))))
+            out = self.dropout(out)
+            out = self.layer_norm(input + out)
+        return out
 
 
 class MultiHeadAttention(nn.Module):
@@ -26,6 +53,7 @@ class MultiHeadAttention(nn.Module):
                                                                    0.5 / self.window_size))
         self.pos_bias.requires_grad = True
         self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
+        self.pwff = PositionWiseFeedForward(self.emb_size, self.emb_size * 2)
 
     def forward(self, queries, keys, values, attention_mask=None, add_pos_bias=False):
         b_s, n_t_items = queries.shape[:2]
@@ -48,6 +76,7 @@ class MultiHeadAttention(nn.Module):
         att = t.softmax(att, -1)
         out = t.matmul(att, v).permute(0, 2, 1, 3).contiguous().view(b_s, n_t_items, self.num_h * self.d_v)  # (b_s, n_t_items, num_h*d_num_h)
         out = self.R(out)  # (b_s, n_t_items, emb_size)
+        out = self.pwff(out)  # expansion-reduction ff with non linearity
         return out, att
 
 
