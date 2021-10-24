@@ -65,7 +65,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
     eval_set_df.to_csv(out_file, index=False)
 
 
-def calc_attention(model, eval_set_lst, out_file):
+def calc_attention(model, eval_set_lst, add_pos_bias, out_file):
     pbar = tqdm(eval_set_lst)
     lst = []
     for i, (user_items, target_item) in enumerate(pbar):
@@ -80,6 +80,10 @@ def calc_attention(model, eval_set_lst, out_file):
         batch_citems = torch.tensor([user_items])
         batch_citems = batch_citems.to(model.device)
         mask_pad_ids = batch_citems == model.ai2v.pad_idx
+        if not add_pos_bias:
+            model.ai2v.add_pos_bias = False
+        else:
+            model.ai2v.add_pos_bias = True
         _, attention_weights = model.ai2v(batch_titems, batch_citems, mask_pad_ids=mask_pad_ids)
         lst.append(attention_weights[0][0].cpu().detach().numpy())
     pickle.dump(lst, open(out_file, 'wb'))
