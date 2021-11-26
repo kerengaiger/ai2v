@@ -68,7 +68,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
     model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
     model = model_base_c(**model_init)
     sgns = sgns_c(base_model=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
-                  loss_method=cnfg['loss_method'], l2_reg=cnfg['l2_reg'], device=device)
+                  loss_method=cnfg['loss_method'], l2_reg=cnfg['add_l2_reg'], device=device)
     sgns.to(device)
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
