@@ -50,7 +50,7 @@ class Objective:
         cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
         cnfg['dropout'] = 0.15
         cnfg['ss_t'] = 1e-4
-        cnfg['emb_size'] = trial.suggest_categorical("emb_size", [30, 40, 50, 60])
+        cnfg['emb_size'] = trial.suggest_categorical("emb_size", [30, 34, 40, 45, 50, 55, 60, 65, 70])
         cnfg['n_negs'] = 7
         cnfg['mini_batch'] = 32
         cnfg['weights'] = trial.suggest_categorical("weights", [False, False])
