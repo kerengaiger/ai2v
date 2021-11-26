@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('--n_h', type=int, default=1, help="number of heads in attention")
     parser.add_argument('--n_b', type=int, default=1, help="number of attention blocks")
     parser.add_argument('--add_pos_bias', action='store_true', help="add positional bias to user representation")
+    parser.add_argument('--add_l2_reg', action='store_true', help="add l2 regularization to total loss")
     return parser.parse_args()
 
 

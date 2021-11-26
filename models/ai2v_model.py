@@ -128,13 +128,15 @@ class AttentiveItemToVec(nn.Module):
 
 
 class SGNS(nn.Module):
-    def __init__(self, base_model, vocab_size, n_negs, weights, loss_method, device):
+    def __init__(self, base_model, vocab_size, n_negs, weights, loss_method, l2_reg, device):
         super(SGNS, self).__init__()
         self.ai2v = base_model
         self.vocab_size = vocab_size
         self.n_negs = n_negs
         self.device = device
-        self.weights=None
+        self.weights = None
+        self.l2_reg = l2_reg
+        self.gamma = 1e-4
         if weights is not None:
             wf = np.power(weights, 0.75)
             wf = wf / wf.sum()
@@ -202,6 +204,8 @@ class SGNS(nn.Module):
         for batch_titems, batch_citems in pbar:
             batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
             loss = sgns(batch_titems, batch_citems)
+            if self.l2_reg:
+                loss += self.gamma * (t.norm(self.ai2v.tvectors.weight) / len(pbar))
             train_loss += loss.item()
             optim.zero_grad()
             loss.backward()
