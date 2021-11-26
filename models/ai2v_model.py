@@ -48,7 +48,7 @@ class MultiHeadAttention(nn.Module):
                                                                    0.5 / self.window_size))
         self.pos_bias.requires_grad = True
         self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
-        self.pwff = PositionWiseFeedForward(self.emb_size, self.emb_size * 2, dropout=self.dropout)
+        # self.pwff = PositionWiseFeedForward(self.emb_size, self.emb_size * 2, dropout=self.dropout)
 
     def forward(self, queries, keys, values, attention_mask=None, add_pos_bias=False):
         b_s, n_t_items = queries.shape[:2]
@@ -71,7 +71,7 @@ class MultiHeadAttention(nn.Module):
         att = t.softmax(att, -1)
         out = t.matmul(att, v).permute(0, 2, 1, 3).contiguous().view(b_s, n_t_items, self.num_h * self.d_v)  # (b_s, n_t_items, num_h*d_num_h)
         out = self.R(out)  # (b_s, n_t_items, emb_size)
-        out = self.pwff(out)  # expansion-reduction ff with non linearity
+        # out = self.pwff(out)  # expansion-reduction ff with non linearity
         return out, att
 
 
