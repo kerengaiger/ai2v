@@ -142,7 +142,10 @@ class SGNS(nn.Module):
         self.loss_method = loss_method
 
     def similarity(self, batch_sub_users, batch_tvecs, batch_titem_ids):
-        return t.mul(batch_sub_users, batch_tvecs) + self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
+        return t.bmm(batch_sub_users.view(batch_sub_users.shape[1], -1, batch_sub_users.shape[2]),
+                     batch_tvecs.view(batch_sub_users.shape[1], batch_sub_users.shape[2], -1)).view(
+            batch_sub_users.shape[0], batch_sub_users.shape[1], -1) + \
+            self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
     def inference(self, user_items):
         if len(user_items) < self.ai2v.window_size:
