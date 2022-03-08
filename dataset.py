@@ -31,6 +31,7 @@ class Preprocess(object):
         self.wc = {}
         self.idx2item = list()
         self.item2idx = dict()
+        self.user2idx = dict()
         self.vocab = set()
         self.line_sep = line_sep
         self.pos_thresh = pos_thresh
@@ -47,9 +48,10 @@ class Preprocess(object):
         self.raw_data_file = raw_data_file
         self.save_data_dir = save_data_dir
 
-    def build(self, filepath, ic_out, vocab_out, idx2item_out, item2idx_out):
+    def build(self, filepath, ic_out, vocab_out, idx2item_out, item2idx_out, idx2user_out, user2idx_out):
         print("building vocab...")
         step = 0
+        self.idx2user = list()
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
             for line in file:
                 step += 1
@@ -59,19 +61,23 @@ class Preprocess(object):
                 if not line:
                     continue
                 user = line.split()
-                for item in user:
+                self.idx2user.append(user[0])
+                for item in user[1:]:
                     self.wc[item] = self.wc.get(item, 0) + 1
         print("")
         # sorted list of items in a descent order of their frequency
         self.wc[self.unk] = 1
         self.wc[self.pad] = 1
         self.idx2item = sorted(self.wc, key=self.wc.get, reverse=True)
-        self.item2idx = {self.idx2item[idx]: idx for idx, _ in enumerate(self.idx2item)}
+        self.item2idx = {self.idx2item[i_idx]: i_idx for i_idx, _ in enumerate(self.idx2item)}
+        self.user2idx = {self.idx2user[u_idx]: u_idx for u_idx, _ in enumerate(self.idx2user)}
         self.vocab = set([item for item in self.item2idx])
         pickle.dump(self.wc, open(os.path.join(self.save_data_dir, ic_out), 'wb'))
         pickle.dump(self.vocab, open(os.path.join(self.save_data_dir, vocab_out), 'wb'))
         pickle.dump(self.idx2item, open(os.path.join(self.save_data_dir, idx2item_out), 'wb'))
         pickle.dump(self.item2idx, open(os.path.join(self.save_data_dir, item2idx_out), 'wb'))
+        pickle.dump(self.idx2user, open(os.path.join(self.save_data_dir, idx2user_out), 'wb'))
+        pickle.dump(self.user2idx, open(os.path.join(self.save_data_dir, user2idx_out), 'wb'))
         print("build done")
 
     def create_train_samp(self, user, item_target):
@@ -94,7 +100,8 @@ class Preprocess(object):
                 if not line:
                     continue
                 user = []
-                for item in line.split():
+                line_split = line.split()
+                for item in line_split[1:]:
                     if item in self.vocab:
                         user.append(item)
                     else:
@@ -106,7 +113,9 @@ class Preprocess(object):
                         # in case we want to have as validation/test only the last item with sub-user of all the
                         # rest, skip all other target items
                         continue
-                    data.append((self.create_train_samp(user, item_target)))
+                    user_idx = self.user2idx[line_split[0]]
+                    citems, titem = self.create_train_samp(user, item_target)
+                    data.append((user_idx, citems, titem))
 
         print("")
         pickle.dump(data, open(savepath, 'wb'))
@@ -156,10 +165,10 @@ class Preprocess(object):
             print('Split strategy not valid')
             return
 
-        return [full_train[user] for user in list(full_train.keys())], \
-               [train[user] for user in list(train.keys())], \
-               [valid[user] for user in list(valid.keys())], \
-               [test[user] for user in list(test.keys())]
+        return [[user] + full_train[user] for user in list(full_train.keys())], \
+               [[user] + train[user] for user in list(train.keys())], \
+               [[user] + valid[user] for user in list(valid.keys())], \
+               [[user] + test[user] for user in list(test.keys())]
 
     def save_file(self, file_name, data):
         with open(os.path.join(self.save_data_dir, file_name), 'w', newline="") as x:
@@ -180,7 +189,7 @@ def generate_train_files(data_cnfg):
     # arrange users data by date
     user2data = {usr: [item_index[0] for item_index in sorted(user2data[usr], key=lambda x: x[1])] for usr in user2data.keys()}
     # generate processed raw files
-    full_corpus = [user2data[user] for user in user2data.keys()]
+    full_corpus = [[user] + user2data[user] for user in user2data.keys()]
     pd.DataFrame({'user': list(user2data.keys()), 'item': [user2data[usr][-1] for usr in user2data.keys()]}).to_csv(
         os.path.join(preprocess.save_data_dir, 'test_raw.csv'), header=False, index=False)
     full_train, train, valid, test = preprocess.split(user2data)
@@ -192,9 +201,9 @@ def generate_train_files(data_cnfg):
 
     # generate final train files
     preprocess.build(os.path.join(preprocess.save_data_dir, 'full_corpus.txt'), 'full_ic.dat', 'full_vocab.dat',
-                     'full_idx2item.dat', f'full_item2idx.dat')
+                     'full_idx2item.dat', 'full_item2idx.dat', 'full_idx2user.dat', 'full_user2idx.dat')
     preprocess.build(os.path.join(preprocess.save_data_dir, 'full_train.txt'), 'ic.dat', 'vocab.dat',
-                     'idx2item.dat', 'item2idx.dat')
+                     'idx2item.dat', 'item2idx.dat', 'idx2user.dat', 'user2idx.dat')
     print("Full train")
     preprocess.convert(os.path.join(preprocess.save_data_dir, 'full_train.txt'),
                        os.path.join(preprocess.save_data_dir, 'full_train.dat'))
