@@ -99,7 +99,7 @@ class SGNS(nn.Module):
         pbar.set_description("[Epoch {}]".format(epoch))
         train_losses = []
 
-        for batch_titems, batch_citems in pbar:
+        for batch_u_ids, batch_titems, batch_citems in pbar:
             batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
             loss = sgns(batch_titems, batch_citems)
 
