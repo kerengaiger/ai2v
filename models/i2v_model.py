@@ -89,7 +89,7 @@ class SGNS(nn.Module):
         user2vec = context_vecs[user_itemids, :].mean(axis=0)
         return user2vec
 
-    def inference(self, user_itemids):
+    def inference(self, user_id, user_itemids):
         user2vec = np.expand_dims(self.represent_user(user_itemids), axis=0)
         user_sim = cosine_similarity(user2vec, self.embedding.tvectors.weight.data.cpu().numpy()).squeeze()
         return user_sim
