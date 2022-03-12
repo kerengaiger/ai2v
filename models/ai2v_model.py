@@ -132,19 +132,20 @@ class SGNS(nn.Module):
                                                         (batch_sub_users - batch_tvecs).abs()], 2)))) + \
             self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
 
-    def inference(self, user_items):
+    def inference(self, user_id, user_items):
         if len(user_items) < self.ai2v.window_size:
             pad_times = self.ai2v.window_size - len(user_items)
             user_items = [self.ai2v.pad_idx] * pad_times + user_items
         else:
             user_items = user_items[-self.ai2v.window_size:]
         num_items = self.ai2v.tvectors.weight.size()[0]
+        user_id = t.tensor([[user_id]])
         citems = t.tensor([user_items])
         citems = citems.to(self.device)
         all_titems = t.tensor(range(num_items)).unsqueeze(0)
         all_titems = all_titems.to(self.device)
         mask_pad_ids = citems == self.ai2v.pad_idx
-        sub_users, _ = self.ai2v(all_titems, citems, mask_pad_ids=mask_pad_ids)
+        sub_users, _ = self.ai2v(user_id, all_titems, citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.ai2v.Bt(self.ai2v.forward_t(all_titems))
         sim = self.similarity(sub_users, all_tvecs, all_titems)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
