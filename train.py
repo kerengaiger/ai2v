@@ -86,8 +86,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
         for param in sgns.parameters():
             param.requires_grad = False
         for l in sgns.ai2v.mha_layers:
-            l.local_pos_bias = nn.Parameter(FT(cnfg['num_users'], sgns.ai2v.window_size).uniform_(
-                -0.5 / sgns.ai2v.window_size, 0.5 / sgns.ai2v.window_size))
+            l.local_pos_bias = nn.Parameter(t.zeros(cnfg['num_users'], sgns.ai2v.window_size))
             l.local_pos_bias.requires_grad = True
             l.device = device
     sgns.to(device)
