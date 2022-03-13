@@ -51,6 +51,7 @@ def calc_loss_on_set(sgns, valid_dl, pad_idx):
 def train(cnfg, train_file, valid_dl=None, trial=None):
     idx2item = pickle.load(pathlib.Path(cnfg['data_dir'], 'idx2item.dat').open('rb'))
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
+    user2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'user2idx.dat').open('rb'))
 
     weights = configure_weights(cnfg, idx2item)
     vocab_size = len(idx2item)
@@ -65,6 +66,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
     else:
         device = 'cpu'
     cnfg['device'] = device
+    cnfg['num_users'] = len(user2idx)
 
     model_init = {k: cnfg[k] for k in getattr(models, cnfg['model'] + '_cnfg_keys')}
     model = model_base_c(**model_init)
