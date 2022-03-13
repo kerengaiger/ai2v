@@ -22,11 +22,11 @@ class MultiHeadAttention(nn.Module):
         self.At = nn.Linear(self.emb_size, self.num_h * self.d_k)
         self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
         self.Bc = nn.Linear(self.emb_size, self.num_h * self.d_v)
-        self.global_pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
+        self.pos_bias = nn.Parameter(FT(self.window_size).uniform_(-0.5 / self.window_size,
                                                                    0.5 / self.window_size))
         self.local_pos_bias = nn.Parameter(FT(num_users, self.window_size).uniform_(-0.5 / self.window_size,
                                                                    0.5 / self.window_size))
-        self.global_pos_bias.requires_grad = True
+        self.pos_bias.requires_grad = True
         self.local_pos_bias.requires_grad = True
         self.R = nn.Linear(self.num_h * self.d_v, self.emb_size)
 
@@ -39,8 +39,8 @@ class MultiHeadAttention(nn.Module):
 
         att = self.cos(q.unsqueeze(3), k.unsqueeze(2))
         if add_pos_bias:
-            batch_global_pos_bias = self.global_pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
-            att = att + batch_global_pos_bias
+            batch_pos_bias = self.pos_bias.repeat(b_s, self.num_h, n_t_items, 1)
+            att = att + batch_pos_bias
             batch_local_pos_bias = self.local_pos_bias[u_ids]
             batch_local_pos_bias = batch_local_pos_bias.repeat_interleave(n_t_items * self.num_h, dim=0).view(
                 b_s, self.num_h, n_t_items, self.window_size)
