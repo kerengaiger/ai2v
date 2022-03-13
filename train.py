@@ -6,6 +6,8 @@ import os
 
 import numpy as np
 import torch as t
+import torch.nn as nn
+from torch import FloatTensor as FT
 from torch.optim import Adagrad, lr_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -30,6 +32,9 @@ def parse_args():
     parser.add_argument('--device', type=str, default=0, help="cude device to use")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
     parser.add_argument('--best_cnfg', type=str, default='best_cnfg.pkl', help="best cnfg of hyper params")
+    parser.add_argument('--fine_tune', action='store_true', help="user a pre-trained model and fine-tune  ")
+    parser.add_argument('--weights_init', type=str, default='model.pt',
+                        help="model weights file to initiate the new model when fine_tune is True")
 
     return parser.parse_args()
 
@@ -72,6 +77,16 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
     model = model_base_c(**model_init)
     sgns = sgns_c(base_model=model, vocab_size=vocab_size, n_negs=cnfg['n_negs'], weights=weights,
                   loss_method=cnfg['loss_method'], device=device)
+
+    # TODO: this is a hack - remove later
+    if cnfg['fine_tune']:
+        sgns = t.load(cnfg['weights_init'])
+        for param in sgns.parameters():
+            param.requires_grad = False
+        for l in sgns.ai2v.mha_layers:
+            l.local_pos_bias = nn.Parameter(FT(cnfg['num_users'], sgns.ai2v.window_size).uniform_(
+                -0.5 / sgns.ai2v.window_size, 0.5 / sgns.ai2v.window_size))
+            l.local_pos_bias.requires_grad = True
     sgns.to(device)
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
