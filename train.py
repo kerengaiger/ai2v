@@ -81,12 +81,15 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
     # TODO: this is a hack - remove later
     if cnfg['fine_tune']:
         sgns = t.load(cnfg['weights_init'])
+        sgns.device = device
+        sgns.ai2v.device = device
         for param in sgns.parameters():
             param.requires_grad = False
         for l in sgns.ai2v.mha_layers:
             l.local_pos_bias = nn.Parameter(FT(cnfg['num_users'], sgns.ai2v.window_size).uniform_(
                 -0.5 / sgns.ai2v.window_size, 0.5 / sgns.ai2v.window_size))
             l.local_pos_bias.requires_grad = True
+            l.device = device
     sgns.to(device)
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
     scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
