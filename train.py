@@ -163,7 +163,7 @@ def main():
 
     # TODO: this is a hack - remove later
     if args['fine_tune']:
-        valid_path = pathlib.Path(args['data_cnfg'], 'valid.dat')
+        valid_path = pathlib.Path(args['data_dir'], 'valid.dat')
         item2idx = pickle.load(pathlib.Path(args['data_dir'], 'item2idx.dat').open('rb'))
         valid_dataset = UserBatchIncrementDataset(valid_path, item2idx['pad'], cnfg['window_size'])
         pin_memory = cnfg['num_workers'] > 0
