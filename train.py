@@ -121,12 +121,13 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
                 save_model(cnfg, model, sgns)
 
             scheduler.step()
-            # valid loss is reported to decide on pruning the epoch
-            trial.report(valid_loss, epoch)
+            if not cnfg['fine_tune']:
+                # valid loss is reported to decide on pruning the epoch
+                trial.report(valid_loss, epoch)
 
-            # Handle pruning based on the intermediate value.
-            if trial.should_prune():
-                raise optuna.exceptions.TrialPruned()
+                # Handle pruning based on the intermediate value.
+                if trial.should_prune():
+                    raise optuna.exceptions.TrialPruned()
         else:
             # Save model in each iteration in case we are not in early_stop mode
             save_model(cnfg, model, sgns)
