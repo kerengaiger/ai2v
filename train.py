@@ -162,7 +162,7 @@ def main():
     set_random_seed(cnfg['seed'])
 
     # TODO: this is a hack - remove later
-    if cnfg['fine_tune']:
+    if args['fine_tune']:
         valid_path = pathlib.Path(args['data_cnfg'], 'valid.dat')
         item2idx = pickle.load(pathlib.Path(args['data_dir'], 'item2idx.dat').open('rb'))
         valid_dataset = UserBatchIncrementDataset(valid_path, item2idx['pad'], cnfg['window_size'])
