@@ -169,7 +169,7 @@ def main():
         pin_memory = cnfg['num_workers'] > 0
         valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
                               num_workers=cnfg['num_workers'], pin_memory=pin_memory)
-        cnfg['best_epoch'] = 100
+        cnfg['best_epoch'] = 50
         _, _ = train({**cnfg, **args}, 'full_train.dat', valid_dl=valid_dl)
     train({**cnfg, **args}, 'full_train.dat')
 
