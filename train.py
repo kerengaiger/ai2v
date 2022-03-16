@@ -7,7 +7,6 @@ import os
 import numpy as np
 import torch as t
 import torch.nn as nn
-from torch import FloatTensor as FT
 from torch.optim import Adagrad, lr_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -119,6 +118,8 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
             if valid_loss < best_val_loss:
                 best_val_loss = valid_loss
                 best_epoch = epoch
+                save_model(cnfg, model, sgns)
+
             scheduler.step()
             # valid loss is reported to decide on pruning the epoch
             trial.report(valid_loss, epoch)
@@ -159,6 +160,17 @@ def main():
     args = vars(args)
     cnfg['max_epoch'] = int(cnfg['best_epoch'])
     set_random_seed(cnfg['seed'])
+
+    # TODO: this is a hack - remove later
+    if cnfg['fine_tune']:
+        valid_path = pathlib.Path(args['data_cnfg'], 'valid.dat')
+        item2idx = pickle.load(pathlib.Path(args['data_dir'], 'item2idx.dat').open('rb'))
+        valid_dataset = UserBatchIncrementDataset(valid_path, item2idx['pad'], cnfg['window_size'])
+        pin_memory = cnfg['num_workers'] > 0
+        valid_dl = DataLoader(valid_dataset, batch_size=cnfg['mini_batch'], shuffle=False,
+                              num_workers=cnfg['num_workers'], pin_memory=pin_memory)
+        cnfg['best_epoch'] = 100
+        _, _ = train({**cnfg, **args}, 'full_train.dat', valid_dl=valid_dl)
     train({**cnfg, **args}, 'full_train.dat')
 
 
