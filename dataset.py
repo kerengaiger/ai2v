@@ -133,7 +133,7 @@ class Preprocess(object):
                     try:
                         date = int(line[self.date_pos])
                     except:
-                        date = int(datetime.strptime(line[self.date_pos], '%Y-%m-%d').timestamp())
+                        date = int(datetime.datetime.strptime(line[self.date_pos], '%Y-%m-%d').timestamp())
                     if float(line[self.rate_pos]) > self.pos_thresh:
                         user2data[user_id].append((line[self.item_pos], date))
                         item2data[item_id].append(line[self.user_pos])
