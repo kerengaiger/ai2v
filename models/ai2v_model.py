@@ -10,7 +10,7 @@ from torch import FloatTensor as FT
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embedding_size, window_size, device, num_h, dropout, d_k=50, d_v=50):
+    def __init__(self, embedding_size, window_size, device, num_h, d_k=50, d_v=50):
         super(MultiHeadAttention, self).__init__()
         self.emb_size = embedding_size
         self.window_size = window_size
@@ -18,7 +18,6 @@ class MultiHeadAttention(nn.Module):
         self.d_k = d_k
         self.d_v = d_v
         self.num_h = num_h
-        self.dropout = dropout
         self.Ac = nn.Linear(self.emb_size, self.num_h * self.d_k)
         self.At = nn.Linear(self.emb_size, self.num_h * self.d_k)
         self.cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
@@ -53,7 +52,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class AttentiveItemToVec(nn.Module):
-    def __init__(self, padding_idx, vocab_size, emb_size, window_size, dropout, device, n_b, n_h, add_pos_bias):
+    def __init__(self, padding_idx, vocab_size, emb_size, window_size, device, n_b, n_h, add_pos_bias):
         super(AttentiveItemToVec, self).__init__()
         self.name = 'ai2v'
         self.vocab_size = vocab_size
@@ -80,7 +79,7 @@ class AttentiveItemToVec(nn.Module):
         self.b_l_j = nn.Parameter(FT(self.vocab_size).uniform_(-0.5 / self.emb_size, 0.5 / self.emb_size))
         self.b_l_j.requires_grad = True
         self.mha_layers = nn.ModuleList([MultiHeadAttention(embedding_size=self.emb_size, window_size=window_size,
-                                                            device=device, num_h=n_h, dropout=dropout)
+                                                            device=device, num_h=n_h)
                                         for _ in range(self.n_b)])
         self.Bt = nn.Linear(self.emb_size, self.emb_size)
         self.add_pos_bias = add_pos_bias
