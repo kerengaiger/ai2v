@@ -79,7 +79,7 @@ class Preprocess(object):
         target_item = user[item_target]
         return [self.item2idx[item] for item in sub_user], self.item2idx[target_item]
 
-    def convert(self, filepath, savepath):
+    def convert(self, filepath, savepath, train=False):
         print("converting corpus...")
         step = 0
         data = []
@@ -102,9 +102,7 @@ class Preprocess(object):
                 usrs_len.append(len(user))
                 num_users += 1
                 for item_target in range(1, len(user)):
-                    if self.split_strategy == 'leave_one_out' and item_target < (len(user) - 1):
-                        # in case we want to have as validation/test only the last item with sub-user of all the
-                        # rest, skip all other target items
+                    if not train and item_target < (len(user) - 1):
                         continue
                     data.append((self.create_train_samp(user, item_target)))
 
@@ -197,14 +195,14 @@ def generate_train_files(data_cnfg):
                      'idx2item.dat', 'item2idx.dat')
     print("Full train")
     preprocess.convert(os.path.join(preprocess.save_data_dir, 'full_train.txt'),
-                       os.path.join(preprocess.save_data_dir, 'full_train.dat'))
+                       os.path.join(preprocess.save_data_dir, 'full_train.dat'), train=True)
     print("Test")
     preprocess.convert(os.path.join(preprocess.save_data_dir, 'test.txt'),
                        os.path.join(preprocess.save_data_dir, 'test.dat'))
 
     print("Train")
     preprocess.convert(os.path.join(preprocess.save_data_dir, 'train.txt'),
-                       os.path.join(preprocess.save_data_dir, 'train.dat'))
+                       os.path.join(preprocess.save_data_dir, 'train.dat'), train=True)
     print("valid")
     preprocess.convert(os.path.join(preprocess.save_data_dir, 'valid.txt'),
                        os.path.join(preprocess.save_data_dir, 'valid.dat'))
