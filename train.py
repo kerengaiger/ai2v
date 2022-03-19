@@ -25,8 +25,6 @@ def parse_args():
     parser.add_argument('--data_cnfg', type=str, default='./config/ml-1m.json',
                         help="data config to generate train files")
     parser.add_argument('--save_dir', type=str, default='./output/', help="model directory path")
-    parser.add_argument('--train', type=str, default='full_train.dat', help="train file name")
-    parser.add_argument('--test', type=str, default='test.dat', help="test users file name")
     parser.add_argument('--cuda', action='store_true', help="use CUDA")
     parser.add_argument('--device', type=str, default=0, help="cude device to use")
     parser.add_argument('--log_dir', type=str, default='tensorboard/logs/mylogdir', help="logs dir for tensorboard")
