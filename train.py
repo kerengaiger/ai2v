@@ -77,7 +77,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
 
     # TODO: this is a hack - remove later
     if cnfg['fine_tune']:
-        sgns = t.load(cnfg['weights_init'])
+        sgns = t.load(cnfg['weights_init'], map_location=t.device(cnfg['device']))
         sgns.device = device
         sgns.ai2v.device = device
         for param in sgns.parameters():
