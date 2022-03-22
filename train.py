@@ -88,7 +88,8 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
             l.device = device
     sgns.to(device)
     optim = Adagrad(sgns.parameters(), lr=cnfg['lr'])
-    scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
+    # scheduler = lr_scheduler.MultiStepLR(optim, milestones=[2, 4, 5, 6, 7, 8, 10, 12, 14, 16], gamma=0.5)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer=optim, mode='min', factor=0.3, patience=2)
 
     log_dir = cnfg['log_dir'] + '/' + str(datetime.datetime.now().timestamp())
     writer = SummaryWriter(log_dir=log_dir)
@@ -118,7 +119,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
                 best_epoch = epoch
                 save_model(cnfg, model, sgns)
 
-            scheduler.step()
+            scheduler.step(valid_loss)
             if not cnfg['fine_tune']:
                 # valid loss is reported to decide on pruning the epoch
                 trial.report(valid_loss, epoch)
