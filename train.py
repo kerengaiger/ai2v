@@ -171,10 +171,8 @@ def main():
         cnfg['max_epoch'] = 50
         best_val_loss, best_epoch = train({**cnfg, **args}, 'train.dat', valid_dl=valid_dl)
         print(best_val_loss)
-        print(best_val_loss)
         cnfg['max_epoch'] = best_epoch
-        args['fine_tune'] = False
-    train({**cnfg, **args}, 'full_train.dat')
+    train({**cnfg, **args}, 'full_train.dat', )
 
 
 if __name__ == '__main__':
