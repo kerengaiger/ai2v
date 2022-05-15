@@ -3,6 +3,7 @@ import datetime
 import pathlib
 import pickle
 import os
+import logging
 
 import numpy as np
 import torch as t
@@ -92,7 +93,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
         if valid_dl:
             valid_loss = calc_loss_on_set(sgns, valid_dl, item2idx['pad'])
             writer.add_scalar("Loss/validation", valid_loss, epoch)
-            print(f'valid loss:{valid_loss}')
+            logging.info(f"valid loss:{valid_loss}")
 
             if valid_loss < best_val_loss:
                 best_val_loss = valid_loss
@@ -115,7 +116,7 @@ def train(cnfg, train_file, valid_dl=None, trial=None):
 
 
 def train_evaluate(cnfg, trial):
-    print(cnfg)
+    logging.info(f"config: {cnfg}")
     valid_users_path = pathlib.Path(cnfg['data_dir'], 'valid.dat')
     item2idx = pickle.load(pathlib.Path(cnfg['data_dir'], 'item2idx.dat').open('rb'))
     valid_dataset = UserBatchIncrementDataset(valid_users_path, item2idx['pad'], cnfg['window_size'])
@@ -130,7 +131,7 @@ def train_evaluate(cnfg, trial):
 def main():
     args = parse_args()
     if not len(os.listdir(args.data_dir)):
-        print("Generating train files...")
+        logging.info("Generating train files...")
         generate_train_files(args.data_cnfg)
 
     cnfg = pickle.load(open(args.best_cnfg, "rb"))

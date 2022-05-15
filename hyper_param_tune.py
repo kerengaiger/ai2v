@@ -2,7 +2,7 @@ import argparse
 import pickle
 import pathlib
 import os
-
+import logging
 import optuna
 
 from train import train_evaluate, train
@@ -74,7 +74,7 @@ def main():
     objective = Objective()
     # generate train files in case data_dir is empty
     if not len(os.listdir(args.data_dir)):
-        print("Generating train files...")
+        logging.info("Generating train files...")
         generate_train_files(args.data_cnfg)
 
     study = optuna.create_study(

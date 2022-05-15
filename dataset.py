@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import json
 import csv
+import logging
 
 
 def random_split(lst, frac=0.2):
@@ -48,20 +49,20 @@ class Preprocess(object):
         self.save_data_dir = save_data_dir
 
     def build(self, filepath, ic_out, vocab_out, idx2item_out, item2idx_out):
-        print("building vocab...")
+        logging.info("building vocab...")
         step = 0
         with codecs.open(filepath, 'r', encoding='utf-8') as file:
             for line in file:
                 step += 1
                 if not step % 1000:
-                    print("working on {}kth line".format(step // 1000), end='\r')
+                    logging.info("working on {}kth line".format(step // 1000), end='\r')
                 line = line.strip()
                 if not line:
                     continue
                 user = line.split()
                 for item in user:
                     self.wc[item] = self.wc.get(item, 0) + 1
-        print("")
+
         # sorted list of items in a descent order of their frequency
         self.wc[self.unk] = 1
         self.wc[self.pad] = 1
@@ -72,7 +73,7 @@ class Preprocess(object):
         pickle.dump(self.vocab, open(os.path.join(self.save_data_dir, vocab_out), 'wb'))
         pickle.dump(self.idx2item, open(os.path.join(self.save_data_dir, idx2item_out), 'wb'))
         pickle.dump(self.item2idx, open(os.path.join(self.save_data_dir, item2idx_out), 'wb'))
-        print("build done")
+        logging.info("build done")
 
     def create_train_samp(self, user, item_target):
         sub_user = user[:item_target]
@@ -80,7 +81,7 @@ class Preprocess(object):
         return [self.item2idx[item] for item in sub_user], self.item2idx[target_item]
 
     def convert(self, filepath, savepath, train=False):
-        print("converting corpus...")
+        logging.info("converting corpus...")
         step = 0
         data = []
         usrs_len = []
@@ -89,7 +90,7 @@ class Preprocess(object):
             for line in file:
                 step += 1
                 if not step % 1000:
-                    print("working on {}kth line".format(step // 1000), end='\r')
+                    logging.info("working on {}kth line".format(step // 1000), end='\r')
                 line = line.strip()
                 if not line:
                     continue
@@ -108,9 +109,9 @@ class Preprocess(object):
 
         print("")
         pickle.dump(data, open(savepath, 'wb'))
-        print("conversion done")
-        print("num of users:", num_users)
-        print("max user:", max(usrs_len))
+        logging.info("conversion done")
+        logging.info("num of users:", num_users)
+        logging.info("max user:", max(usrs_len))
 
     def read_data(self, raw_file):
         user2data = {}
