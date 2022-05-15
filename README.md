@@ -19,15 +19,15 @@ dynamic representation
 ### Usage
 Raw input files must include user_id, item_id, date and rate_score. We trained the models on Movielens 1M,
 Netflix, Yahoo, Goodbooks, Moviesdat, Amazon Books and Amazon Beuty datasets. Preprocess parameters we used are
-configured at the json files in ```cnfg/```. If one would like to test modles on new dataset, he needs to create
-a proper json file.
-#### Train files generation
+configured at the json files in ```cnfg/``` folder. In case one would like to test the models on a new dataset, 
+he needs to create a proper json file.
+#### Training files generation
 ```python
 from dataset import generate_train_files
 generate_train_files('path/to/json/cnfg/file')
 ```
 #### Train
-Train one of the models based on a configuration file of hyper parameters values.
+Train one of the models based on a configuration file of hyper parameter values.
 ```bash
 python train.py --data_dir path/to/data/dir --data_cnfg path/to/json/cnfg --save_dir /path/to/model/saves/ \
 --cuda --device 0 --best_cnfg path/to/params/cnfg
@@ -35,9 +35,9 @@ python train.py --data_dir path/to/data/dir --data_cnfg path/to/json/cnfg --save
 ```
 #### Tune
 Tune one of the models hyper parameters on a specific dataset. This module finds the best configuration,
-trains the model on the full training set and saves the model file.
+trains the model on the full training set and saves the final model file (based on an early stop process).
 One can change the number of heads and attention blocks using the n_h and n_b args respectively. In order
-to learn an items' positional bias, configure --add_pos_bias. 
+to learn the items' positional bias, configure --add_pos_bias. 
 ```bash
 python hyper_param_tune.py --model ai2v --data_dir path/to/data/dir --data_cnfg path/to/json/cnfg \
 --save_dir /path/to/model/saves/ --trials 50 --num_workers 4 --cuda --device 0  \
