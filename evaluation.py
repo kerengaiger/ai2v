@@ -5,9 +5,6 @@ import pandas as pd
 import argparse
 from tqdm import tqdm
 import torch
-
-from scipy.stats import ttest_ind
-
 import os
 
 
@@ -87,17 +84,6 @@ def calc_attention(model, eval_set_lst, add_pos_bias, out_file):
         _, attention_weights = model.ai2v(batch_titems, batch_citems, mask_pad_ids=mask_pad_ids)
         lst.append(attention_weights[0][0].cpu().detach().numpy())
     pickle.dump(lst, open(out_file, 'wb'))
-
-
-def test_p_value(ai2v_file, i2v_file):
-    '''
-    :param ai2v_file: csv file containing u_id, item_id and the result of the tested metric, applied on ai2v model
-    :param i2v_file: csv file containing u_id, item_id and the result of the tested metric, applied on i2v model
-    :return: p_value of the paired_ttest between metric means of two models
-    '''
-    ai2v_pop = pd.read_csv(ai2v_file, header=None, names=['u_id', 'i_id', 'met'])
-    i2v_pop = pd.read_csv(i2v_file, header=None, names=['u_id', 'i_id', 'met'])
-    return ttest_ind(ai2v_pop['met'], i2v_pop['met'])[1]
 
 
 def main():
