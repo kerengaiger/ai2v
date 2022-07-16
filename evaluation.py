@@ -53,7 +53,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
     pbar = tqdm(eval_set_lst)
     model.eval()
     eval_set_df['pred_loc'] = np.nan
-    for i, (user_itemids, target_item) in enumerate(pbar):
+    for i, (usr_idx, user_itemids, target_item) in enumerate(pbar):
         items_ranked = model.inference(user_itemids).argsort()
         all_items = items_ranked[:][::-1]
         loc = np.where(all_items == target_item)[0][0] + 1
@@ -65,7 +65,7 @@ def predict(model, eval_set_lst, eval_set_df, out_file):
 def calc_attention(model, eval_set_lst, add_pos_bias, out_file):
     pbar = tqdm(eval_set_lst)
     lst = []
-    for i, (user_items, target_item) in enumerate(pbar):
+    for i, (usr_idx, user_items, target_item) in enumerate(pbar):
         if len(user_items) < model.ai2v.window_size:
             pad_times = model.ai2v.window_size - len(user_items)
             user_items = [model.ai2v.pad_idx] * pad_times + user_items
