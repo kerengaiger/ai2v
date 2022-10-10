@@ -176,7 +176,7 @@ class SGNS(nn.Module):
         train_loss = 0
 
         srt = datetime.datetime.now().replace(microsecond=0)
-        for batch_titems, batch_citems in pbar:
+        for batch_users, batch_titems, batch_citems in pbar:
             batch_titems, batch_citems = batch_titems.to(self.device), batch_citems.to(self.device)
             loss = sgns(batch_titems, batch_citems)
             train_loss += loss.item()
