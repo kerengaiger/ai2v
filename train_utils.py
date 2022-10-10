@@ -12,12 +12,15 @@ class UserBatchIncrementDataset(Dataset):
         data = pickle.load(datapath.open('rb'))
         self.pad_idx = pad_idx
         self.window_size = window_size
+        self.u_id_pos = 0
+        self.citems_pos = 1
+        self.titem_pos = 2
 
         if ws is not None:
             data_ws = []
-            for citems, titem in data:
+            for u_id, citems, titem in data:
                 if random.random() > ws[titem]:
-                    data_ws.append((citems, titem))
+                    data_ws.append((u_id, citems, titem))
             data = data_ws
         self.data = data
 
@@ -25,15 +28,15 @@ class UserBatchIncrementDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        len_samp = len(self.data[idx][0])
+        len_samp = len(self.data[idx][self.citems_pos])
         if self.window_size > len_samp:
             pad_times = self.window_size - len_samp
-            citems = [self.pad_idx] * pad_times + self.data[idx][0]
+            citems = [self.pad_idx] * pad_times + self.data[idx][self.citems_pos]
         else:
-            citems = self.data[idx][0][-self.window_size:]
-        titem = self.data[idx][1]
-        # citems = self.data[idx][0]
-        return titem, np.array(citems)
+            citems = self.data[idx][self.citems_pos][-self.window_size:]
+        titem = self.data[idx][self.titem_pos]
+        user_id = self.data[idx][self.u_id_pos]
+        return user_id, titem, np.array(citems)
 
 
 def configure_weights(cnfg, idx2item):
