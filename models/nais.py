@@ -85,9 +85,7 @@ class SGNS(nn.Module):
         self.loss_method = loss_method
 
     def similarity(self, batch_sub_users, batch_tvecs):
-        sim = t.diagonal(
-            t.bmm(batch_sub_users, batch_tvecs.view(batch_tvecs.shape[0], batch_tvecs.shape[2], -1)),
-            offset=0, dim1=-2, dim2=-1)
+        sim = t.einsum('ijk,ijk->ij', batch_sub_users, batch_tvecs)
         return sim
 
     def inference(self, user_items):
@@ -104,7 +102,7 @@ class SGNS(nn.Module):
         mask_pad_ids = citems == self.nais.pad_idx
         sub_users = self.nais(all_titems, citems, mask_pad_ids=mask_pad_ids)
         all_tvecs = self.nais.forward_t(all_titems)
-        sim = self.similarity(sub_users, all_tvecs, all_titems)
+        sim = self.similarity(sub_users, all_tvecs)
         return sim.squeeze(-1).squeeze(0).detach().cpu().numpy()
 
     def forward(self, batch_titems, batch_citems):
@@ -122,7 +120,7 @@ class SGNS(nn.Module):
         batch_sub_users = self.nais(batch_titems, batch_citems, mask_pad_ids)
         batch_tvecs = self.nais.forward_t(batch_titems)
 
-        sim = self.similarity(batch_sub_users, batch_tvecs, batch_titems)
+        sim = self.similarity(batch_sub_users, batch_tvecs)
 
         if self.loss_method == 'CCE':  # This option is the default option.
             soft = sim.softmax(dim=1) + 1e-6
