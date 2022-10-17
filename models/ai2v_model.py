@@ -122,8 +122,7 @@ class SGNS(nn.Module):
         #                                                 t.mul(batch_sub_users, batch_tvecs),
         #                                                 (batch_sub_users - batch_tvecs).abs()], 2)))) + \
         #     self.ai2v.b_l_j[batch_titem_ids].unsqueeze(2)
-        sim = t.bmm(batch_sub_users.view(batch_sub_users.shape[1], 1, -1),
-                    batch_tvecs.view(batch_tvecs.shape[1], -1, 1)).squeeze(-1).T
+        sim = t.einsum('ijk,ijk->ij', batch_sub_users, batch_tvecs)
         return sim + self.ai2v.b_l_j[batch_titem_ids]
 
     def inference(self, user_items):
